@@ -137,6 +137,7 @@ if (!$numrows) {
 
 ### TODO: CONSIDER ORPHANS HERE ?
 ### actually, maybe the coinbaser does this? not sure... need to catch it...
+### TODO: Non hardcoded path...
 $balx = file_get_contents("/var/lib/eligius/$serverid/blocks/latest.json");
 $balj = json_decode($balx,true);
 $latest = $balj[$givenuser];
@@ -150,32 +151,20 @@ $cec = $ec - $lec;
 $xbal = $bal - $cbal;
 $xec = $ec - $cec;
 
-$_COOKIE['a2_tbc'] = 0;
-setcookie("a2_tbc",0);
-
-
 if ($cbal > 0) { $cbalt = "+".prettySatoshis($cbal); }
 else { $cbalt = prettySatoshis($cbal); }
 if ($cec > 0) { $cect = "+".prettySatoshis($cec); }
 else { $cect = prettySatoshis($cec); }
-
-
 
 $xbal = prettySatoshis($xbal);
 $xec = prettySatoshis($xec);
 $bal = prettySatoshis($bal);
 $ec = prettySatoshis($ec);
 
-
 $titleprepend = "($bal) $givenuser - ";
 print_stats_top();
 
-
-#print "<A HREF=\"/~wizkid057/\">Back to main Stats page</A><BR>";
-
 print "<H2>$givenuser</H2>";
-
-#print "Data as of $datadate<BR>";
 print "<TABLE BORDER=1>";
 print "<TR><TD></TD><TD>Unpaid Balance</TD><TD>Extra Credit</TD></TR>";
 print "<TR><TD>As of last block*: </TD><TD>$xbal</TD><TD>$xec</TD></TR>";
@@ -184,32 +173,18 @@ print "<TR><TD>Estimated Total: </TD><TD>$bal</TD><TD>$ec</TD></TR>";
 print "</TABLE>";
 
 
-
-
-# get latest time in share aggregation database...
-#$sql = "select server,time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1;";
-#$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
-#$latesttime = $row["time"];
-
-
-
 # 3 hour hashrate
-#$sql = "select avg(COALESCE(hashrate,0)) as avghash from (select * from generate_series(to_timestamp((date_part('epoch', NOW()-'3 hours'::interval)::integer / 675) * 675), to_timestamp((date_part('epoch', NOW())::integer / 675) * 675), '675 seconds') as gtime) as gentime left join (select * from $psqlschema.stats_shareagg where user_id=$user_id) as dstats on (dstats.time = gentime.gtime)";
-#$sql = "select (sum(accepted_shares)*pow(2,32))/10800 as avghash from $psqlschema.stats_shareagg where server=$serverid and user_id=$user_id and time >= to_timestamp((date_part('epoch', NOW()-'3 hours'::interval)::integer / 675) * 675)";
 # FIX FOR BAD HASHRATE BUG 091512
 $sql = "select (sum(accepted_shares)*pow(2,32))/10800 as avghash from $psqlschema.stats_shareagg where server=$serverid and user_id=$user_id and time > to_timestamp((date_part('epoch', (select time from stats_shareagg where server=$serverid group by server,time order by time desc limit 1)-'3 hours'::interval)::integer / 675::integer) * 675::integer)";
 $result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
 $u16avghash = isset($row["avghash"])?$row["avghash"]:0;
 
 # 22.5 minute hashrate
-#$sql = "select avg(COALESCE(hashrate,0)) as avghash from (select * from generate_series(to_timestamp((date_part('epoch', NOW()-'1350 seconds '::interval)::integer / 675) * 675), to_timestamp((date_part('epoch', NOW())::integer / 675) * 675), '675 seconds') as gtime) as gentime left join (select * from $psqlschema.stats_shareagg where user_id=$user_id) as dstats on (dstats.time = gentime.gtime)";
-#$sql = "select (sum(accepted_shares)*pow(2,32))/1350 as avghash from $psqlschema.stats_shareagg where server=$serverid and user_id=$user_id and time >= to_timestamp((date_part('epoch', NOW())::integer / 675) * 675)-'1350 seconds'::interval";
 # FIX FOR BAD HASHRATE BUG 091512
 $sql = "select (sum(accepted_shares)*pow(2,32))/1350 as avghash from $psqlschema.stats_shareagg where server=$serverid and user_id=$user_id and time > to_timestamp((date_part('epoch', (select time from stats_shareagg where server=$serverid group by server,time order by time desc limit 1))::integer / 675::integer)::integer * 675::integer)-'1350 seconds'::interval";
 $result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
 $u2avghash = isset($row["avghash"])?$row["avghash"]:0;
 
-#print "<SMALL><I>Note: There is a known bug in these hashrate calculations which makes them show slightly lower than expected.  Rest assured that these stats have no impact on actual earnings and that I will fix this shortly!</i></SMALL><BR>";
 print "3 hour average hashrate: ".prettyHashrate($u16avghash)."<BR>\n";
 print "22.5 minute average hashrate: ".prettyHashrate($u2avghash)."<BR>\n";
 
@@ -223,50 +198,37 @@ if (isset($_GET["timemachine"])) {
 
 
 
-print "<div id=\"graphdiv2\"
-  style=\"width:750px; height:375px;\"></div>
-";
+print "<div id=\"graphdiv2\" style=\"width:750px; height:375px;\"></div>";
 
 if (!isset($_GET["timemachine"])) {
-
-print "<A HREF=\"?timemachine=1\">(Click for up to 60 days of hashrate data)</A><BR>";
-
+	print "<A HREF=\"?timemachine=1\">(Click for up to 60 days of hashrate data)</A><BR>";
 }
 
-print "<div id=\"graphdiv3\"
-  style=\"width:750px; height:375px;\"></div>
-<script type=\"text/javascript\">
+print "<div id=\"graphdiv3\" style=\"width:750px; height:375px;\"></div>";
+print "<script type=\"text/javascript\">
 
   g2 = new Dygraph(
     document.getElementById(\"graphdiv2\"),
-    \"$givenuser?cmd=hashgraph&start=0&back=$secondsback&res=1\", // path to CSV file
-   	{
-
-		strokeWidth: 2.25,
-
-		'675 seconds': { fillGraph: true, strokeWidth: 1.5 },
-      labelsDivStyles: { border: '1px solid black' },
-      title: 'Hashrate Graph ($givenuser)',
-      xlabel: 'Date',
-      ylabel: 'MH/sec'          // options
+    \"$givenuser?cmd=hashgraph&start=0&back=$secondsback&res=1\",
+   	{ strokeWidth: 2.25,
+	'675 seconds': { fillGraph: true, strokeWidth: 1.5 },
+	labelsDivStyles: { border: '1px solid black' },
+	title: 'Hashrate Graph ($givenuser)',
+	xlabel: 'Date',
+	ylabel: 'MH/sec'
 	}
   );
 
 
   g3 = new Dygraph(
     document.getElementById(\"graphdiv3\"),
-    \"$givenuser?cmd=balancegraph&start=0&back=604800&res=1\", // path to CSV file
-   
-
-	{
-
-		strokeWidth: 2.25,
-
-		fillGraph: true,
-      labelsDivStyles: { border: '1px solid black' },
-      title: 'Balance Graph ($givenuser)',
-      xlabel: 'Date',
-      ylabel: 'BTC'          // options
+    \"$givenuser?cmd=balancegraph&start=0&back=604800&res=1\",
+	{ strokeWidth: 2.25,
+	fillGraph: true,
+	labelsDivStyles: { border: '1px solid black' },
+	title: 'Balance Graph ($givenuser)',
+	xlabel: 'Date',
+	ylabel: 'BTC'
 	}
   );
 </script>

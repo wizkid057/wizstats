@@ -18,7 +18,7 @@
 
 function print_stats_top() {
 
-print("<HTML>
+	print("<HTML>
 <HEAD>
 <TITLE>".$GLOBALS["titleprepend"]."Eligius Pool Statistics".$GLOBALS["titleappend"]."</TITLE>
 <script type=\"text/javascript\" src=\"".$GLOBALS["urlprefix"]."dygraph-combined.js\"></script>
@@ -26,22 +26,23 @@ print("<HTML>
 </HEAD>
 <BODY BGCOLOR=\"#FFFFFF\" TEXT=\"#000000\" LINK=\"#0000FF\" VLINK=\"#0000FF\" ALINK=\"#FF0000\">
 <H2><A HREF=\"".$GLOBALS["urlprefix"]."\">Eligius Pool Statistics</A></H2>");
+
 }
 
 
 function print_stats_bottom() {
 
 
-print("<BR><HR>");
-print("<H3>MUCH MORE TO COME - PLEASE BE PATIENT</H3>
+	print("<BR><HR>");
+	print("<H3>MUCH MORE TO COME - PLEASE BE PATIENT</H3>
 <BR>
 Source code/bug submissions/feature requests: <A HREF=\"https://github.com/wizkid057/wizstats\">wizkid057/wizstats on github</A><BR>
 I'm working as quickly as I can to get these stats much more useful and presentable, but it is a time consuming process.<BR>
 Any donations will help me dedicate more time to development and would be greatly appreciated: <B><I>1Stats</I>gBq3C8PbF1SJw487MEUHhZahyvR</B><BR><BR>
 Thanks for using the new stats!<bR>
-<I>-wizkid057</I><BR>
-");
-print("<A HREF=\"".$GLOBALS["urlprefix"]."\">&lt;-- Back to Main Stats Page</A>");
-print("</BODY></HTML>");
+<I>-wizkid057</I><BR>");
+
+	print("<A HREF=\"".$GLOBALS["urlprefix"]."\">&lt;-- Back to Main Stats Page</A>");
+	print("</BODY></HTML>");
 
 }

@@ -17,7 +17,7 @@
 
 
 require_once 'config.php';
-$link = pg_Connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");
+if (!isset($link)) { $link = pg_Connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost"); }
 
 if (!isset($subcall)) {
 	$titleprepend = "Block List - ";
@@ -26,20 +26,17 @@ if (!isset($subcall)) {
 
 if (isset($blocklimit)) {
 	$blim = "limit $blocklimit";
-} else { 
-	$blim = ""; 
+} else {
+	$blim = "";
 }
 
 
-
-#$sql = "select *,NOW()-time as age,time-roundstart as duration from wizkid057.stats_blocks left join users on user_id=users.id order by time desc;";
 $sql = "select *,date_part('epoch', NOW())::integer-date_part('epoch', time)::integer as age,date_part('epoch', time)::integer-date_part('epoch', roundstart)::integer as duration from wizkid057.stats_blocks left join users on user_id=users.id order by time desc $blim;";
 $result = pg_exec($link, $sql);
 $numrows = pg_numrows($result);
 
 
 print "<TABLE CLASS=\"blocklist\">";
-
 print "<TR CLASS=\"blocklistheader\">";
 print "<TD>Age</TD>";
 print "<TD>Round Start</TD>";
@@ -75,12 +72,12 @@ for($ri = 0; $ri < $numrows; $ri++) {
 	if ($row["confirmations"] == 0) { print "<TR BGCOLOR=\"#FFDFDF\" class=\"$isodd"."blockorphan\">"; } 
 	else if ($row["confirmations"] >= 120) { print "<TR BGCOLOR=\"#DFFFDF\" class=\"$isodd"."blockconfirmed\">"; }
 	else { print "<TR class=\"$isodd\">"; }
+
 	print "<TD>".prettyDuration($row["age"],false,1)."</TD>";
 
 
 
 	print "<TD>".$roundstart."</TD>";
-	#print "<TD>".($row["duration"]>0?prettyDurationshort($row["duration"],false,1):"")."</TD>";
 
 	if (isset($row["duration"])) {
 		list($seconds, $minutes, $hours) = extractTime($row["duration"]);
@@ -90,12 +87,14 @@ for($ri = 0; $ri < $numrows; $ri++) {
 	}
 
 	print "<TD style=\"text-align: right;\">".$row["acceptedshares"]."</TD>";
+
 	if (isset($row["rejectedshares"])) {
 		$rper = "<SMALL>(".round(  (($row["rejectedshares"]/($row["rejectedshares"]+$row["acceptedshares"])) *100) ,2)."%)</SMALL>";
 		print "<TD style=\"text-align: right;\">".$row["rejectedshares"]."</TD><TD style=\"text-align: right;\">".$rper."</TD>";
 	} else {
 		print "<TD colspan=\"2\" style=\"text-align: right;\">n/a</TD>";
 	}
+
 	print "<TD style=\"text-align: right;\">".sprintf("%.3e",round($row["network_difficulty"],4))."</TD>";
 	print "<TD style=\"text-align: right;\">".$luck."</TD>";
 	print "<TD style=\"text-align: right;\">".$confs."</TD>";
@@ -117,9 +116,7 @@ for($ri = 0; $ri < $numrows; $ri++) {
 	print "<TD style=\"text-align: right;\">$ht</TD>";
 
 	$nicehash = "...".substr($row["blockhash"],40,24);
-	#print "<TD>".$row["blockhash"]."</TD>";
 	print "<TD><A HREF=\"http://blockchain.info/block/".$row["blockhash"]."\">".$nicehash."</A></TD>";
-
 	print "</TR>";
 
 }

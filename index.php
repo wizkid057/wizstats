@@ -20,6 +20,7 @@ include("config.php");
 print_stats_top();
 
 ?>
+
 <SMALL>Donations to stats development: <B>1Stats</B>gBq3C8PbF1SJw487MEUHhZahyvR</SMALL>
 <BR><BR>
 <B>NOTE: THESE PAGES ARE A WORK IN PROGRESS.  PLEASE REPORT ANY ISSUES TO <I>wizkid057 at gmail.com</I>.</B>
@@ -32,63 +33,63 @@ For example, <A HREF="http://eligius.st/~wizkid057/newstats/userstats.php/1EXfBq
 <BR><BR>
 <BR>
 Last 8 blocks<BR>
-<?php 
-$blocklimit = 8;
-$subcall = 1;
-include("blocks.php"); 
+
+<?php
+	# Display partial block list on main page
+	$blocklimit = 8;
+	$subcall = 1;
+	include("blocks.php");
 ?>
 
 
 <?php
-$linkindex = pg_Connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");
+
+	# Pool mostly instant hashrate
+
+	$linkindex = pg_Connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");
 
 
-$sql = "select ((select id from shares where server=$serverid and time < (select time from stats_shareagg where server=$serverid order by id desc limit 1) order by id desc limit 1)-(select orig_id-rightrejects from stats_blocks where server=$serverid order by id desc limit 1)-(select sum(rejected_shares) from stats_shareagg where time >= (select to_timestamp((date_part('epoch', time)::integer / 675::integer)::integer * 675::integer) from stats_blocks where server=$serverid order by id desc limit 1))+(select count(*) from shares where server=$serverid and our_result=true and id > (select id from shares where server=$serverid and time < (select time from stats_shareagg where server=$serverid order by id desc limit 1) order by id desc limit 1))) as currentround;";
-$result = pg_exec($linkindex, $sql); $row = pg_fetch_array($result, 0);
-$roundshares = $row["currentround"];
+	$sql = "select ((select id from shares where server=$serverid and time < (select time from stats_shareagg where server=$serverid order by id desc limit 1) order by id desc limit 1)-(select orig_id-rightrejects from stats_blocks where server=$serverid order by id desc limit 1)-(select sum(rejected_shares) from stats_shareagg where time >= (select to_timestamp((date_part('epoch', time)::integer / 675::integer)::integer * 675::integer) from stats_blocks where server=$serverid order by id desc limit 1))+(select count(*) from shares where server=$serverid and our_result=true and id > (select id from shares where server=$serverid and time < (select time from stats_shareagg where server=$serverid order by id desc limit 1) order by id desc limit 1))) as currentround;";
+	$result = pg_exec($linkindex, $sql); $row = pg_fetch_array($result, 0);
+	$roundshares = $row["currentround"];
 
-$sql = "select (sum(accepted_shares)*pow(2,32))/1350 as avghash from $psqlschema.stats_shareagg where server=$serverid and time > to_timestamp((date_part('epoch', (select time from stats_shareagg where server=$serverid group by server,time order by time desc limit 1))::integer / 675::integer)::integer * 675::integer)-'1350 seconds'::interval";
-$result = pg_exec($linkindex, $sql); $row = pg_fetch_array($result, 0);
-$hashrate1250 = $row["avghash"];
+	$sql = "select (sum(accepted_shares)*pow(2,32))/1350 as avghash from $psqlschema.stats_shareagg where server=$serverid and time > to_timestamp((date_part('epoch', (select time from stats_shareagg where server=$serverid group by server,time order by time desc limit 1))::integer / 675::integer)::integer * 675::integer)-'1350 seconds'::interval";
+	$result = pg_exec($linkindex, $sql); $row = pg_fetch_array($result, 0);
+	$hashrate1250 = $row["avghash"];
 
-$sql = "select (sum(accepted_shares)*pow(2,32))/10800 as avghash from $psqlschema.stats_shareagg where server=$serverid and time > to_timestamp((date_part('epoch', (select time from stats_shareagg where server=$serverid group by server,time order by time desc limit 1))::integer / 675::integer)::integer * 675::integer)-'3 hours'::interval";
-$result = pg_exec($linkindex, $sql); $row = pg_fetch_array($result, 0);
-$hashrate3hr = $row["avghash"];
+	$sql = "select (sum(accepted_shares)*pow(2,32))/10800 as avghash from $psqlschema.stats_shareagg where server=$serverid and time > to_timestamp((date_part('epoch', (select time from stats_shareagg where server=$serverid group by server,time order by time desc limit 1))::integer / 675::integer)::integer * 675::integer)-'3 hours'::interval";
+	$result = pg_exec($linkindex, $sql); $row = pg_fetch_array($result, 0);
+	$hashrate3hr = $row["avghash"];
 
-print "<BR>Current pool hashrate: ".prettyHashrate($hashrate1250)." (3 hour average: ".prettyHashrate($hashrate3hr).")<BR>";
-print "Accepted shares submitted since our last block: $roundshares<BR>";
+	print "<BR>Current pool hashrate: ".prettyHashrate($hashrate1250)." (3 hour average: ".prettyHashrate($hashrate3hr).")<BR>";
+	print "Accepted shares submitted since our last block: $roundshares<BR>";
+
 ?>
 
-<div id="graphdiv3"
-  style="width:95%; height:375px;"></div>
+<div id="graphdiv3" style="width:95%; height:375px;"></div>
 <script type="text/javascript">
   g2 = new Dygraph(
     document.getElementById("graphdiv3"),
-    "poolhashrategraph.php", // path to CSV file
-   	{
-
-		strokeWidth: 2.25,
-
-		'hashrate': {fillGraph: true },
-      labelsDivStyles: { border: '1px solid black' },
-      title: 'Eligius-Ra Hashrate Graph',
-      xlabel: 'Date',
-      ylabel: 'GH/sec'          // options
+    "poolhashrategraph.php",
+   	{ strokeWidth: 2.25,
+	'hashrate': {fillGraph: true },
+	labelsDivStyles: { border: '1px solid black' },
+	title: 'Eligius-Ra Hashrate Graph',
+	xlabel: 'Date',
+	ylabel: 'GH/sec'
 	}
   );
 </script>
 
 Top Miners (3 hr rate) <A HREF="topcontributors.php">(Full)</A><BR>
-<?php $minilimit = "limit 10"; include("topcontributors.php"); ?>
 
-<!--<H3>MUCH MORE TO COME - PLEASE BE PATIENT</H3>
+<?php 
+	# Display partial contributor list on main page
+	$minilimit = "limit 10"; 
+	include("topcontributors.php"); 
+?>
 
-<BR><BR>
-I'm working as quickly as I can to get these stats much more useful and presentable, but it is a time consuming process.<BR>
-Please, any donations will help further development and would be greatly appreciated: <B>17RGKaQHSC882xpB84MEA7i52zbwh9AFkR</B><BR><BR>
-Thanks for using the new stats!<bR>
-<I>-wizkid057</I>-->
-
-
-
-<?php print_stats_bottom(); ?>
+<?php 
+	# stats footer
+	print_stats_bottom(); 
+?>

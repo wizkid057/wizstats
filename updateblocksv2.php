@@ -40,10 +40,7 @@ for($ri = 0; $ri < $numrows; $ri++) {
         $blockhash = hash("sha256",hash("sha256",$blockhash,true));
         $blockhash = revhex($blockhash);
 
-	#print "$blockhash\n";
-
 	$getblockjson = "{\"method\":\"getblock\", \"id\":\"1\", \"params\":[\"$blockhash\"]}";
-
 	$getblock = my_curl_request($bitcoinrpcurl, $getblockjson);
 
 	$height = 0;
@@ -62,7 +59,6 @@ for($ri = 0; $ri < $numrows; $ri++) {
 			print "ORPHAN $blockhash\n";
 		} else {
 			print "GOOD   $blockhash ($confs confs) HEIGHT: $height\n";
-			#$dome = 1;
 		}
 
 
@@ -84,7 +80,6 @@ for($ri = 0; $ri < $numrows; $ri++) {
 
 		# fix 090712 - was counting back to orphans...
 		$sql = "select * from $psqlschema.stats_blocks where orig_id < $orig_id and confirmations > 0 and server=$server order by time desc limit 1";
-
 		print "SQL1: $sql\n";
 
 		$result2 = pg_exec($link2, $sql);
@@ -149,22 +144,10 @@ for($ri = 0; $ri < $numrows; $ri++) {
 		$prshares = $leftrejects + $farleftrejects + $lastrightrejects;
 		print "Rejected agg count: $prshares\n";
 
-
-		### FIGURED OUT!
-		### NEED TO FIGURE THIS OUT.... need to store a more available reject count around blocks...
-		#$sql = "select count(*) as roundrejects from public.shares where server=$server and our_result!=true and id > $orig_id2 and id <= $orig_id";
-		#print "SQL2: $sql ; \n";
-		#print "Prev ID: $orig_id2 - ";
-		#$result2 = pg_exec($link2, $sql);
-		#$row2 = pg_fetch_array($result2, 0);
-		#$rejectcount = $row2["roundrejects"];
-
 		$rejectcount = $prshares;
-
 
 		print "--- Total Shares: $sharecount minus $rejectcount Rejects = ".($sharecount - $rejectcount)."\n";
 		$accepted = ($sharecount - $rejectcount);
-
 
 		$addupdate = ", roundstart='$roundstart', acceptedshares=$accepted, rejectedshares=$rejectcount ";
 		$sql = "update $psqlschema.stats_blocks set roundstart='$roundstart', acceptedshares=$accepted, rejectedshares=$rejectcount,leftrejects=$leftrejects where id=$id";

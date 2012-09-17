@@ -27,7 +27,6 @@ $numrows = pg_numrows($result);
 
 
 print "date,hashrate,hashrate3hr,hashrate12hr\n";
-#print "date,hashrate\n";
 
 header("Content-type: text/csv");
 
