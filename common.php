@@ -35,6 +35,7 @@ function print_stats_bottom() {
 print("<BR><HR>");
 print("<H3>MUCH MORE TO COME - PLEASE BE PATIENT</H3>
 <BR>
+Source code/bug submissions/feature requests: <A HREF=\"https://github.com/wizkid057/wizstats\">wizkid057/wizstats on github</A><BR>
 I'm working as quickly as I can to get these stats much more useful and presentable, but it is a time consuming process.<BR>
 Any donations will help me dedicate more time to development and would be greatly appreciated: <B><I>1Stats</I>gBq3C8PbF1SJw487MEUHhZahyvR</B><BR><BR>
 Thanks for using the new stats!<bR>
