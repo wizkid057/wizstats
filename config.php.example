@@ -1,0 +1,44 @@
+<?php
+#    wizstats - bitcoin pool web statistics
+#    Copyright (C) 2012  Jason Hughes <wizkid057@gmail.com>
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+
+include("utils.php");
+include("lib.util.php");
+include("common.php");
+
+$pooldatadir = "/var/lib/eligius";
+
+$psqluser = "psql username";
+$psqlpass = "psql password";
+$psqlhost = "localhost";
+$psqldb = "psql database name";
+
+$psqlschema = "psql schema";
+
+# Hard coded for now, eveuntually full multipool support if desired with little effort
+$serverid = 7;
+
+# Must have trailing / !!!
+$urlprefix = "/~wizkid057/newstats/";
+
+# bitcoin rpc url
+$bitcoinrpcurl = "http://x:x@127.0.0.1:8333/";
+
+
+
+?>
