@@ -1,0 +1,50 @@
+/*
+    wizstats - bitcoin pool web statistics
+    Copyright (C) 2012  Jason Hughes <wizkid057@gmail.com>
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+table.blocklist {font: 75% "Lucida Grande", "Lucida Sans Unicode", "Trebuchet MS", sans-serif;padding: 0; margin: 0; border-collapse: collapse; color: #333; background: #F3F5F7; border: 2px solid #555555; border-bottom: 2px solid #555555; }
+
+table.blocklist a {color: #3A4856; text-decoration: none; border-bottom: 1px solid #C6C8CB;}  
+
+table.blocklist a:visited {color: #777;}
+
+table.blocklist a:hover {color: #000088;}  
+
+table.blocklist thead th {background: #3A4856; padding: 15px 10px; color: #fff; text-align: left; font-weight: normal;}
+
+table.blocklist tbody {border-bottom: 1px solid #EAECEE;}
+                      
+table.blocklist tbody td, table tbody th {padding: 2px; text-align: left;}
+
+table.blocklist tbody tr.blocklistheader {background: #e3e5ff; border-bottom: 1px solid #000000; }
+
+table.blocklist tbody tr.blocklistheader td {background: #e3e5ff; border-right: 1px solid #000000; }
+
+table.blocklist tbody tr {background: #e3e5e7;}
+
+table.blocklist tbody tr.odd {background: #d0d2d4;}
+
+table.blocklist tbody tr.blockorphan {background: #eFe5e7;}
+
+table.blocklist tbody tr.oddblockorphan {background: #dCd2d4;}
+
+table.blocklist tbody tr.blockconfirmed {background: #e3eFe7;}
+
+table.blocklist tbody tr.oddblockconfirmed {background: #d0dCd4;}
+
+table.blocklist tbody  tr:hover {background: #EAECEE; color: #111;}
+
