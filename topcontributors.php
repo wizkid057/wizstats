@@ -30,8 +30,9 @@ if (!isset($subcall)) {
 	print_stats_top();
 }
 
-print "<TABLE BORDER=1>";
+print "<TABLE BORDER=1 class=\"contributors\">";
 
+$oe = 0;
 
 for($ri = 0; $ri < $numrows; $ri++) {
 	$row = pg_fetch_array($result, $ri);
@@ -44,7 +45,9 @@ for($ri = 0; $ri < $numrows; $ri++) {
 		$address = "(Unknown user)";
 	}
 
-	print "<TR><TD>$address</TD><TD>$phash</TD></TR>";
+	if ($oe == 1) { $oclass = "class=\"odd\""; $oe = 0; } else { $oclass = ""; $oe = 1; }
+
+	print "<TR $oclass><TD>$address</TD><TD>$phash</TD></TR>";
 }
 print "</TABLE>";
 
