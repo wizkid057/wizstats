@@ -20,9 +20,9 @@ table.contributors {font: 100% "Lucida Grande", "Lucida Sans Unicode", "Trebuche
 
 table.contributors a {color: #3A4856; text-decoration: none; border-bottom: 1px solid #C6C8CB;}  
 
-table.contributors a:visited {color: #777;}
+table.contributors a:visited { color: #3A4856; }
 
-table.contributors a:hover {color: #000088;}  
+table.contributors a:hover { color: #000088; }  
 
 table.contributors thead th {background: #3A4856; padding: 15px 10px; color: #fff; text-align: left; font-weight: normal;}
 
