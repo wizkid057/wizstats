@@ -52,8 +52,6 @@ for($ri = 0; $ri < $numrows; $ri++) {
 	$tpercent = (($row["avghash"] / $poolhashrate3hr) * 100);
 	$tpercent = round($tpercent,4);
 
-	#$tpercent = "((".$row["avghash"]." / $poolhashrate3hr) * 100);";
-
 	if (isset($row['keyhash'])) {
                 $address =  \Bitcoin::hash160ToAddress(bits2hex($row['keyhash']));
 		$address = "<A HREF=\"userstats.php/$address\">$address</A>";
