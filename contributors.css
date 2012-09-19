@@ -16,7 +16,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-table.contributors {font: 100% "Lucida Grande", "Lucida Sans Unicode", "Trebuchet MS", sans-serif;padding: 0; margin: 0; border-collapse: collapse; color: #333; background: #F3F5F7; border: 2px solid #555555; border-bottom: 2px solid #555555; }
+table.contributors {font: 90% "Lucida Grande", "Lucida Sans Unicode", "Trebuchet MS", sans-serif;padding: 0; margin: 0; border-collapse: collapse; color: #333; background: #F3F5F7; border: 2px solid #555555; border-bottom: 2px solid #555555; }
 
 table.contributors a {color: #3A4856; text-decoration: none; border-bottom: 1px solid #C6C8CB;}  
 
@@ -30,7 +30,16 @@ table.contributors tbody {border-bottom: 1px solid #EAECEE;}
                       
 table.contributors tbody td, table tbody th {padding: 2px; text-align: left;}
 
+table.contributors tbody tr.contribhead {background: #e3e5ff; border-bottom: 1px solid #000000; }
+table.contributors tbody tr.contribhead td { text-align: center; text-shadow: 0.05em 0.05em #333; font-weight:bold; }
+
 table.contributors tbody tr {background: #e3e5e7;}
+
+table.contributors tbody tr td.rank { text-align: right; }
+table.contributors tbody tr td.hash { text-align: right; }
+table.contributors tbody tr td.shares { text-align: right; }
+table.contributors tbody tr td.percent { text-align: right; }
+
 
 table.contributors tbody tr.odd {background: #d0d2d4;}
 

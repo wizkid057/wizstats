@@ -32,7 +32,7 @@ table.blocklist tbody td, table tbody th {padding: 2px; text-align: left;}
 
 table.blocklist tbody tr.blocklistheader {background: #e3e5ff; border-bottom: 1px solid #000000; }
 
-table.blocklist tbody tr.blocklistheader td {background: #e3e5ff; border-right: 1px solid #000000; }
+table.blocklist tbody tr.blocklistheader td {background: #e3e5ff; border-right: 1px solid #000000; text-shadow: 0.05em 0.05em #333; font-weight:bold; }
 
 table.blocklist tbody tr {background: #e3e5e7;}
 

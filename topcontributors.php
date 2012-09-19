@@ -21,7 +21,14 @@ require_once 'config.php';
 
 if (!isset($link)) { $link = pg_Connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost"); }
 
-$sql = "select (sum(accepted_shares)*pow(2,32))/10800 as avghash,keyhash from stats_shareagg left join users on user_id=users.id where server=$serverid and time > to_timestamp((date_part('epoch', (select time from stats_shareagg where server=$serverid group by server,time order by time desc limit 1)-'3 hours'::interval)::integer / 675) * 675) and accepted_shares > 0 group by keyhash order by avghash desc $minilimit;";
+
+# get total pool hashrate
+$sql = "select (sum(accepted_shares)*pow(2,32))/10800 as avghash from $psqlschema.stats_shareagg where server=$serverid and time > to_timestamp((date_part('epoch', (select time from stats_shareagg where server=$serverid group by server,time order by time desc limit 1))::integer / 675::integer)::integer * 675::integer)-'3 hours'::interval";
+$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
+$poolhashrate3hr = $row["avghash"];
+
+
+$sql = "select (sum(accepted_shares)*pow(2,32))/10800 as avghash, sum(accepted_shares) as sharecount, keyhash from stats_shareagg left join users on user_id=users.id where server=$serverid and time > to_timestamp((date_part('epoch', (select time from stats_shareagg where server=$serverid group by server,time order by time desc limit 1)-'3 hours'::interval)::integer / 675) * 675) and accepted_shares > 0 group by keyhash order by avghash desc $minilimit;";
 $result = pg_exec($link, $sql);
 $numrows = pg_numrows($result);
 
@@ -32,11 +39,20 @@ if (!isset($subcall)) {
 
 print "<TABLE BORDER=1 class=\"contributors\">";
 
+print "<TR class=\"contribhead\"><TD>Rank</TD><TD>Address</TD><TD>3-hr Avg Hashrate</TD><TD>3-hr Shares</TD><TD>Percentage of Pool</TD></TR>";
+
 $oe = 0;
+
+$rank = 1;
 
 for($ri = 0; $ri < $numrows; $ri++) {
 	$row = pg_fetch_array($result, $ri);
 	$phash = prettyHashrate($row["avghash"]);
+
+	$tpercent = (($row["avghash"] / $poolhashrate3hr) * 100);
+	$tpercent = round($tpercent,4);
+
+	#$tpercent = "((".$row["avghash"]." / $poolhashrate3hr) * 100);";
 
 	if (isset($row['keyhash'])) {
                 $address =  \Bitcoin::hash160ToAddress(bits2hex($row['keyhash']));
@@ -47,7 +63,10 @@ for($ri = 0; $ri < $numrows; $ri++) {
 
 	if ($oe == 1) { $oclass = "class=\"odd\""; $oe = 0; } else { $oclass = ""; $oe = 1; }
 
-	print "<TR $oclass><TD>$address</TD><TD>$phash</TD></TR>";
+	$meshares = $row["sharecount"];
+
+	print "<TR $oclass><TD class=\"rank\">#$rank</TD><TD>$address</TD><TD class=\"hash\">$phash</TD><TD class=\"shares\">$meshares</TD><TD class=\"percent\">$tpercent%</TD></TR>";
+	$rank++;
 }
 print "</TABLE>";
 
