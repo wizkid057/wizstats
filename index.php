@@ -16,7 +16,10 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 include("config.php");
+$bodytags = "onLoad=\"countShares();\"";
 
+# TEMPORARY UNTIL SHARE COUNTER IS FIXED UP
+$headextras = "<meta http-equiv=\"refresh\" content=\"675\">";
 print_stats_top();
 
 ?>
@@ -24,7 +27,6 @@ print_stats_top();
 <SMALL>Donations to stats development: <B>1Stats</B>gBq3C8PbF1SJw487MEUHhZahyvR</SMALL>
 <BR><BR>
 <B>NOTE: THESE PAGES ARE A WORK IN PROGRESS.  PLEASE REPORT ANY ISSUES TO <I>wizkid057 at gmail.com</I>.</B>
-<BR>NOTE: 09/15/12: Greetings, Eligius Miners!  I've not forgotten about these stats!  Theres still a little bit of backend/bugfix stuff to be done, but, I knocked out most of the major stuff this afternoon.  You will notice that your hashrates are now correctly reported and that the pool hashrate and such is also correct and reported.  We also have a current round share counter now.  Lots more to come! :)<BR><BR>
 <BR><BR>
 Use http://eligius.st/~wizkid057/newstats/userstats.php/[your miner address] for individual stats.<BR>
 For example, <A HREF="http://eligius.st/~wizkid057/newstats/userstats.php/1EXfBqvLTyFbL6Dr5CG1fjxNKEPSezg7yF">http://eligius.st/~wizkid057/newstats/userstats.php/1EXfBqvLTyFbL6Dr5CG1fjxNKEPSezg7yF</A>
@@ -62,7 +64,7 @@ Last 8 blocks<BR>
 	$hashrate3hr = $row["avghash"];
 
 	print "<BR>Current pool hashrate: ".prettyHashrate($hashrate1250)." (3 hour average: ".prettyHashrate($hashrate3hr).")<BR>";
-	print "Accepted shares submitted since our last block: $roundshares<BR>";
+	print "<div id=\"sharecounter\">Accepted shares submitted since our last block: $roundshares</div><BR>";
 
 ?>
 
@@ -91,5 +93,21 @@ Top Miners (3 hr rate) <A HREF="topcontributors.php">(Full)</A><BR>
 
 <?php 
 	# stats footer
+
+	# TEMPORARY - super inaccurate share counter... replace with more accurate one soon
+
+	$sharespersec = ($hashrate3hr/4294967296)/20;
+
+	$afterbodyextras = "<script language=\"javascript\">
+        var intCountShares = $roundshares;
+        function countShares()
+        {
+                intCountShares += $sharespersec;
+                sharecounter.innerHTML = 'Accepted shares submitted since our last block: ' + Math.round(intCountShares) + ' (Est)';
+                setTimeout(\"countShares()\",50);
+        }
+        </script>";
+
+
 	print_stats_bottom(); 
 ?>

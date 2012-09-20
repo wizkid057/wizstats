@@ -22,10 +22,12 @@ function print_stats_top() {
 <HEAD>
 <TITLE>".$GLOBALS["titleprepend"]."Eligius Pool Statistics".$GLOBALS["titleappend"]."</TITLE>
 <script type=\"text/javascript\" src=\"".$GLOBALS["urlprefix"]."dygraph-combined.js\"></script>
+<script type=\"text/javascript\" src=\"".$GLOBALS["urlprefix"]."jquery.js\"></script>
 <link rel=\"stylesheet\" href=\"blocklist.css\" type=\"text/css\">
 <link rel=\"stylesheet\" href=\"contributors.css\" type=\"text/css\">
+".$GLOBALS["headextras"]."
 </HEAD>
-<BODY BGCOLOR=\"#FFFFFF\" TEXT=\"#000000\" LINK=\"#0000FF\" VLINK=\"#0000FF\" ALINK=\"#FF0000\">
+<BODY BGCOLOR=\"#FFFFFF\" TEXT=\"#000000\" LINK=\"#0000FF\" VLINK=\"#0000FF\" ALINK=\"#FF0000\" ".$GLOBALS["bodytags"].">
 <H2><A HREF=\"".$GLOBALS["urlprefix"]."\">Eligius Pool Statistics</A></H2>");
 
 }
@@ -44,6 +46,6 @@ Thanks for using the new stats!<bR>
 <I>-wizkid057</I><BR>");
 
 	print("<A HREF=\"".$GLOBALS["urlprefix"]."\">&lt;-- Back to Main Stats Page</A>");
-	print("</BODY></HTML>");
+	print("</BODY>".$GLOBALS["afterbodyextras"]."</HTML>");
 
 }
