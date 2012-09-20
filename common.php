@@ -18,16 +18,22 @@
 
 function print_stats_top() {
 
+	$localtitleprepend = ""; $localtitleappend = ""; $localheadextras = ""; $localbodytags = "";
+	if (isset($GLOBALS["titleprepend"])) { $localtitleprepend = $GLOBALS["titleprepend"]; }
+	if (isset($GLOBALS["titleappend"])) { $localtitleappend = $GLOBALS["titleappend"]; }
+	if (isset($GLOBALS["headextras"])) { $localheadextras = $GLOBALS["headextras"]; }
+	if (isset($GLOBALS["bodytags"])) { $localbodytags = $GLOBALS["bodytags"]; }
+
 	print("<HTML>
 <HEAD>
-<TITLE>".$GLOBALS["titleprepend"]."Eligius Pool Statistics".$GLOBALS["titleappend"]."</TITLE>
+<TITLE>".$localtitleprepend."Eligius Pool Statistics".$localtitleappend."</TITLE>
 <script type=\"text/javascript\" src=\"".$GLOBALS["urlprefix"]."dygraph-combined.js\"></script>
 <script type=\"text/javascript\" src=\"".$GLOBALS["urlprefix"]."jquery.js\"></script>
 <link rel=\"stylesheet\" href=\"blocklist.css\" type=\"text/css\">
 <link rel=\"stylesheet\" href=\"contributors.css\" type=\"text/css\">
-".$GLOBALS["headextras"]."
+".$localheadextras."
 </HEAD>
-<BODY BGCOLOR=\"#FFFFFF\" TEXT=\"#000000\" LINK=\"#0000FF\" VLINK=\"#0000FF\" ALINK=\"#FF0000\" ".$GLOBALS["bodytags"].">
+<BODY BGCOLOR=\"#FFFFFF\" TEXT=\"#000000\" LINK=\"#0000FF\" VLINK=\"#0000FF\" ALINK=\"#FF0000\" ".$localbodytags.">
 <H2><A HREF=\"".$GLOBALS["urlprefix"]."\">Eligius Pool Statistics</A></H2>");
 
 }
@@ -35,6 +41,8 @@ function print_stats_top() {
 
 function print_stats_bottom() {
 
+	$localafterbodyextras = "";
+	if (isset($GLOBALS["afterbodyextras"])) { $localafterbodyextras = $GLOBALS["afterbodyextras"]; }
 
 	print("<BR><HR>");
 	print("<H3>MUCH MORE TO COME - PLEASE BE PATIENT</H3>
@@ -46,6 +54,6 @@ Thanks for using the new stats!<bR>
 <I>-wizkid057</I><BR>");
 
 	print("<A HREF=\"".$GLOBALS["urlprefix"]."\">&lt;-- Back to Main Stats Page</A>");
-	print("</BODY>".$GLOBALS["afterbodyextras"]."</HTML>");
+	print("</BODY>".$localafterbodyextras."</HTML>");
 
 }
