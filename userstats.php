@@ -85,13 +85,15 @@ if (isset($_GET["cmd"])) {
 
 		$an = 0;
 		$an2 = 0;
+		$lav = 0;
 
 		for($i=0;$i<64;$i++) { $ta[$i] = 0; $ta2[$i] = 0; }
 		for($i=0;$i<128;$i++) { $lagavg3[$i] = 0; $lagavg12[$i] = 0; }
 
+
 		for($ri = 0; $ri < $numrows+32; $ri++) {
-			$row = pg_fetch_array($result, $ri);
 			if ($ri < $numrows) {
+				$row = pg_fetch_array($result, $ri);
 				$ta[$an] = $row["hashrate"]; $an++; if ($an == 16) { $an = 0; } $av = 0; for($i=0;$i<16;$i++) { $av += $ta[$i]; } if ($ri > 16) {	$av = $av / 16; } else { $av = ""; }
 				$ta2[$an2] = $row["hashrate"]; $an2++; if ($an2 == 64) { $an2 = 0; } $av2 = 0; for($i=0;$i<64;$i++) { $av2 += $ta2[$i]; } if ($ri > 64) {	$av2 = $av2 / 64; } else { $av2 = ""; }
 				list($datex) = explode("+", $row["gtime"]);
@@ -103,7 +105,9 @@ if (isset($_GET["cmd"])) {
 				$lagavg12[$lav] = "";
 			}
 			if ($ri > 64) {
-				$lagavg675[$lav] = $datex.",".round($row["hashrate"]/1000000,2);
+				if (isset($row)) {
+					$lagavg675[$lav] = $datex.",".round($row["hashrate"]/1000000,2);
+				}
 				if ($ri > 64+32) {
 
 					$lavx = $lav - 32; if ($lavx < 0) { $lavx+=128; }
