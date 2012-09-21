@@ -26,9 +26,11 @@ function print_stats_top() {
 
 	print("<HTML>
 <HEAD>
+<meta http-equiv=\"X-UA-Compatible\" content=\"IE=EmulateIE7; IE=EmulateIE9\">
 <TITLE>".$localtitleprepend."Eligius Pool Statistics".$localtitleappend."</TITLE>
 <script type=\"text/javascript\" src=\"".$GLOBALS["urlprefix"]."dygraph-combined.js\"></script>
 <script type=\"text/javascript\" src=\"".$GLOBALS["urlprefix"]."jquery.js\"></script>
+<!--[if IE]><script type=\"text/javascript\" src=\"".$GLOBALS["urlprefix"]."excanvas.js\"></script><![endif]-->
 <link rel=\"stylesheet\" href=\"blocklist.css\" type=\"text/css\">
 <link rel=\"stylesheet\" href=\"contributors.css\" type=\"text/css\">
 ".$localheadextras."
