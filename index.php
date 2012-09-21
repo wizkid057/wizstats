@@ -24,7 +24,7 @@ print_stats_top();
 
 <SMALL>Donations to stats development: <B>1Stats</B>gBq3C8PbF1SJw487MEUHhZahyvR</SMALL>
 <BR><BR>
-<B>NOTE: THESE PAGES ARE A WORK IN PROGRESS.  PLEASE REPORT ANY ISSUES TO <I>wizkid057 at gmail.com</I>.</B>
+<B>NOTE: THESE PAGES ARE A WORK IN PROGRESS.  PLEASE REPORT ANY ISSUES ON GITHUB HERE: <A HREF="https://github.com/wizkid057/wizstats/issues">wizstats github issues</A>.</B>
 <BR><BR>
 Use http://eligius.st/~wizkid057/newstats/userstats.php/[your miner address] for individual stats.<BR>
 For example, <A HREF="http://eligius.st/~wizkid057/newstats/userstats.php/1EXfBqvLTyFbL6Dr5CG1fjxNKEPSezg7yF">http://eligius.st/~wizkid057/newstats/userstats.php/1EXfBqvLTyFbL6Dr5CG1fjxNKEPSezg7yF</A>
@@ -40,7 +40,7 @@ Last 8 blocks<BR>
 	$subcall = 1;
 	include("blocks.php");
 ?>
-
+<SMALL>(This table updates in near-realtime automatically in most browsers.)</SMALL><BR>
 
 <?php
 
@@ -49,7 +49,7 @@ Last 8 blocks<BR>
 	$linkindex = pg_Connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");
 
 
-	$sql = "select ((select id from shares where server=$serverid and time < (select time from stats_shareagg where server=$serverid order by id desc limit 1) order by id desc limit 1)-(select orig_id-coalesce(rightrejects,0) from stats_blocks where server=$serverid order by id desc limit 1)-(select coalesce(sum(rejected_shares),0) from stats_shareagg where time >= (select to_timestamp((date_part('epoch', time)::integer / 675::integer)::integer * 675::integer) from stats_blocks where server=$serverid order by id desc limit 1))+(select count(*) from shares where server=$serverid and our_result=true and id > (select id from shares where server=$serverid and time < (select time from stats_shareagg where server=$serverid order by id desc limit 1) order by id desc limit 1))) as currentround;";
+	$sql = "select ((select id from shares where server=$serverid and time < (select time from stats_shareagg where server=$serverid order by id desc limit 1) order by id desc limit 1)-(select orig_id-coalesce(rightrejects,0) from stats_blocks where server=$serverid and confirmations > 0 order by id desc limit 1)-(select coalesce(sum(rejected_shares),0) from stats_shareagg where time >= (select to_timestamp((date_part('epoch', time)::integer / 675::integer)::integer * 675::integer) from stats_blocks where server=$serverid and confirmations > 0 order by id desc limit 1))+(select count(*) from shares where server=$serverid and our_result=true and id > (select id from shares where server=$serverid and time < (select time from stats_shareagg where server=$serverid order by id desc limit 1) order by id desc limit 1))) as currentround;";
 	$result = pg_exec($linkindex, $sql); $row = pg_fetch_array($result, 0);
 	$roundshares = $row["currentround"];
 
@@ -172,6 +172,7 @@ Top Miners (3 hr rate) <A HREF="topcontributors.php">(Full)</A><BR>
 			}
 
 		});
+		setTimeout(\"updateBlockTable()\",$fullpolltimer);
 	}
 
 	</script>";
