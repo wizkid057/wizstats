@@ -124,9 +124,8 @@ for($ri = 0; $ri < $numrows; $ri++) {
 
 print "</TABLE>";
 
-print "<BR>Confirmed blocks: $gc blocks --- Stale blocks: $oc blocks\n";
-
 if (!isset($subcall)) {
+	print "<BR>Confirmed blocks: $gc blocks --- Stale blocks: $oc blocks\n";
 	print_stats_bottom();
 }
 
