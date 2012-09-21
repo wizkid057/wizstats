@@ -16,10 +16,8 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 include("config.php");
-$bodytags = "onLoad=\"countShares();\"";
+$bodytags = "onLoad=\"initShares();\"";
 
-# TEMPORARY UNTIL SHARE COUNTER IS FIXED UP
-$headextras = "<meta http-equiv=\"refresh\" content=\"675\">";
 print_stats_top();
 
 ?>
@@ -63,6 +61,12 @@ Last 8 blocks<BR>
 	$result = pg_exec($linkindex, $sql); $row = pg_fetch_array($result, 0);
 	$hashrate3hr = $row["avghash"];
 
+	# get latest block height
+	$sql = "select height from stats_blocks where server=$serverid and confirmations > 0 and height > 0 order by id desc limit 1;";
+	$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
+	$blockheight = $row["height"];
+
+
 	print "<BR>Current pool hashrate: ".prettyHashrate($hashrate1250)." (3 hour average: ".prettyHashrate($hashrate3hr).")<BR>";
 	print "<div id=\"sharecounter\">Accepted shares submitted since our last block: $roundshares</div><BR>";
 
@@ -94,20 +98,82 @@ Top Miners (3 hr rate) <A HREF="topcontributors.php">(Full)</A><BR>
 <?php 
 	# stats footer
 
-	# TEMPORARY - super inaccurate share counter... replace with more accurate one soon
+	$sharesperunit = ($hashrate3hr/4294967296)/20;
 
-	$sharespersec = ($hashrate3hr/4294967296)/20;
+	$polltimer = 60000;
+	$fullpolltimer = 601000;
 
 	$afterbodyextras = "<script language=\"javascript\">
-        var intCountShares = $roundshares;
-        function countShares()
-        {
-                intCountShares += $sharespersec;
-                sharecounter.innerHTML = 'Accepted shares submitted since our last block: ' + Math.round(intCountShares) + ' (Est)';
-                setTimeout(\"countShares()\",50);
-        }
-        </script>";
+	var intCountShares = $roundshares;
+	var intSharesPerUnit = $sharesperunit;
+	var intCurrentBlockHeight = $blockheight;
+	var latestBlockHeight = $blockheight;
 
+	function updateSharesData()
+	{
 
+		\$.getJSON(\"instant.php/livedata.json\",
+			function(data){
+				intCountShares = data.roundsharecount;
+				intSharesPerUnit = data.sharesperunit;
+				latestBlockHeight = data.lastblockheight;
+			});
+
+		setTimeout(\"updateSharesData()\",$polltimer);
+		setTimeout(\"checkNewBlock()\",500);
+		//\$(\"#blocklistheaderid\").after(\"<TR><TD COLSPAN=14>a</TD></TR>\");
+	}
+
+	function checkNewBlock()
+	{
+		if (latestBlockHeight != intCurrentBlockHeight) {
+			// new block found... add it!
+			//alert('new block! ' + latestBlockHeight);
+			\$.getJSON(\"instant.php/blockinfo.json?height=\"+latestBlockHeight+\"&cclass=\"+\$(\"#blocklisttable tr:last\").attr('class'),
+				function(data){
+					\$(\"#blocklistheaderid\").after(data.blockrow);
+					\$(\"#blocklisttable tr:last\").remove();
+					intCurrentBlockHeight = latestBlockHeight;
+				});
+		}
+	}
+
+	function countShares()
+	{
+		intCountShares += intSharesPerUnit;
+		sharecounter.innerHTML = 'Accepted shares submitted since our last block: ' + Math.round(intCountShares) + ' (Est)';
+		setTimeout(\"countShares()\",50);
+	}
+
+	function initShares()
+	{
+		countShares(); 
+		setTimeout(\"updateSharesData()\",$polltimer);
+		setTimeout(\"updateBlockTable()\",$fullpolltimer);
+	}
+
+	function updateBlockRow(relem, rblockid) {
+			//alert(relem + '---' + rblockid);
+			\$.getJSON(\"instant.php/blockinfo.json?dbid=\"+rblockid+\"&cclass=\"+\$(relem).attr('class'),
+				function(data){
+					\$(relem).after(data.blockrow);
+					\$(relem).remove();
+				});
+	}
+
+	function updateBlockTable()
+	{
+		$('#blocklisttable tr').each(function(index, elem) { 
+			if (index>0) {
+				if (\$(elem).attr('id').substring(0,8) == 'blockrow') {
+					//alert(\$(elem).attr('id').substring(8));
+					updateBlockRow(elem,\$(elem).attr('id').substring(8));
+				}
+			}
+
+		});
+	}
+
+	</script>";
 	print_stats_bottom(); 
 ?>

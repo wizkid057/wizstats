@@ -31,13 +31,13 @@ if (isset($blocklimit)) {
 }
 
 
-$sql = "select *,date_part('epoch', NOW())::integer-date_part('epoch', time)::integer as age,date_part('epoch', time)::integer-date_part('epoch', roundstart)::integer as duration from wizkid057.stats_blocks left join users on user_id=users.id order by time desc $blim;";
+$sql = "select *,stats_blocks.id as blockid,date_part('epoch', NOW())::integer-date_part('epoch', time)::integer as age,date_part('epoch', time)::integer-date_part('epoch', roundstart)::integer as duration from wizkid057.stats_blocks left join users on user_id=users.id order by time desc $blim;";
 $result = pg_exec($link, $sql);
 $numrows = pg_numrows($result);
 
 
-print "<TABLE CLASS=\"blocklist\">";
-print "<TR CLASS=\"blocklistheader\">";
+print "<TABLE id=\"blocklisttable\" CLASS=\"blocklist\">";
+print "<TR CLASS=\"blocklistheader\" id=\"blocklistheaderid\">";
 print "<TD>Age</TD>";
 print "<TD>Round Start</TD>";
 print "<TD colspan=\"3\">Round Duration</TD>";
@@ -68,10 +68,11 @@ for($ri = 0; $ri < $numrows; $ri++) {
 	else { $confs = $row["confirmations"]." of 120"; }
 
 	if ($ri % 2) { $isodd = "odd"; } else { $isodd = ""; }
+	$dbid = $row["blockid"];
 
-	if ($row["confirmations"] == 0) { print "<TR BGCOLOR=\"#FFDFDF\" class=\"$isodd"."blockorphan\">"; } 
-	else if ($row["confirmations"] >= 120) { print "<TR BGCOLOR=\"#DFFFDF\" class=\"$isodd"."blockconfirmed\">"; }
-	else { print "<TR class=\"$isodd\">"; }
+	if ($row["confirmations"] == 0) { print "<TR id=\"blockrow$dbid\" BGCOLOR=\"#FFDFDF\" class=\"$isodd"."blockorphan\">"; } 
+	else if ($row["confirmations"] >= 120) { print "<TR id=\"blockrow$dbid\" BGCOLOR=\"#DFFFDF\" class=\"$isodd"."blockconfirmed\">"; }
+	else { print "<TR class=\"$isodd\" id=\"blockrow$dbid\">"; }
 
 	print "<TD>".prettyDuration($row["age"],false,1)."</TD>";
 
