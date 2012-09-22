@@ -45,6 +45,9 @@ list($nowtime) = explode("+", $nowtimex);
 print "Nowtime: $nowtime\n";
 
 $insertvalues = "";
+$paidinsertvalues = "";
+
+$ucount = 0;
 
 foreach($balj as $key => $val) {
 
@@ -74,20 +77,37 @@ $numrows = pg_numrows($result);
 for($ri = 0; $ri < $numrows; $ri++) {
 
 	$row = pg_fetch_array($result, $ri);
+	$user_id = $row["user_id"];
 
-	if (($lastdata[$row["keyhash"]][0] == $row["balance"]) && ($lastdata[$row["keyhash"]][1] == $row["everpaid"]) && ($lastdata[$row["keyhash"]][2] == $row["credit"])) {
-		print "Duplicate Data weeded for ".$row["keyhash"]."\n";
-	} else {
-		if ($row["time"] == $nowtime) {
-			print "Duplicate timestamp $nowtime for ".$row["keyhash"]."\n";
+	if (isset($lastdata[$row["keyhash"]])) {
+		$ucount++;
+		if (($lastdata[$row["keyhash"]][0] == $row["balance"]) && ($lastdata[$row["keyhash"]][1] == $row["everpaid"]) && ($lastdata[$row["keyhash"]][2] == $row["credit"])) {
+			print "Duplicate Data weeded for ".$row["keyhash"]."\n";
 		} else {
-			print "New Data for ".$row["keyhash"]." - ".$row["user_id"]."\n";
-			$user_id = $row["user_id"];
-			$insertdata = "($serverid, '$nowtimex', $user_id, ".$lastdata[$row["keyhash"]][1].", ".$lastdata[$row["keyhash"]][0].", ".$lastdata[$row["keyhash"]][2]."), ";
-			$insertvalues .= $insertdata;
+			if ($row["time"] == $nowtime) {
+				print "Duplicate timestamp $nowtime for ".$row["keyhash"]."\n";
+			} else {
+				print "New Data for ".$row["keyhash"]." - ".$row["user_id"]."\n";
+				$insertdata = "($serverid, '$nowtimex', $user_id, ".$lastdata[$row["keyhash"]][1].", ".$lastdata[$row["keyhash"]][0].", ".$lastdata[$row["keyhash"]][2]."), ";
+				$insertvalues .= $insertdata;
+			}
+		}
+		unset($lastdata[$row["keyhash"]]);
+	} else {
+		$fulladdress =  \Bitcoin::hash160ToAddress(bits2hex($row['keyhash']));
+		print "This user appears to have been fully paid (removed from balances.json): $fulladdress / $user_id\n";
+		if ($row["balance"] > 0) {
+			$tep = $row["everpaid"] + $row["balance"];
+			$insertdata = "($serverid, '$nowtimex', $user_id, $tep, 0, 0), ";
+			$paidinsertvalues .= $insertdata;
 		}
 	}
-	unset($lastdata[$row["keyhash"]]);
+}
+
+# failsafe for incase balances.json is corrupt or something...
+# make sure we had other addresses to update before marking people as paid off...
+if ($ucount > 0) {
+	$insertvalues .= $paidinsertvalues;
 }
 
 
