@@ -204,11 +204,14 @@ if (isset($_GET["timemachine"])) {
 
 print "<div id=\"graphdiv2\" style=\"width:750px; height:375px;\"></div>";
 
-if (!isset($_GET["timemachine"])) {
-	print "<A HREF=\"?timemachine=1\">(Click for up to 60 days of hashrate data)</A><BR>";
-}
 
 print "<div id=\"graphdiv3\" style=\"width:750px; height:375px;\"></div>";
+
+if (!isset($_GET["timemachine"])) {
+	print "<A HREF=\"?timemachine=1\">(Click for up to 60 days of hashrate/balance data)</A><BR>";
+}
+
+
 print "<script type=\"text/javascript\">
 
   g2 = new Dygraph(
@@ -226,7 +229,7 @@ print "<script type=\"text/javascript\">
 
   g3 = new Dygraph(
     document.getElementById(\"graphdiv3\"),
-    \"$givenuser?cmd=balancegraph&start=0&back=604800&res=1\",
+    \"$givenuser?cmd=balancegraph&start=0&back=$secondsback&res=1\",
 	{ strokeWidth: 2.25,
 	fillGraph: true,
 	labelsDivStyles: { border: '1px solid black' },
