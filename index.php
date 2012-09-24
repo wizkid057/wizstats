@@ -62,11 +62,11 @@ Last 8 blocks<BR>
 	$hashrate3hr = $row["avghash"];
 
 	# get latest block height
-	$sql = "select confirmations,height from stats_blocks where server=$serverid and confirmations > 0 and height > 0 order by id desc limit 1;";
+	$sql = "select date_part('epoch',NOW() - time) as roundduration,confirmations,height from stats_blocks where server=$serverid and confirmations > 0 and height > 0 order by id desc limit 1;";
 	$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
 	$blockheight = $row["height"];
 	$blockconfirms = $row["confirmations"];
-
+	$roundduration = $row["roundduration"];
 
 	print "<BR>Current pool hashrate: ".prettyHashrate($hashrate1250)." (3 hour average: ".prettyHashrate($hashrate3hr).")<BR>";
 	print "<div id=\"sharecounter\">Accepted shares submitted since our last block: $roundshares</div><BR>";
@@ -111,6 +111,15 @@ Top Miners (3 hr rate) <A HREF="topcontributors.php">(Full)</A><BR>
 	var intCurrentBlockConfirms = $blockconfirms;
 	var latestBlockHeight = $blockheight;
 	var latestBlockConfirms = $blockconfirms;
+	var intRoundDuration = $roundduration;
+	var prettyRoundDuration = '';
+
+	function updateRoundDuration()
+	{
+		prettyRoundDuration = secondsToHms(intRoundDuration);
+		intRoundDuration++;
+		setTimeout(\"updateRoundDuration()\",1000);
+	}
 
 	function updateSharesData()
 	{
@@ -121,6 +130,7 @@ Top Miners (3 hr rate) <A HREF="topcontributors.php">(Full)</A><BR>
 				intSharesPerUnit = data.sharesperunit;
 				latestBlockHeight = data.lastblockheight;
 				latestBlockConfirms = data.lastconfirms;
+				intRoundDuration = data.roundduration;
 			});
 
 		setTimeout(\"updateSharesData()\",$polltimer);
@@ -147,12 +157,13 @@ Top Miners (3 hr rate) <A HREF="topcontributors.php">(Full)</A><BR>
 	function countShares()
 	{
 		intCountShares += intSharesPerUnit;
-		sharecounter.innerHTML = 'Accepted shares submitted since our last block: ' + Math.round(intCountShares) + ' (Est)';
+		sharecounter.innerHTML = 'Accepted shares submitted since our last block: ' + Math.round(intCountShares) + ' (Est) - Duration: ' + prettyRoundDuration;
 		setTimeout(\"countShares()\",50);
 	}
 
 	function initShares()
 	{
+		updateRoundDuration();
 		countShares(); 
 		setTimeout(\"updateSharesData()\",$polltimer);
 		setTimeout(\"updateBlockTable()\",$fullpolltimer);
@@ -183,6 +194,14 @@ Top Miners (3 hr rate) <A HREF="topcontributors.php">(Full)</A><BR>
 		if (timercall) {
 			setTimeout(\"updateBlockTable(1)\",$fullpolltimer);
 		}
+	}
+
+	function secondsToHms(d) {
+		d = Number(d);
+		var h = Math.floor(d / 3600);
+		var m = Math.floor(d % 3600 / 60);
+		var s = Math.floor(d % 3600 % 60);
+		return ((h > 0 ? h + \":\" : \"\") + (m > 0 ? (h > 0 && m < 10 ? \"0\" : \"\") + m + \":\" : \"0:\") + (s < 10 ? \"0\" : \"\") + s);
 	}
 
 	</script>";
