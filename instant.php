@@ -37,15 +37,17 @@ if ($_SERVER['PATH_INFO'] == "/livedata.json") {
 	$hashrate1250 = $row["avghash"];
 
 	# get latest block height
-	$sql = "select height from stats_blocks where server=$serverid and confirmations > 0 and height > 0 order by id desc limit 1;";
+	$sql = "select height,confirmations from stats_blocks where server=$serverid and confirmations > 0 and height > 0 order by id desc limit 1;";
 	$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
 	$blockheight = $row["height"];
+	$latestconfirms = $row["confirmations"];
+
 
 	$sharesperunit = ($hashrate1250/4294967296)/20;
 
 	if (!($roundshares > 0)) { $roundshares = 0; }
 
-	print "{\"sharesperunit\":$sharesperunit,\"roundsharecount\":$roundshares,\"lastblockheight\":$blockheight}";
+	print "{\"sharesperunit\":$sharesperunit,\"roundsharecount\":$roundshares,\"lastblockheight\":$blockheight,\"lastconfirms\":$latestconfirms}";
 	exit();
 
 }

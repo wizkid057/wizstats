@@ -62,9 +62,10 @@ Last 8 blocks<BR>
 	$hashrate3hr = $row["avghash"];
 
 	# get latest block height
-	$sql = "select height from stats_blocks where server=$serverid and confirmations > 0 and height > 0 order by id desc limit 1;";
+	$sql = "select confirmations,height from stats_blocks where server=$serverid and confirmations > 0 and height > 0 order by id desc limit 1;";
 	$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
 	$blockheight = $row["height"];
+	$blockconfirms = $row["confirmations"];
 
 
 	print "<BR>Current pool hashrate: ".prettyHashrate($hashrate1250)." (3 hour average: ".prettyHashrate($hashrate3hr).")<BR>";
@@ -107,7 +108,9 @@ Top Miners (3 hr rate) <A HREF="topcontributors.php">(Full)</A><BR>
 	var intCountShares = $roundshares;
 	var intSharesPerUnit = $sharesperunit;
 	var intCurrentBlockHeight = $blockheight;
+	var intCurrentBlockConfirms = $blockconfirms;
 	var latestBlockHeight = $blockheight;
+	var latestBlockConfirms = $blockconfirms;
 
 	function updateSharesData()
 	{
@@ -117,13 +120,14 @@ Top Miners (3 hr rate) <A HREF="topcontributors.php">(Full)</A><BR>
 				intCountShares = data.roundsharecount;
 				intSharesPerUnit = data.sharesperunit;
 				latestBlockHeight = data.lastblockheight;
+				latestBlockConfirms = data.lastconfirms;
 			});
 
 		setTimeout(\"updateSharesData()\",$polltimer);
-		setTimeout(\"checkNewBlock()\",500);
+		setTimeout(\"checkNewInfo()\",500);
 	}
 
-	function checkNewBlock()
+	function checkNewInfo()
 	{
 		if (latestBlockHeight != intCurrentBlockHeight) {
 			// new block found... add it!
@@ -133,6 +137,10 @@ Top Miners (3 hr rate) <A HREF="topcontributors.php">(Full)</A><BR>
 					\$(\"#blocklisttable tr:last\").remove();
 					intCurrentBlockHeight = latestBlockHeight;
 				});
+		}
+		if (latestBlockConfirms != intCurrentBlockConfirms) {
+			// new confirmation data...
+			updateBlockTable();
 		}
 	}
 
