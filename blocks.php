@@ -98,7 +98,7 @@ for($ri = 0; $ri < $numrows; $ri++) {
 
 	print "<TD style=\"text-align: right;\">".sprintf("%.3e",round($row["network_difficulty"],4))."</TD>";
 	print "<TD style=\"text-align: right;\">".$luck."</TD>";
-	print "<TD style=\"text-align: right;\">".$confs."</TD>";
+	print "<TD class=\"blockconfirms\" style=\"text-align: right;\">".$confs."</TD>";
 	if (isset($row['keyhash'])) {
 		$fulladdress =  \Bitcoin::hash160ToAddress(bits2hex($row['keyhash']));
 		$address = substr($fulladdress,0,10)."...";

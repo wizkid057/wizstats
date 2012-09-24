@@ -121,14 +121,12 @@ Top Miners (3 hr rate) <A HREF="topcontributors.php">(Full)</A><BR>
 
 		setTimeout(\"updateSharesData()\",$polltimer);
 		setTimeout(\"checkNewBlock()\",500);
-		//\$(\"#blocklistheaderid\").after(\"<TR><TD COLSPAN=14>a</TD></TR>\");
 	}
 
 	function checkNewBlock()
 	{
 		if (latestBlockHeight != intCurrentBlockHeight) {
 			// new block found... add it!
-			//alert('new block! ' + latestBlockHeight);
 			\$.getJSON(\"instant.php/blockinfo.json?height=\"+latestBlockHeight+\"&cclass=\"+\$(\"#blocklisttable tr:last\").attr('class'),
 				function(data){
 					\$(\"#blocklistheaderid\").after(data.blockrow);
@@ -153,7 +151,6 @@ Top Miners (3 hr rate) <A HREF="topcontributors.php">(Full)</A><BR>
 	}
 
 	function updateBlockRow(relem, rblockid) {
-			//alert(relem + '---' + rblockid);
 			\$.getJSON(\"instant.php/blockinfo.json?dbid=\"+rblockid+\"&cclass=\"+\$(relem).attr('class'),
 				function(data){
 					\$(relem).after(data.blockrow);
@@ -166,8 +163,11 @@ Top Miners (3 hr rate) <A HREF="topcontributors.php">(Full)</A><BR>
 		$('#blocklisttable tr').each(function(index, elem) { 
 			if (index>0) {
 				if (\$(elem).attr('id').substring(0,8) == 'blockrow') {
-					//alert(\$(elem).attr('id').substring(8));
-					updateBlockRow(elem,\$(elem).attr('id').substring(8));
+					var confcell = 'null';
+					\$(elem).each(function() { confcell = \$(this).find('.blockconfirms').html(); });
+					if (!((confcell == 'Confirmed') || (confcell == 'Stale'))) {
+						updateBlockRow(elem,\$(elem).attr('id').substring(8));
+					}
 				}
 			}
 
