@@ -140,7 +140,7 @@ Top Miners (3 hr rate) <A HREF="topcontributors.php">(Full)</A><BR>
 		}
 		if (latestBlockConfirms != intCurrentBlockConfirms) {
 			// new confirmation data...
-			updateBlockTable();
+			updateBlockTable(0);
 		}
 	}
 
@@ -166,7 +166,7 @@ Top Miners (3 hr rate) <A HREF="topcontributors.php">(Full)</A><BR>
 				});
 	}
 
-	function updateBlockTable()
+	function updateBlockTable(timercall)
 	{
 		$('#blocklisttable tr').each(function(index, elem) { 
 			if (index>0) {
@@ -180,7 +180,9 @@ Top Miners (3 hr rate) <A HREF="topcontributors.php">(Full)</A><BR>
 			}
 
 		});
-		setTimeout(\"updateBlockTable()\",$fullpolltimer);
+		if (timercall) {
+			setTimeout(\"updateBlockTable(1)\",$fullpolltimer);
+		}
 	}
 
 	</script>";
