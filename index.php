@@ -150,6 +150,7 @@ Top Miners (3 hr rate) <A HREF="topcontributors.php">(Full)</A><BR>
 		}
 		if (latestBlockConfirms != intCurrentBlockConfirms) {
 			// new confirmation data...
+			intCurrentBlockConfirms = latestBlockConfirms;
 			updateBlockTable(0);
 		}
 	}
