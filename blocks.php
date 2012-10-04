@@ -96,7 +96,7 @@ for($ri = 0; $ri < $numrows; $ri++) {
 		print "<TD colspan=\"2\" style=\"text-align: right;\">n/a</TD>";
 	}
 
-	print "<TD style=\"text-align: right;\">".sprintf("%.3e",round($row["network_difficulty"],4))."</TD>";
+	print "<TD style=\"text-align: right;\">".round($row["network_difficulty"],0)."</TD>";
 	print "<TD style=\"text-align: right;\">".$luck."</TD>";
 	print "<TD class=\"blockconfirms\" style=\"text-align: right;\">".$confs."</TD>";
 	if (isset($row['keyhash'])) {
