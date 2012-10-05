@@ -69,8 +69,8 @@ if (isset($_GET["cmd"])) {
 			$row = pg_fetch_array($result, $ri);
 			print $row["time"].",";
 			print ($row["everpaid"]/100000000).",";
-			print (($row["balance"]/100000000)+($row["everpaid"]/100000000)).",";
-			print (($row["credit"]/100000000)+(($row["everpaid"]/100000000)))."\n";
+			print ($row["balance"]/100000000)+($row["everpaid"]/100000000).",";
+			print ($row["credit"]/100000000)+($row["balance"]/100000000)+($row["everpaid"]/100000000)."\n";
 		}
 
 		exit;
