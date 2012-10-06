@@ -45,6 +45,7 @@ print "<TD>Accepted Shares</TD>";
 print "<TD colspan=\"2\">Rejected Shares</TD>";
 print "<TD>Difficulty</TD>";
 print "<TD>Luck</TD>";
+print "<TD>Hashrate</TD>";
 print "<TD>Confirmations</TD>";
 print "<TD>Contributor</TD>";
 print "<TD>Height</TD>";
@@ -83,8 +84,13 @@ for($ri = 0; $ri < $numrows; $ri++) {
 	if (isset($row["duration"])) {
 		list($seconds, $minutes, $hours) = extractTime($row["duration"]);
 		print "<td style=\"width: 1.5em;  text-align: right;\">$hours</td><td style=\"width: 1.5em;  text-align: right;\">$minutes</td><td style=\"width: 1.5em;  text-align: right;\">$seconds</td>";
+
+		$hashrate = ($row["acceptedshares"] * 4294967296) / $row["duration"];
+		$hashrate = prettyHashrate($hashrate);
+
 	} else {
 		print "<td style=\"text-align: right;\" colspan=\"3\">n/a</td>";
+		$hashrate = "n/a";
 	}
 
 	print "<TD style=\"text-align: right;\">".$row["acceptedshares"]."</TD>";
@@ -98,6 +104,13 @@ for($ri = 0; $ri < $numrows; $ri++) {
 
 	print "<TD style=\"text-align: right;\">".round($row["network_difficulty"],0)."</TD>";
 	print "<TD style=\"text-align: right;\">".$luck."</TD>";
+
+
+	print "<TD style=\"text-align: right;\">".$hashrate."</TD>";
+
+
+
+
 	print "<TD class=\"blockconfirms\" style=\"text-align: right;\">".$confs."</TD>";
 	if (isset($row['keyhash'])) {
 		$fulladdress =  \Bitcoin::hash160ToAddress(bits2hex($row['keyhash']));
