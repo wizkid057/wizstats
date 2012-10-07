@@ -96,8 +96,12 @@ if ($_SERVER['PATH_INFO'] == "/blockinfo.json") {
 	if (isset($row["duration"])) {
 		list($seconds, $minutes, $hours) = extractTime($row["duration"]);
 		$line .= "<td style=\"width: 1.5em;  text-align: right;\">$hours</td><td style=\"width: 1.5em;  text-align: right;\">$minutes</td><td style=\"width: 1.5em;  text-align: right;\">$seconds</td>";
+		$hashrate = ($row["acceptedshares"] * 4294967296) / $row["duration"];
+		$hashrate = prettyHashrate($hashrate);
+
 	} else {
 		$line .= "<td style=\"text-align: right;\" colspan=\"3\">n/a</td>";
+		$hashrate = "n/a";
 	}
 
 	$line .= "<TD style=\"text-align: right;\">".$row["acceptedshares"]."</TD>";
@@ -109,9 +113,10 @@ if ($_SERVER['PATH_INFO'] == "/blockinfo.json") {
 		$line .= "<TD colspan=\"2\" style=\"text-align: right;\">n/a</TD>";
 	}
 
-	$line .= "<TD style=\"text-align: right;\">".sprintf("%.3e",round($row["network_difficulty"],4))."</TD>";
+	$line .= "<TD style=\"text-align: right;\">".round($row["network_difficulty"],0)."</TD>";
 	$line .= "<TD style=\"text-align: right;\">".$luck."</TD>";
-	$line .= "<TD style=\"text-align: right;\">".$confs."</TD>";
+	$line .= "<TD style=\"text-align: right;\">".$hashrate."</TD>";
+	$line .= "<TD class=\"blockconfirms\" style=\"text-align: right;\">".$confs."</TD>";
 	if (isset($row['keyhash'])) {
 		$fulladdress =  \Bitcoin::hash160ToAddress(bits2hex($row['keyhash']));
 		$address = substr($fulladdress,0,10)."...";
