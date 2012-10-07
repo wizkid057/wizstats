@@ -29,7 +29,7 @@ print_stats_top();
 Use http://eligius.st/~wizkid057/newstats/userstats.php/[your miner address] for individual stats.<BR>
 For example, <A HREF="http://eligius.st/~wizkid057/newstats/userstats.php/1EXfBqvLTyFbL6Dr5CG1fjxNKEPSezg7yF">http://eligius.st/~wizkid057/newstats/userstats.php/1EXfBqvLTyFbL6Dr5CG1fjxNKEPSezg7yF</A>
 <BR><BR>
-<A HREF="blocks.php">Full Eligius Block List</A>
+<A HREF="blocks.php">Full <?php echo $poolname; ?> Block List</A>
 <BR><BR>
 <BR>
 Last 8 blocks<BR>
@@ -81,7 +81,7 @@ Last 8 blocks<BR>
    	{ strokeWidth: 2.25,
 	'hashrate': {fillGraph: true },
 	labelsDivStyles: { border: '1px solid black' },
-	title: 'Eligius-Ra Hashrate Graph',
+	title: '<?php echo $poolname; ?> Hashrate Graph',
 	xlabel: 'Date',
 	ylabel: 'GH/sec'
 	}

@@ -39,6 +39,7 @@ $urlprefix = "/~wizkid057/newstats/";
 # bitcoin rpc url
 $bitcoinrpcurl = "http://x:x@127.0.0.1:8333/";
 
+$poolname = "Eligius";
 
 
 ?>

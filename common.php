@@ -27,7 +27,7 @@ function print_stats_top() {
 	print("<HTML>
 <HEAD>
 <meta http-equiv=\"X-UA-Compatible\" content=\"IE=EmulateIE7; IE=EmulateIE9\">
-<TITLE>".$localtitleprepend."Eligius Pool Statistics".$localtitleappend."</TITLE>
+<TITLE>".$localtitleprepend.$GLOBALS["poolname"]." Pool Statistics".$localtitleappend."</TITLE>
 <script type=\"text/javascript\" src=\"".$GLOBALS["urlprefix"]."dygraph-combined.js\"></script>
 <script type=\"text/javascript\" src=\"".$GLOBALS["urlprefix"]."jquery.js\"></script>
 <!--[if IE]><script type=\"text/javascript\" src=\"".$GLOBALS["urlprefix"]."excanvas.js\"></script><![endif]-->
@@ -36,7 +36,7 @@ function print_stats_top() {
 ".$localheadextras."
 </HEAD>
 <BODY BGCOLOR=\"#FFFFFF\" TEXT=\"#000000\" LINK=\"#0000FF\" VLINK=\"#0000FF\" ALINK=\"#FF0000\" ".$localbodytags.">
-<H2><A HREF=\"".$GLOBALS["urlprefix"]."\">Eligius Pool Statistics</A></H2>");
+<H2><A HREF=\"".$GLOBALS["urlprefix"]."\">".$GLOBALS["poolname"]." Pool Statistics</A></H2>");
 
 }
 
