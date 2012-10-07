@@ -31,8 +31,8 @@ function print_stats_top() {
 <script type=\"text/javascript\" src=\"".$GLOBALS["urlprefix"]."dygraph-combined.js\"></script>
 <script type=\"text/javascript\" src=\"".$GLOBALS["urlprefix"]."jquery.js\"></script>
 <!--[if IE]><script type=\"text/javascript\" src=\"".$GLOBALS["urlprefix"]."excanvas.js\"></script><![endif]-->
-<link rel=\"stylesheet\" href=\"blocklist.css\" type=\"text/css\">
-<link rel=\"stylesheet\" href=\"contributors.css\" type=\"text/css\">
+<link rel=\"stylesheet\" href=\"".$GLOBALS["urlprefix"]."blocklist.css\" type=\"text/css\">
+<link rel=\"stylesheet\" href=\"".$GLOBALS["urlprefix"]."contributors.css\" type=\"text/css\">
 ".$localheadextras."
 </HEAD>
 <BODY BGCOLOR=\"#FFFFFF\" TEXT=\"#000000\" LINK=\"#0000FF\" VLINK=\"#0000FF\" ALINK=\"#FF0000\" ".$localbodytags.">
