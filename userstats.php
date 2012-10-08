@@ -58,7 +58,7 @@ if (isset($_GET["cmd"])) {
 
 	if ($cmd == "balancegraph") {
 
-		$sql = "select * from $psqlschema.stats_balances where user_id=$user_id and server=$serverid and time > to_timestamp((date_part('epoch', NOW()-'$sstart seconds'::interval)::integer / 675) * 675) and time < to_timestamp((date_part('epoch', NOW()-'$start seconds'::interval)::integer / 675) * 675) order by time desc;";
+		$sql = "select * from $psqlschema.stats_balances where server=$serverid and user_id=$user_id and server=$serverid and time > to_timestamp((date_part('epoch', NOW()-'$sstart seconds'::interval)::integer / 675) * 675) and time < to_timestamp((date_part('epoch', NOW()-'$start seconds'::interval)::integer / 675) * 675) order by time desc;";
 		$result = pg_exec($link, $sql);
 		$numrows = pg_numrows($result);
 
@@ -82,7 +82,7 @@ if (isset($_GET["cmd"])) {
 
 		print "date,".$ressec." seconds,3 hour,12 hour\n";
 
-		$sql = "select gtime,COALESCE(hashrate,0) as hashrate from (select * from generate_series(to_timestamp(((date_part('epoch', (select time from stats_shareagg where server=$serverid group by server,time order by time desc limit 1)-'$sstart seconds'::interval)::integer / 675) * 675)-43200), to_timestamp((date_part('epoch', (select time from stats_shareagg where server=$serverid group by server,time order by time desc limit 1)-'$start seconds'::interval)::integer / 675) * 675), '$ressec seconds') as gtime) as gentime left join (select * from wizkid057.stats_shareagg where user_id=$user_id) as dstats on (dstats.time = gentime.gtime);";
+		$sql = "select gtime,COALESCE(hashrate,0) as hashrate from (select * from generate_series(to_timestamp(((date_part('epoch', (select time from stats_shareagg where server=$serverid group by server,time order by time desc limit 1)-'$sstart seconds'::interval)::integer / 675) * 675)-43200), to_timestamp((date_part('epoch', (select time from stats_shareagg where server=$serverid group by server,time order by time desc limit 1)-'$start seconds'::interval)::integer / 675) * 675), '$ressec seconds') as gtime) as gentime left join (select * from wizkid057.stats_shareagg where server=$serverid and user_id=$user_id) as dstats on (dstats.time = gentime.gtime);";
 		$result = pg_exec($link, $sql);
 		$numrows = pg_numrows($result);
 
@@ -129,7 +129,7 @@ if (isset($_GET["cmd"])) {
 }
 
 
-$sql = "select * from $psqlschema.stats_balances where user_id=$user_id order by time desc limit 1";
+$sql = "select * from $psqlschema.stats_balances where server=$serverid and user_id=$user_id order by time desc limit 1";
 $result = pg_exec($link, $sql);
 $numrows = pg_numrows($result);
 if (!$numrows) {
