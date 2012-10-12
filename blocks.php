@@ -42,7 +42,7 @@ print "<TD>Age</TD>";
 print "<TD>Round Start</TD>";
 print "<TD colspan=\"3\">Round Duration</TD>";
 print "<TD>Accepted Shares</TD>";
-print "<TD colspan=\"2\">Rejected Shares</TD>";
+#print "<TD colspan=\"2\">Rejected Shares</TD>";
 print "<TD>Difficulty</TD>";
 print "<TD>Luck</TD>";
 print "<TD>Hashrate</TD>";
@@ -95,12 +95,12 @@ for($ri = 0; $ri < $numrows; $ri++) {
 
 	print "<TD style=\"text-align: right;\">".$row["acceptedshares"]."</TD>";
 
-	if (isset($row["rejectedshares"])) {
-		$rper = "<SMALL>(".round(  (($row["rejectedshares"]/($row["rejectedshares"]+$row["acceptedshares"])) *100) ,2)."%)</SMALL>";
-		print "<TD style=\"text-align: right;\">".$row["rejectedshares"]."</TD><TD style=\"text-align: right;\">".$rper."</TD>";
-	} else {
-		print "<TD colspan=\"2\" style=\"text-align: right;\">n/a</TD>";
-	}
+#	if (isset($row["rejectedshares"])) {
+#		$rper = "<SMALL>(".round(  (($row["rejectedshares"]/($row["rejectedshares"]+$row["acceptedshares"])) *100) ,2)."%)</SMALL>";
+#		print "<TD style=\"text-align: right;\">".$row["rejectedshares"]."</TD><TD style=\"text-align: right;\">".$rper."</TD>";
+#	} else {
+#		print "<TD colspan=\"2\" style=\"text-align: right;\">n/a</TD>";
+#	}
 
 	print "<TD style=\"text-align: right;\">".round($row["network_difficulty"],0)."</TD>";
 	print "<TD style=\"text-align: right;\">".$luck."</TD>";

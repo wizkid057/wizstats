@@ -113,12 +113,12 @@ if ($_SERVER['PATH_INFO'] == "/blockinfo.json") {
 
 	$line .= "<TD style=\"text-align: right;\">".$row["acceptedshares"]."</TD>";
 
-	if (isset($row["rejectedshares"])) {
-		$rper = "<SMALL>(".round(  (($row["rejectedshares"]/($row["rejectedshares"]+$row["acceptedshares"])) *100) ,2)."%)</SMALL>";
-		$line .= "<TD style=\"text-align: right;\">".$row["rejectedshares"]."</TD><TD style=\"text-align: right;\">".$rper."</TD>";
-	} else {
-		$line .= "<TD colspan=\"2\" style=\"text-align: right;\">n/a</TD>";
-	}
+#	if (isset($row["rejectedshares"])) {
+#		$rper = "<SMALL>(".round(  (($row["rejectedshares"]/($row["rejectedshares"]+$row["acceptedshares"])) *100) ,2)."%)</SMALL>";
+#		$line .= "<TD style=\"text-align: right;\">".$row["rejectedshares"]."</TD><TD style=\"text-align: right;\">".$rper."</TD>";
+#	} else {
+#		$line .= "<TD colspan=\"2\" style=\"text-align: right;\">n/a</TD>";
+#	}
 
 	$line .= "<TD style=\"text-align: right;\">".round($row["network_difficulty"],0)."</TD>";
 	$line .= "<TD style=\"text-align: right;\">".$luck."</TD>";
