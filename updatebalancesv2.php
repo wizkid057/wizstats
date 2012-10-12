@@ -71,7 +71,7 @@ foreach($balj as $key => $val) {
 }
 
 
-$sql = "select distinct on (user_id) user_id,time,keyhash,everpaid,credit,balance from stats_balances left join users on user_id=users.id where server=$serverid and time > NOW()-'1 week'::interval order by user_id, time desc;";
+$sql = "select distinct on (user_id) user_id,time,username,keyhash,everpaid,credit,balance from stats_balances left join users on user_id=users.id where server=$serverid and time > NOW()-'1 week'::interval order by user_id, time desc;";
 $result = pg_exec($link, $sql);
 $numrows = pg_numrows($result);
 for($ri = 0; $ri < $numrows; $ri++) {
@@ -79,27 +79,33 @@ for($ri = 0; $ri < $numrows; $ri++) {
 	$row = pg_fetch_array($result, $ri);
 	$user_id = $row["user_id"];
 
-	if (isset($lastdata[$row["keyhash"]])) {
-		$ucount++;
-		if (($lastdata[$row["keyhash"]][0] == $row["balance"]) && ($lastdata[$row["keyhash"]][1] == $row["everpaid"]) && ($lastdata[$row["keyhash"]][2] == $row["credit"])) {
-			print "Duplicate Data weeded for ".$row["keyhash"]."\n";
-		} else {
-			if ($row["time"] == $nowtime) {
-				print "Duplicate timestamp $nowtime for ".$row["keyhash"]."\n";
-			} else {
-				print "New Data for ".$row["keyhash"]." - ".$row["user_id"]."\n";
-				$insertdata = "($serverid, '$nowtimex', $user_id, ".$lastdata[$row["keyhash"]][1].", ".$lastdata[$row["keyhash"]][0].", ".$lastdata[$row["keyhash"]][2]."), ";
-				$insertvalues .= $insertdata;
-			}
-		}
-		unset($lastdata[$row["keyhash"]]);
+	if (!$user_id) {
+		print "Error: Invalid user_id $user_id ".($row["keyhash"])." - ".($row["username"])."!\n";
+		print "--- This should never happen!\n";
 	} else {
-		$fulladdress =  \Bitcoin::hash160ToAddress(bits2hex($row['keyhash']));
-		print "This user appears to have been fully paid (removed from balances.json): $fulladdress / $user_id\n";
-		if ($row["balance"] > 0) {
-			$tep = $row["everpaid"] + $row["balance"];
-			$insertdata = "($serverid, '$nowtimex', $user_id, $tep, 0, 0), ";
-			$paidinsertvalues .= $insertdata;
+
+		if (isset($lastdata[$row["keyhash"]])) {
+			$ucount++;
+			if (($lastdata[$row["keyhash"]][0] == $row["balance"]) && ($lastdata[$row["keyhash"]][1] == $row["everpaid"]) && ($lastdata[$row["keyhash"]][2] == $row["credit"])) {
+				print "Duplicate Data weeded for ".$row["keyhash"]."\n";
+			} else {
+				if ($row["time"] == $nowtime) {
+					print "Duplicate timestamp $nowtime for ".$row["keyhash"]."\n";
+				} else {
+					print "New Data for ".$row["keyhash"]." - ".$row["user_id"]."\n";
+					$insertdata = "($serverid, '$nowtimex', $user_id, ".$lastdata[$row["keyhash"]][1].", ".$lastdata[$row["keyhash"]][0].", ".$lastdata[$row["keyhash"]][2]."), ";
+					$insertvalues .= $insertdata;
+				}
+			}
+			unset($lastdata[$row["keyhash"]]);
+		} else {
+			$fulladdress =  \Bitcoin::hash160ToAddress(bits2hex($row['keyhash']));
+			print "This user appears to have been fully paid (removed from balances.json): $fulladdress / $user_id\n";
+			if ($row["balance"] > 0) {
+				$tep = $row["everpaid"] + $row["balance"];
+				$insertdata = "($serverid, '$nowtimex', $user_id, $tep, 0, 0), ";
+				$paidinsertvalues .= $insertdata;
+			}
 		}
 	}
 }
@@ -113,8 +119,16 @@ if ($ucount > 0) {
 
 foreach($lastdata as $key => $val) {
 	print "Totally new miner!?!?: $key\n";
-	$insertdata = "($serverid, '$nowtimex', (select id from public.users where keyhash='$key' order by id asc limit 1), ".$lastdata[$key][1].", ".$lastdata[$key][0].", ".$lastdata[$key][2]."), ";
-	$insertvalues .= $insertdata;
+	$sql = "select id from public.users where keyhash='$key' order by id asc limit 1;";
+	$result = pg_exec($link, $sql);
+	$row = pg_fetch_array($result, 0);
+	$user_id = $row["id"];
+	if (!$user_id) {
+		print "--- Error: New miner with $key in balances.json not found in public.users! (Probably database update lag, will catch next time)\n";
+	} else {
+		$insertdata = "($serverid, '$nowtimex', $user_id, ".$lastdata[$key][1].", ".$lastdata[$key][0].", ".$lastdata[$key][2]."), ";
+		$insertvalues .= $insertdata;
+	}
 }
 
 
