@@ -4,6 +4,8 @@ Note: Code is a mess! Bare with me...
 
 If anyone has any issues or suggestions, please see my git repository at https://github.com/wizkid057/wizstats
 
+Please realize that this software relies *heavily* on the Eligius Bitcoin Mining Pool's internal structure.  While with a decent amount of effort and technical skill these stats could be adapted to work with another pool, it is not an out of the box thing.  I note this here because there have been several requests for assistance in setting these up for other pools.  Perhaps in the future I will make that easier. :)
+
 Much to come!
 
 -wizkid057
