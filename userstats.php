@@ -34,7 +34,7 @@ $sql = "select id from public.users where keyhash='$bits' order by id asc limit 
 $result = pg_exec($link, $sql);
 $numrows = pg_numrows($result);
 if (!$numrows) {
-	print "Error: Username <I>$givenuser</I> not found in database.  Please try again later.";
+	print "Error: Username <I>$givenuser</I> not found in database.  Please try again later.".$_SERVER['PATH_INFO'];
 	exit;
 }
 
@@ -58,19 +58,39 @@ if (isset($_GET["cmd"])) {
 
 	if ($cmd == "balancegraph") {
 
-		$sql = "select * from $psqlschema.stats_balances where server=$serverid and user_id=$user_id and server=$serverid and time > to_timestamp((date_part('epoch', NOW()-'$sstart seconds'::interval)::integer / 675) * 675) and time < to_timestamp((date_part('epoch', NOW()-'$start seconds'::interval)::integer / 675) * 675) order by time desc;";
+		$sql = "select * from $psqlschema.stats_balances where server=$serverid and user_id=$user_id and server=$serverid and time > to_timestamp((date_part('epoch', NOW()-'$sstart seconds'::interval)::integer / 675) * 675) and time < to_timestamp((date_part('epoch', NOW()-'$start seconds'::interval)::integer / 675) * 675) order by time asc;";
 		$result = pg_exec($link, $sql);
 		$numrows = pg_numrows($result);
 
 		print "date,everpaid,unpaid+everpaid,maximum reward\n";
 
+		$lastctime = 0;
+
 		for($ri = 0; $ri < $numrows; $ri++) {
 
+			# 2012-12-18 03:22:30
 			$row = pg_fetch_array($result, $ri);
-			print $row["time"].",";
-			print ($row["everpaid"]/100000000).",";
-			print ($row["balance"]/100000000)+($row["everpaid"]/100000000).",";
-			print ($row["credit"]/100000000)+($row["balance"]/100000000)+($row["everpaid"]/100000000)."\n";
+
+			$thisctime = strtotime($row["time"]);
+
+			if (($lastctime) && (($thisctime - $lastctime) > 2500)) {
+				# repeat last row data... except with this date - 1 second
+				if (strlen(strstr($pline,",")) > 0) {
+					print date("Y-m-d H:i:s",$thisctime-1).strstr($pline,",")."\n";
+				}
+
+			}
+
+			$pline = $row["time"].",";
+			$pline .= ($row["everpaid"]/100000000).",";
+			$pline .= ($row["balance"]/100000000)+($row["everpaid"]/100000000).",";
+			$pline .= ($row["credit"]/100000000)+($row["balance"]/100000000)+($row["everpaid"]/100000000);
+			print $pline."\n";
+
+			$lastctime = $thisctime;
+
+
+
 		}
 
 		exit;
@@ -145,7 +165,10 @@ if (!$numrows) {
 ### TODO: CONSIDER ORPHANS HERE ?
 ### actually, maybe the coinbaser does this? not sure... need to catch it...
 ### TODO: Non hardcoded path...
-$balx = file_get_contents("/var/lib/eligius/$serverid/blocks/latest.json");
+#$balx = file_get_contents("/var/lib/eligius/$serverid/blocks/latest.json");
+
+$balx = "";
+
 $balj = json_decode($balx,true);
 $latest = $balj[$givenuser];
 
