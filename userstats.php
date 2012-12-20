@@ -149,31 +149,43 @@ if (isset($_GET["cmd"])) {
 }
 
 
-$sql = "select * from $psqlschema.stats_balances where server=$serverid and user_id=$user_id order by time desc limit 1";
-$result = pg_exec($link, $sql);
-$numrows = pg_numrows($result);
-if (!$numrows) {
-	$bal = "N/A"; $cbe = "N/A"; $ec = "N/A"; $datadate = "N/A";
-} else {
-	$row = pg_fetch_array($result, 0);
-	$bal = $row["balance"];
-	$ec = $row["credit"];
-	$datadate = $row["time"];
-}
+$balanacesjson = file_get_contents("/var/lib/eligius/$serverid/balances.json");
+$balanacesjsondec = json_decode($balanacesjson,true);
+$mybal = $balanacesjsondec[$givenuser];
 
+
+if ($mybal) {
+	$bal = $mybal["balance"];
+	$ec = $mybal["credit"];
+	$datadate = $mybal["newest"];
+	$lbal = $bal - $mybal["included_balance_estimate"];
+} else {
+	# fall back to sql
+	$sql = "select * from $psqlschema.stats_balances where server=$serverid and user_id=$user_id order by time desc limit 1";
+	$result = pg_exec($link, $sql);
+	$numrows = pg_numrows($result);
+	if (!$numrows) {
+		$bal = "N/A"; $cbe = "N/A"; $ec = "N/A"; $datadate = "N/A"; $lbal = "N/A";
+	} else {
+		$row = pg_fetch_array($result, 0);
+		$bal = $row["balance"];
+		$ec = $row["credit"];
+		$lbal = "N/A";
+		$datadate = $row["time"];
+	}
+}
 
 ### TODO: CONSIDER ORPHANS HERE ?
 ### actually, maybe the coinbaser does this? not sure... need to catch it...
 ### TODO: Non hardcoded path...
+
+### TEMPORARY: disabled while CPPSRB code for block json files is under construction
 #$balx = file_get_contents("/var/lib/eligius/$serverid/blocks/latest.json");
-
-$balx = "";
-
-$balj = json_decode($balx,true);
-$latest = $balj[$givenuser];
-
-if (isset($latest["balance"])) { $lbal = $latest["balance"]; } else { $lbal = 0; }
-if (isset($latest["credit"])) { $lec = $latest["credit"]; } else { $lec = 0; }
+#$balx = "";
+#$balj = json_decode($balx,true);
+#$latest = $balj[$givenuser];
+#if (isset($latest["balance"])) { $lbal = $latest["balance"]; } else { $lbal = 0; }
+#if (isset($latest["credit"])) { $lec = $latest["credit"]; } else { $lec = 0; }
 
 $cbal = $bal - $lbal;
 $cec = $ec - $lec;
@@ -194,12 +206,17 @@ $ec = prettySatoshis($ec);
 $titleprepend = "($bal) $givenuser - ";
 print_stats_top();
 
+
+### TEMPORARY: disabled while CPPSRB code for block json files is under construction
+$xec = "(<A HREF=\"Code_Incomplete_Check_Later\">Unavailable</A>) BTC";
+$cect = $xec;
+
 print "<H2>$givenuser</H2>";
 print "<TABLE BORDER=1>";
 print "<TR><TD></TD><TD>Unpaid Balance</TD><TD>Extra Credit</TD></TR>";
-print "<TR><TD>As of last block*: </TD><TD>$xbal</TD><TD>$xec</TD></TR>";
-print "<TR><TD>Estimated Change: </TD><TD>$cbalt</TD><TD>$cect</TD></TR>";
-print "<TR><TD>Estimated Total: </TD><TD>$bal</TD><TD>$ec</TD></TR>";
+print "<TR><TD>As of last block*: </TD><TD style=\"text-align: right;\">$xbal</TD><TD style=\"text-align: right; font-size: 80%;\">$xec</TD></TR>";
+print "<TR><TD>Estimated Change: </TD><TD style=\"text-align: right;\">$cbalt</TD><TD style=\"text-align: right; font-size: 80%;\">$cect</TD></TR>";
+print "<TR><TD>Estimated Total: </TD><TD style=\"text-align: right;\">$bal</TD><TD style=\"text-align: right; font-size: 80%;\">$ec</TD></TR>";
 print "</TABLE>";
 
 
