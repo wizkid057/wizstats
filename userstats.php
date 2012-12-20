@@ -248,6 +248,7 @@ if (isset($_GET["timemachine"])) {
 print "<div id=\"graphdiv2\" style=\"width:750px; height:375px;\"></div>";
 
 
+print "<INPUT TYPE=\"BUTTON\" onClick=\"showmax();\" VALUE=\"Toggle Graphing of Maximum Reward\"><BR>";
 print "<div id=\"graphdiv3\" style=\"width:750px; height:375px;\"></div>";
 
 if (!isset($_GET["timemachine"])) {
@@ -257,6 +258,9 @@ if (!isset($_GET["timemachine"])) {
 
 print "<script type=\"text/javascript\">
 
+	var blockUpdateA = 0;
+	var blockUpdateB = 0;
+
   g2 = new Dygraph(
     document.getElementById(\"graphdiv2\"),
     \"$givenuser?cmd=hashgraph&start=0&back=$secondsback&res=1\",
@@ -265,11 +269,29 @@ print "<script type=\"text/javascript\">
 	labelsDivStyles: { border: '1px solid black' },
 	title: 'Hashrate Graph ($givenuser)',
 	xlabel: 'Date',
-	ylabel: 'MH/sec'
+	ylabel: 'MH/sec',
+	animatedZooms: true,
+	drawCallback: function(dg, is_initial) {
+                if (is_initial) {
+				var rangeA = g2.xAxisRange();
+				g3.updateOptions( { dateWindow: rangeA } );
+		} else {
+			if (!blockUpdateA) {
+				blockUpdateB = 1;
+				var rangeA = g2.xAxisRange();
+				g3.updateOptions( { dateWindow: rangeA } );
+				blockUpdateB = 0;
+			}
+		}
+           }
+
 	}
+
   );
 
 
+  var mrindex = 0;
+var mrhidden = 1;
   g3 = new Dygraph(
     document.getElementById(\"graphdiv3\"),
     \"$givenuser?cmd=balancegraph&start=0&back=$secondsback&res=1\",
@@ -278,9 +300,37 @@ print "<script type=\"text/javascript\">
 	labelsDivStyles: { border: '1px solid black' },
 	title: 'Balance Graph ($givenuser)',
 	xlabel: 'Date',
-	ylabel: 'BTC'
+	ylabel: 'BTC',
+	animatedZooms: true,
+	drawCallback: function(dg, is_initial) {
+                if (is_initial) {
+			mrindex = dg.indexFromSetName(\"maximum reward\") - 1;
+	             dg.setVisibility(mrindex, 0);
+				var rangeB = g3.xAxisRange();
+				g2.updateOptions( { dateWindow: rangeB } );
+		} else {
+			if (!blockUpdateB) {
+				blockUpdateA = 1;
+				var rangeB = g3.xAxisRange();
+				g2.updateOptions( { dateWindow: rangeB } );
+				blockUpdateA = 0;
+			}
+		}
+           }
+
 	}
   );
+
+	var showmax = function() {
+		if (mrhidden) {
+			g3.setVisibility(mrindex, 1);
+			mrhidden = 0;
+		} else {
+			g3.setVisibility(mrindex, 0);
+			mrhidden = 1;
+		}
+	}
+
 </script>
 ";
 

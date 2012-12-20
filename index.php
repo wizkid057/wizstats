@@ -90,7 +90,8 @@ Last 8 blocks<BR>
 	labelsDivStyles: { border: '1px solid black' },
 	title: '<?php echo $poolname; ?> Hashrate Graph',
 	xlabel: 'Date',
-	ylabel: 'GH/sec'
+	ylabel: 'GH/sec',
+	animatedZooms: true
 	}
   );
 </script>
