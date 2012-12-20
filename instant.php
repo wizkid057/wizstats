@@ -28,11 +28,11 @@ if ($_SERVER['PATH_INFO'] == "/livedata.json") {
 	$link = pg_Connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");
 
 	# get round share count...
-	$sql = "select ((select id from shares where server=$serverid and time < (select time from stats_shareagg where server=$serverid order by id desc limit 1) order by id desc limit 1)-(select orig_id-coalesce(rightrejects,0) from stats_blocks where server=$serverid and confirmations > 0 order by id desc limit 1)-(select coalesce(sum(rejected_shares),0) from stats_shareagg where time >= (select to_timestamp((date_part('epoch', time)::integer / 675::integer)::integer * 675::integer) from stats_blocks where server=$serverid and confirmations > 0 order by id desc limit 1))) as currentround;";
+	$sql = "select ((select id from shares where server=$serverid and time < (select time from $psqlschema.stats_shareagg where server=$serverid order by id desc limit 1) order by id desc limit 1)-(select orig_id-coalesce(rightrejects,0) from $psqlschema.stats_blocks where server=$serverid and confirmations > 0 order by id desc limit 1)-(select coalesce(sum(rejected_shares),0) from $psqlschema.stats_shareagg where time >= (select to_timestamp((date_part('epoch', time)::integer / 675::integer)::integer * 675::integer) from $psqlschema.stats_blocks where server=$serverid and confirmations > 0 order by id desc limit 1))) as currentround;";
 	$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
 	$roundshares = $row["currentround"];
 
-	$sql = "select id from shares where server=$serverid and time < (select time from stats_shareagg where server=$serverid order by id desc limit 1) order by id desc limit 1;";
+	$sql = "select id from shares where server=$serverid and time < (select time from $psqlschema.stats_shareagg where server=$serverid order by id desc limit 1) order by id desc limit 1;";
 	$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
 	$tempid = $row["id"];
 	$sql = "select count(*) as instcount from shares where server=$serverid and our_result=true and id > $tempid";
@@ -40,12 +40,12 @@ if ($_SERVER['PATH_INFO'] == "/livedata.json") {
 	$roundshares += $row["instcount"];
 
 	# get hashrate
-	$sql = "select (sum(accepted_shares)*pow(2,32))/1350 as avghash from $psqlschema.stats_shareagg where server=$serverid and time > to_timestamp((date_part('epoch', (select time from stats_shareagg where server=$serverid group by server,time order by time desc limit 1))::integer / 675::integer)::integer * 675::integer)-'1350 seconds'::interval";
+	$sql = "select (sum(accepted_shares)*pow(2,32))/1350 as avghash from $psqlschema.stats_shareagg where server=$serverid and time > to_timestamp((date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1))::integer / 675::integer)::integer * 675::integer)-'1350 seconds'::interval";
 	$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
 	$hashrate1250 = $row["avghash"];
 
 	# get latest block height
-	$sql = "select date_part('epoch',NOW() - time) as roundduration,height,confirmations from stats_blocks where server=$serverid and confirmations > 0 and height > 0 order by id desc limit 1;";
+	$sql = "select date_part('epoch',NOW() - time) as roundduration,height,confirmations from $psqlschema.stats_blocks where server=$serverid and confirmations > 0 and height > 0 order by id desc limit 1;";
 	$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
 	$blockheight = $row["height"];
 	$roundduration = $row["roundduration"];
@@ -68,11 +68,11 @@ if ($_SERVER['PATH_INFO'] == "/blockinfo.json") {
 	$link = pg_Connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");
 	if (isset($_GET["height"])) { 
 		$cleanheight = pg_escape_string($link, $_GET["height"]); 
-		$sql = "select *,stats_blocks.id as blockid,date_part('epoch', NOW())::integer-date_part('epoch', time)::integer as age,date_part('epoch', time)::integer-date_part('epoch', roundstart)::integer as duration from stats_blocks left join users on user_id=users.id where height=$cleanheight;";
+		$sql = "select *,stats_blocks.id as blockid,date_part('epoch', NOW())::integer-date_part('epoch', time)::integer as age,date_part('epoch', time)::integer-date_part('epoch', roundstart)::integer as duration from $psqlschema.stats_blocks left join users on user_id=users.id where height=$cleanheight;";
 	}
 	if (isset($_GET["dbid"])) { 
 		$cleandbid = pg_escape_string($link, $_GET["dbid"]); 
-		$sql = "select *,stats_blocks.id as blockid,date_part('epoch', NOW())::integer-date_part('epoch', time)::integer as age,date_part('epoch', time)::integer-date_part('epoch', roundstart)::integer as duration from stats_blocks left join users on user_id=users.id where stats_blocks.id=$cleandbid;";
+		$sql = "select *,stats_blocks.id as blockid,date_part('epoch', NOW())::integer-date_part('epoch', time)::integer as age,date_part('epoch', time)::integer-date_part('epoch', roundstart)::integer as duration from $psqlschema.stats_blocks left join users on user_id=users.id where stats_blocks.id=$cleandbid;";
 
 	}
 

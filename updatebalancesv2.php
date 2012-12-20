@@ -71,7 +71,7 @@ foreach($balj as $key => $val) {
 }
 
 
-$sql = "select distinct on (user_id) user_id,time,username,keyhash,everpaid,credit,balance from stats_balances left join users on user_id=users.id where server=$serverid and time > NOW()-'1 week'::interval order by user_id, time desc;";
+$sql = "select distinct on (user_id) user_id,time,username,keyhash,everpaid,credit,balance from $psqlschema.stats_balances left join users on user_id=users.id where server=$serverid and time > NOW()-'1 week'::interval order by user_id, time desc;";
 $result = pg_exec($link, $sql);
 $numrows = pg_numrows($result);
 for($ri = 0; $ri < $numrows; $ri++) {
@@ -135,7 +135,7 @@ foreach($lastdata as $key => $val) {
 $insertvalues = substr($insertvalues, 0, strlen($insertvalues)-2);
 
 if (strlen($insertvalues) > 0) {
-	$sql = "insert into stats_balances (server, time, user_id, everpaid, balance, credit) VALUES ". $insertvalues . "\n";
+	$sql = "insert into $psqlschema.stats_balances (server, time, user_id, everpaid, balance, credit) VALUES ". $insertvalues . "\n";
 	print "Final SQL: $sql\n";
 	$result = pg_exec($link, $sql);
 } else {

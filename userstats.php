@@ -102,7 +102,7 @@ if (isset($_GET["cmd"])) {
 
 		print "date,".$ressec." seconds,3 hour,12 hour\n";
 
-		$sql = "select gtime,COALESCE(hashrate,0) as hashrate from (select * from generate_series(to_timestamp(((date_part('epoch', (select time from stats_shareagg where server=$serverid group by server,time order by time desc limit 1)-'$sstart seconds'::interval)::integer / 675) * 675)-43200), to_timestamp((date_part('epoch', (select time from stats_shareagg where server=$serverid group by server,time order by time desc limit 1)-'$start seconds'::interval)::integer / 675) * 675), '$ressec seconds') as gtime) as gentime left join (select * from wizkid057.stats_shareagg where server=$serverid and user_id=$user_id) as dstats on (dstats.time = gentime.gtime);";
+		$sql = "select gtime,COALESCE(hashrate,0) as hashrate from (select * from generate_series(to_timestamp(((date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1)-'$sstart seconds'::interval)::integer / 675) * 675)-43200), to_timestamp((date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1)-'$start seconds'::interval)::integer / 675) * 675), '$ressec seconds') as gtime) as gentime left join (select * from $psqlschema.stats_shareagg where server=$serverid and user_id=$user_id) as dstats on (dstats.time = gentime.gtime);";
 		$result = pg_exec($link, $sql);
 		$numrows = pg_numrows($result);
 
@@ -222,13 +222,13 @@ print "</TABLE>";
 
 # 3 hour hashrate
 # FIX FOR BAD HASHRATE BUG 091512
-$sql = "select (sum(accepted_shares)*pow(2,32))/10800 as avghash from $psqlschema.stats_shareagg where server=$serverid and user_id=$user_id and time > to_timestamp((date_part('epoch', (select time from stats_shareagg where server=$serverid group by server,time order by time desc limit 1)-'3 hours'::interval)::integer / 675::integer) * 675::integer)";
+$sql = "select (sum(accepted_shares)*pow(2,32))/10800 as avghash from $psqlschema.stats_shareagg where server=$serverid and user_id=$user_id and time > to_timestamp((date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1)-'3 hours'::interval)::integer / 675::integer) * 675::integer)";
 $result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
 $u16avghash = isset($row["avghash"])?$row["avghash"]:0;
 
 # 22.5 minute hashrate
 # FIX FOR BAD HASHRATE BUG 091512
-$sql = "select (sum(accepted_shares)*pow(2,32))/1350 as avghash from $psqlschema.stats_shareagg where server=$serverid and user_id=$user_id and time > to_timestamp((date_part('epoch', (select time from stats_shareagg where server=$serverid group by server,time order by time desc limit 1))::integer / 675::integer)::integer * 675::integer)-'1350 seconds'::interval";
+$sql = "select (sum(accepted_shares)*pow(2,32))/1350 as avghash from $psqlschema.stats_shareagg where server=$serverid and user_id=$user_id and time > to_timestamp((date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1))::integer / 675::integer)::integer * 675::integer)-'1350 seconds'::interval";
 $result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
 $u2avghash = isset($row["avghash"])?$row["avghash"]:0;
 

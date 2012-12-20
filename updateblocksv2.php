@@ -22,7 +22,7 @@ $link = pg_Connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psq
 $link2 = pg_Connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");
 
 ### OPTIMIZE THIS TO KNOW WHEN THE LAST BLOCK WAS?!
-$sql = "INSERT INTO wizkid057.stats_blocks (server, orig_id, time, user_id, solution, network_difficulty) select server, id, time, user_id, solution, (pow(10,((29-hex_to_int(substr(encode(solution,'hex'),145,2)))::double precision*2.4082399653118495617099111577959::double precision)+log(  (65535::double precision /  hex_to_int(substr(encode(solution,'hex'),147,6)))::double precision   )::double precision))::double precision as network_difficulty from shares where upstream_result=true and solution NOT IN (select solution from stats_blocks);";
+$sql = "INSERT INTO $psqlschema.stats_blocks (server, orig_id, time, user_id, solution, network_difficulty) select server, id, time, user_id, solution, (pow(10,((29-hex_to_int(substr(encode(solution,'hex'),145,2)))::double precision*2.4082399653118495617099111577959::double precision)+log(  (65535::double precision /  hex_to_int(substr(encode(solution,'hex'),147,6)))::double precision   )::double precision))::double precision as network_difficulty from shares where upstream_result=true and solution NOT IN (select solution from $psqlschema.stats_blocks);";
 $result = pg_exec($link, $sql);
 
 $sql = "select * from $psqlschema.stats_blocks where (confirmations < 120 and confirmations > 0) or (blockhash IS NULL) or ((acceptedshares is null or roundstart is null) and (confirmations > 0)) or (confirmations < 120 and time > NOW()-'1 day'::interval) order by time asc";
@@ -102,7 +102,7 @@ for($ri = 0; $ri < $numrows; $ri++) {
 				$id2 = $row2["id"];
 
 				## UPDATE RIGHT REJECTS
-				$sql = "select case when (least(to_timestamp(((date_part('epoch', '$btime2'::timestamp without time zone)::integer + 675::integer) / 675::integer) * 675::integer),((select time from stats_blocks where id>$orig_id2 order by id asc limit 1))) < NOW()) THEN COUNT(*) ELSE NULL END as rightrejects from public.shares where server=$server and our_result!=true and id > $orig_id2 and time >= '$btime2' and time < least(to_timestamp(((date_part('epoch', '$btime2'::timestamp without time zone)::integer + 675::integer) / 675::integer) * 675::integer),((select time from stats_blocks where orig_id>$orig_id2 and confirmations > 0 order by id asc limit 1)));";
+				$sql = "select case when (least(to_timestamp(((date_part('epoch', '$btime2'::timestamp without time zone)::integer + 675::integer) / 675::integer) * 675::integer),((select time from $psqlschema.stats_blocks where id>$orig_id2 order by id asc limit 1))) < NOW()) THEN COUNT(*) ELSE NULL END as rightrejects from public.shares where server=$server and our_result!=true and id > $orig_id2 and time >= '$btime2' and time < least(to_timestamp(((date_part('epoch', '$btime2'::timestamp without time zone)::integer + 675::integer) / 675::integer) * 675::integer),((select time from $psqlschema.stats_blocks where orig_id>$orig_id2 and confirmations > 0 order by id asc limit 1)));";
 				print "SQL2: $sql ; \n";
 				$result2 = pg_exec($link2, $sql);
 				$row2 = pg_fetch_array($result2, 0);
@@ -123,7 +123,7 @@ for($ri = 0; $ri < $numrows; $ri++) {
 
 
 		## UPDATE LEFT REJECTS
-		$sql = "select count(*) as leftrejects from public.shares where server=$server and our_result!=true and id > $orig_id2 and id < $orig_id and time <= '$btime' and time > greatest(to_timestamp((date_part('epoch', '$btime'::timestamp without time zone)::integer / 675::integer) * 675::integer),(select time from stats_blocks where orig_id=$orig_id2));";
+		$sql = "select count(*) as leftrejects from public.shares where server=$server and our_result!=true and id > $orig_id2 and id < $orig_id and time <= '$btime' and time > greatest(to_timestamp((date_part('epoch', '$btime'::timestamp without time zone)::integer / 675::integer) * 675::integer),(select time from $psqlschema.stats_blocks where orig_id=$orig_id2));";
 		print "SQL2: $sql ; \n";
 		$result2 = pg_exec($link2, $sql);
 		$row2 = pg_fetch_array($result2, 0);
@@ -132,7 +132,7 @@ for($ri = 0; $ri < $numrows; $ri++) {
 		print "LEFT REJECTS: $leftrejects\n";
 
 		## UPDATE FAR LEFT REJECTS
-		$sql = "select SUM(rejected_shares) as farleftrejects from stats_shareagg where server=$server and time < to_timestamp((date_part('epoch', '$btime'::timestamp without time zone)::integer / 675::integer) * 675::integer) and time > (select time from stats_blocks where orig_id=$orig_id2);";
+		$sql = "select SUM(rejected_shares) as farleftrejects from $psqlschema.stats_shareagg where server=$server and time < to_timestamp((date_part('epoch', '$btime'::timestamp without time zone)::integer / 675::integer) * 675::integer) and time > (select time from $psqlschema.stats_blocks where orig_id=$orig_id2);";
 		print "SQL2: $sql ; \n";
 		$result2 = pg_exec($link2, $sql);
 		$row2 = pg_fetch_array($result2, 0);
@@ -161,7 +161,7 @@ for($ri = 0; $ri < $numrows; $ri++) {
 
 	if ((!isset($row["rightrejects"])) && ($confs > 0)  ) {
 		## UPDATE RIGHT REJECTS
-		$sql = "select case when (least(to_timestamp(((date_part('epoch', '$btime'::timestamp without time zone)::integer + 675::integer) / 675::integer) * 675::integer),((select time from stats_blocks where id>$orig_id order by id asc limit 1))) < NOW()) THEN COUNT(*) ELSE NULL END as rightrejects from public.shares where server=$server and our_result!=true and id > $orig_id and time >= '$btime' and time < least(to_timestamp(((date_part('epoch', '$btime'::timestamp without time zone)::integer + 675::integer) / 675::integer) * 675::integer),((select time from stats_blocks where orig_id>$orig_id and confirmations > 0 order by id asc limit 1)));";
+		$sql = "select case when (least(to_timestamp(((date_part('epoch', '$btime'::timestamp without time zone)::integer + 675::integer) / 675::integer) * 675::integer),((select time from $psqlschema.stats_blocks where id>$orig_id order by id asc limit 1))) < NOW()) THEN COUNT(*) ELSE NULL END as rightrejects from public.shares where server=$server and our_result!=true and id > $orig_id and time >= '$btime' and time < least(to_timestamp(((date_part('epoch', '$btime'::timestamp without time zone)::integer + 675::integer) / 675::integer) * 675::integer),((select time from $psqlschema.stats_blocks where orig_id>$orig_id and confirmations > 0 order by id asc limit 1)));";
 		print "SQL2: $sql ; \n";
 		$result2 = pg_exec($link2, $sql);
 		$row2 = pg_fetch_array($result2, 0);

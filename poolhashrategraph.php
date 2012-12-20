@@ -21,7 +21,7 @@ require_once 'config.php';
 $link = pg_Connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");
 
 
-$sql = "select sum(hashrate) as hr,time from stats_shareagg where server=$serverid and time > NOW()-'10 days'::interval-'12 hours'::interval group by time order by time asc;";
+$sql = "select sum(hashrate) as hr,time from $psqlschema.stats_shareagg where server=$serverid and time > NOW()-'10 days'::interval-'12 hours'::interval group by time order by time asc;";
 $result = pg_exec($link, $sql);
 $numrows = pg_numrows($result);
 

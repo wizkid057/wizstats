@@ -48,11 +48,11 @@ Last 8 blocks<BR>
 
 	$linkindex = pg_Connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");
 
-	$sql = "select ((select id from shares where server=$serverid and time < (select time from stats_shareagg where server=$serverid order by id desc limit 1) order by id desc limit 1)-(select orig_id-coalesce(rightrejects,0) from stats_blocks where server=$serverid and confirmations > 0 order by id desc limit 1)-(select coalesce(sum(rejected_shares),0) from stats_shareagg where time >= (select to_timestamp((date_part('epoch', time)::integer / 675::integer)::integer * 675::integer) from stats_blocks where server=$serverid and confirmations > 0 order by id desc limit 1))) as currentround;";
+	$sql = "select ((select id from shares where server=$serverid and time < (select time from $psqlschema.stats_shareagg where server=$serverid order by id desc limit 1) order by id desc limit 1)-(select orig_id-coalesce(rightrejects,0) from $psqlschema.stats_blocks where server=$serverid and confirmations > 0 order by id desc limit 1)-(select coalesce(sum(rejected_shares),0) from $psqlschema.stats_shareagg where time >= (select to_timestamp((date_part('epoch', time)::integer / 675::integer)::integer * 675::integer) from $psqlschema.stats_blocks where server=$serverid and confirmations > 0 order by id desc limit 1))) as currentround;";
 	$result = pg_exec($linkindex, $sql); $row = pg_fetch_array($result, 0);
 	$roundshares = $row["currentround"];
 
-	$sql = "select id from shares where server=$serverid and time < (select time from stats_shareagg where server=$serverid order by id desc limit 1) order by id desc limit 1;";
+	$sql = "select id from shares where server=$serverid and time < (select time from $psqlschema.stats_shareagg where server=$serverid order by id desc limit 1) order by id desc limit 1;";
 	$result = pg_exec($linkindex, $sql); $row = pg_fetch_array($result, 0);
 	$tempid = $row["id"];
 	$sql = "select count(*) as instcount from shares where server=$serverid and our_result=true and id > $tempid";
@@ -60,16 +60,16 @@ Last 8 blocks<BR>
 	$roundshares += $row["instcount"];
 
 
-	$sql = "select (sum(accepted_shares)*pow(2,32))/1350 as avghash from $psqlschema.stats_shareagg where server=$serverid and time > to_timestamp((date_part('epoch', (select time from stats_shareagg where server=$serverid group by server,time order by time desc limit 1))::integer / 675::integer)::integer * 675::integer)-'1350 seconds'::interval";
+	$sql = "select (sum(accepted_shares)*pow(2,32))/1350 as avghash from $psqlschema.stats_shareagg where server=$serverid and time > to_timestamp((date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1))::integer / 675::integer)::integer * 675::integer)-'1350 seconds'::interval";
 	$result = pg_exec($linkindex, $sql); $row = pg_fetch_array($result, 0);
 	$hashrate1250 = $row["avghash"];
 
-	$sql = "select (sum(accepted_shares)*pow(2,32))/10800 as avghash from $psqlschema.stats_shareagg where server=$serverid and time > to_timestamp((date_part('epoch', (select time from stats_shareagg where server=$serverid group by server,time order by time desc limit 1))::integer / 675::integer)::integer * 675::integer)-'3 hours'::interval";
+	$sql = "select (sum(accepted_shares)*pow(2,32))/10800 as avghash from $psqlschema.stats_shareagg where server=$serverid and time > to_timestamp((date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1))::integer / 675::integer)::integer * 675::integer)-'3 hours'::interval";
 	$result = pg_exec($linkindex, $sql); $row = pg_fetch_array($result, 0);
 	$hashrate3hr = $row["avghash"];
 
 	# get latest block height
-	$sql = "select date_part('epoch',NOW() - time) as roundduration,confirmations,height from stats_blocks where server=$serverid and confirmations > 0 and height > 0 order by id desc limit 1;";
+	$sql = "select date_part('epoch',NOW() - time) as roundduration,confirmations,height from $psqlschema.stats_blocks where server=$serverid and confirmations > 0 and height > 0 order by id desc limit 1;";
 	$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
 	$blockheight = $row["height"];
 	$blockconfirms = $row["confirmations"];
