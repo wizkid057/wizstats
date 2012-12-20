@@ -30,6 +30,7 @@ function print_stats_top() {
 <TITLE>".$localtitleprepend.$GLOBALS["poolname"]." Pool Statistics".$localtitleappend."</TITLE>
 <script type=\"text/javascript\" src=\"".$GLOBALS["urlprefix"]."dygraph-combined.js\"></script>
 <script type=\"text/javascript\" src=\"".$GLOBALS["urlprefix"]."jquery.js\"></script>
+<script type=\"text/javascript\" src=\"".$GLOBALS["urlprefix"]."sortable.js\"></script>
 <!--[if IE]><script type=\"text/javascript\" src=\"".$GLOBALS["urlprefix"]."excanvas.js\"></script><![endif]-->
 <link rel=\"stylesheet\" href=\"".$GLOBALS["urlprefix"]."blocklist.css\" type=\"text/css\">
 <link rel=\"stylesheet\" href=\"".$GLOBALS["urlprefix"]."contributors.css\" type=\"text/css\">

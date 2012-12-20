@@ -17,17 +17,37 @@
 
 
 require_once 'config.php';
+require_once 'blocks_functions.php';
+
+$blocks_show_stale = 0;
+
 if (!isset($link)) { $link = pg_Connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost"); }
 
 if (!isset($subcall)) {
 	$titleprepend = "Block List - ";
 	print_stats_top();
+	if (isset($_GET["show_stale"])) {
+		if ($_GET["show_stale"] == 1) {
+			$blocks_show_stale = 1;
+		}
+	}
+
+	if (!$blocks_show_stale) {
+		print "<SMALL><A HREF=\"?show_stale=1\">(Show stale/orphan blocks in list)</A></SMALL><BR>";
+	} else {
+		print "<SMALL><A HREF=\"?show_stale=0\">(Hide stale/orphan blocks in list)</A></SMALL><BR>";
+	}
+
+
+} else {
+	$blocks_show_stale = 1;
 }
 
 if (isset($blocklimit)) {
 	$blim = "limit $blocklimit";
 } else {
 	$blim = "";
+	print "<SMALL>Click on a header item to sort the list</SMALL><BR><BR>";
 }
 
 
@@ -36,21 +56,13 @@ $result = pg_exec($link, $sql);
 $numrows = pg_numrows($result);
 
 
-print "<TABLE id=\"blocklisttable\" CLASS=\"blocklist\">";
-print "<TR CLASS=\"blocklistheader\" id=\"blocklistheaderid\">";
-print "<TD>Age</TD>";
-print "<TD>Round Start</TD>";
-print "<TD colspan=\"3\">Round Duration</TD>";
-print "<TD>Accepted Shares</TD>";
-#print "<TD colspan=\"2\">Rejected Shares</TD>";
-print "<TD>Difficulty</TD>";
-print "<TD>Luck</TD>";
-print "<TD>Hashrate</TD>";
-print "<TD>Confirmations</TD>";
-print "<TD>Contributor</TD>";
-print "<TD>Height</TD>";
-print "<TD>Block Hash</TD>";
-print "</TR>";
+if (isset($blocklimit)) {
+	print block_table_start(0);
+} else {
+	print block_table_start(1);
+}
+print block_table_header();
+
 
 $gc = 0;
 $oc = 0;
@@ -58,84 +70,16 @@ $oc = 0;
 for($ri = 0; $ri < $numrows; $ri++) {
 
         $row = pg_fetch_array($result, $ri);
-
-	if (isset($row["acceptedshares"])) { $luck = 100 * ($row["network_difficulty"] / $row["acceptedshares"]); } else { $luck = 0; }
-	if ($luck > 9999) { $luck = ">9999%"; } else { $luck = round($luck,2)."%"; }
-
-
-	$roundstart = substr($row["roundstart"],0,19);
-	if ($row["confirmations"] >= 120) { $confs = "Confirmed"; $gc++; }
-	else if ($row["confirmations"] == 0) { $confs = "Stale"; $oc++; $luck = "n/a"; $roundstart = "<SMALL>(".substr($row["time"],0,19); $roundstart .= ")</SMALL>"; }
-	else { $confs = $row["confirmations"]." of 120"; }
-
+	if ($row["confirmations"] >= 120) { $gc++; }
+	if ($row["confirmations"] == 0) { $oc++; }
 	if ($ri % 2) { $isodd = "odd"; } else { $isodd = ""; }
-	$dbid = $row["blockid"];
-
-	if ($row["confirmations"] == 0) { print "<TR id=\"blockrow$dbid\" BGCOLOR=\"#FFDFDF\" class=\"$isodd"."blockorphan\">"; } 
-	else if ($row["confirmations"] >= 120) { print "<TR id=\"blockrow$dbid\" BGCOLOR=\"#DFFFDF\" class=\"$isodd"."blockconfirmed\">"; }
-	else { print "<TR class=\"$isodd\" id=\"blockrow$dbid\">"; }
-
-	print "<TD>".prettyDuration($row["age"],false,1)."</TD>";
-
-
-
-	print "<TD>".$roundstart."</TD>";
-
-	if (isset($row["duration"])) {
-		list($seconds, $minutes, $hours) = extractTime($row["duration"]);
-		print "<td style=\"width: 1.5em;  text-align: right;\">$hours</td><td style=\"width: 1.5em;  text-align: right;\">$minutes</td><td style=\"width: 1.5em;  text-align: right;\">$seconds</td>";
-
-		$hashrate = ($row["acceptedshares"] * 4294967296) / $row["duration"];
-		$hashrate = prettyHashrate($hashrate);
-
-	} else {
-		print "<td style=\"text-align: right;\" colspan=\"3\">n/a</td>";
-		$hashrate = "n/a";
+	if (($row["confirmations"] > 0) || (($row["confirmations"] == 0) && ($blocks_show_stale))) {
+		print block_table_row($row,$isodd);
 	}
-
-	print "<TD style=\"text-align: right;\">".$row["acceptedshares"]."</TD>";
-
-#	if (isset($row["rejectedshares"])) {
-#		$rper = "<SMALL>(".round(  (($row["rejectedshares"]/($row["rejectedshares"]+$row["acceptedshares"])) *100) ,2)."%)</SMALL>";
-#		print "<TD style=\"text-align: right;\">".$row["rejectedshares"]."</TD><TD style=\"text-align: right;\">".$rper."</TD>";
-#	} else {
-#		print "<TD colspan=\"2\" style=\"text-align: right;\">n/a</TD>";
-#	}
-
-	print "<TD style=\"text-align: right;\">".round($row["network_difficulty"],0)."</TD>";
-	print "<TD style=\"text-align: right;\">".$luck."</TD>";
-
-
-	print "<TD style=\"text-align: right;\">".$hashrate."</TD>";
-
-
-
-
-	print "<TD class=\"blockconfirms\" style=\"text-align: right;\">".$confs."</TD>";
-	if (isset($row['keyhash'])) {
-		$fulladdress =  \Bitcoin::hash160ToAddress(bits2hex($row['keyhash']));
-		$address = substr($fulladdress,0,10)."...";
-	} else {
-		 $address = "(Unknown user)"; 
-	}
-	#print "<TD><A HREF=\"userstats.php/".$row["username"]."\">".$row["username"]."</A></TD>";
-	print "<TD><A HREF=\"userstats.php/".$fulladdress."\">".$address."</A></TD>";
-
-
-	if ((isset($row["height"])) && ($row["height"] > 0)) {
-		$ht = $row["height"];
-	} else {
-		$ht = "n/a";
-	}
-	print "<TD style=\"text-align: right;\">$ht</TD>";
-
-	$nicehash = "...".substr($row["blockhash"],40,24);
-	print "<TD><A HREF=\"http://blockchain.info/block/".$row["blockhash"]."\">".$nicehash."</A></TD>";
-	print "</TR>";
 
 }
 
-print "</TABLE>";
+print block_table_end();
 
 if (!isset($subcall)) {
 	print "<BR>Confirmed blocks: $gc blocks --- Stale blocks: $oc blocks\n";

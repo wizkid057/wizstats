@@ -15,7 +15,8 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-include("config.php");
+require_once 'config.php';
+require_once 'blocks_functions.php';
 
 
 if (!isset($_SERVER['PATH_INFO'])) { exit(); }
@@ -75,73 +76,13 @@ if ($_SERVER['PATH_INFO'] == "/blockinfo.json") {
 
 	}
 
-	$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
-
-	$line = "";
-
-	if (isset($row["acceptedshares"])) { $luck = 100 * ($row["network_difficulty"] / $row["acceptedshares"]); } else { $luck = 0; }
-	if ($luck > 9999) { $luck = ">9999%"; } else { $luck = round($luck,2)."%"; }
-
-
-	$roundstart = substr($row["roundstart"],0,19);
-	if ($row["confirmations"] >= 120) { $confs = "Confirmed"; }
-	else if ($row["confirmations"] == 0) { $confs = "Stale"; $oc++; $luck = "n/a"; $roundstart = "<SMALL>(".substr($row["time"],0,19); $roundstart .= ")</SMALL>"; }
-	else { $confs = $row["confirmations"]." of 120"; }
-
-	if (isset($_GET["cclass"])) { $cclass = $_GET["cclass"]; } else { $cclass = ""; }
-
-	if (substr($cclass,0,3) == "odd") { $isodd = "odd"; } else { $isodd = ""; }
+	$result = pg_exec($link, $sql); 
+	$row = pg_fetch_array($result, 0);
 	$dbid = $row["blockid"];
-	if ($row["confirmations"] == 0) { $line .= "<TR id=\"blockrow$dbid\" BGCOLOR=\"#FFDFDF\" class=\"$isodd"."blockorphan\">"; } 
-	else if ($row["confirmations"] >= 120) { $line .= "<TR id=\"blockrow$dbid\" BGCOLOR=\"#DFFFDF\" class=\"$isodd"."blockconfirmed\">"; }
-	else { $line .= "<TR id=\"blockrow$dbid\" class=\"$isodd\">"; }
+	if (isset($_GET["cclass"])) { $cclass = $_GET["cclass"]; } else { $cclass = ""; }
+	if (substr($cclass,0,3) == "odd") { $isodd = "odd"; } else { $isodd = ""; }
+	$line = block_table_row($row,$isodd);
 
-	$line .= "<TD>".prettyDuration($row["age"],false,1)."</TD>";
-
-	$line .= "<TD>".$roundstart."</TD>";
-
-	if (isset($row["duration"])) {
-		list($seconds, $minutes, $hours) = extractTime($row["duration"]);
-		$line .= "<td style=\"width: 1.5em;  text-align: right;\">$hours</td><td style=\"width: 1.5em;  text-align: right;\">$minutes</td><td style=\"width: 1.5em;  text-align: right;\">$seconds</td>";
-		$hashrate = ($row["acceptedshares"] * 4294967296) / $row["duration"];
-		$hashrate = prettyHashrate($hashrate);
-
-	} else {
-		$line .= "<td style=\"text-align: right;\" colspan=\"3\">n/a</td>";
-		$hashrate = "n/a";
-	}
-
-	$line .= "<TD style=\"text-align: right;\">".$row["acceptedshares"]."</TD>";
-
-#	if (isset($row["rejectedshares"])) {
-#		$rper = "<SMALL>(".round(  (($row["rejectedshares"]/($row["rejectedshares"]+$row["acceptedshares"])) *100) ,2)."%)</SMALL>";
-#		$line .= "<TD style=\"text-align: right;\">".$row["rejectedshares"]."</TD><TD style=\"text-align: right;\">".$rper."</TD>";
-#	} else {
-#		$line .= "<TD colspan=\"2\" style=\"text-align: right;\">n/a</TD>";
-#	}
-
-	$line .= "<TD style=\"text-align: right;\">".round($row["network_difficulty"],0)."</TD>";
-	$line .= "<TD style=\"text-align: right;\">".$luck."</TD>";
-	$line .= "<TD style=\"text-align: right;\">".$hashrate."</TD>";
-	$line .= "<TD class=\"blockconfirms\" style=\"text-align: right;\">".$confs."</TD>";
-	if (isset($row['keyhash'])) {
-		$fulladdress =  \Bitcoin::hash160ToAddress(bits2hex($row['keyhash']));
-		$address = substr($fulladdress,0,10)."...";
-	} else {
-		 $address = "(Unknown user)"; 
-	}
-	$line .= "<TD><A HREF=\"userstats.php/".$fulladdress."\">".$address."</A></TD>";
-
-
-	if ((isset($row["height"])) && ($row["height"] > 0)) {
-		$ht = $row["height"];
-	} else {
-		$ht = "n/a";
-	}
-	$line .= "<TD style=\"text-align: right;\">$ht</TD>";
-
-	$nicehash = "...".substr($row["blockhash"],40,24);
-	$line .= "<TD><A HREF=\"http://blockchain.info/block/".$row["blockhash"]."\">".$nicehash."</A></TD></TR>";
 
 	$line = json_encode($line);
 	if ($dbid) {
