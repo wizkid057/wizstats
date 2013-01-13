@@ -328,6 +328,19 @@ print "3 hour average hashrate: ".prettyHashrate($u16avghash)."<BR>\n";
 print "22.5 minute average hashrate: ".prettyHashrate($u2avghash)."<BR>\n";
 
 
+$cppsrbjson = file_get_contents("/var/lib/eligius/$serverid/cppsrb.json");
+$cppsrbjsondec = json_decode($cppsrbjson,true);
+$mycppsrb = $cppsrbjsondec[$givenuser];
+$globalccpsrb = $cppsrbjsondec[""];
+$my_shares = $mycppsrb["shares"];
+
+
+
+for($i=128;$i<257;$i*=2) {
+	print "Instant $i second average hashrate: " . prettyHashrate(($my_shares[$i] * 4294967296)/$i) . "<BR>";
+}
+
+
 
 if (isset($_GET["timemachine"])) {
 	$secondsback = 5184000;
@@ -429,11 +442,6 @@ var mrhidden = 1;
 
 if (isset($_GET["wizdebug"])) {
 
-$cppsrbjson = file_get_contents("/var/lib/eligius/$serverid/cppsrb.json");
-$cppsrbjsondec = json_decode($cppsrbjson,true);
-$mycppsrb = $cppsrbjsondec[$givenuser];
-
-$globalccpsrb = $cppsrbjsondec[""];
 
 $latest_chunk = $globalccpsrb['share_log_top_chunk'];
 
@@ -443,15 +451,11 @@ $latest_chunk = $globalccpsrb['share_log_top_chunk'];
 
 #var_dump($mycppsrb);
 
-$my_shares = $mycppsrb["shares"];
 $my_share_log = $mycppsrb["share_log"];
 
 #var_dump($my_shares);
 #var_dump($my_share_log);
 
-for($i=8;$i<257;$i*=2) {
-	print "Instant $i second hashrate: " . prettyHashrate(($my_shares[$i] * 4294967296)/$i) . "<BR>";
-}
 
 
 if (isset($my_share_log["total"])) {
