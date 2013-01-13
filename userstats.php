@@ -58,11 +58,43 @@ if (isset($_GET["cmd"])) {
 
 	if ($cmd == "balancegraph") {
 
-		$sql = "select * from $psqlschema.stats_balances where server=$serverid and user_id=$user_id and server=$serverid and time > to_timestamp((date_part('epoch', NOW()-'$sstart seconds'::interval)::integer / 675) * 675) and time < to_timestamp((date_part('epoch', NOW()-'$start seconds'::interval)::integer / 675) * 675) order by time asc;";
+		# get balance as of last block that is relevant to this query...
+		$sql = "select balance from $psqlschema.stats_balances
+			where stats_balances.server=$serverid 
+			and stats_balances.user_id=$user_id 
+			and time < 
+			(select time from $psqlschema.stats_blocks where server=7 and time < (select time from $psqlschema.stats_balances 
+			where stats_balances.server=$serverid 
+			and stats_balances.user_id=$user_id 
+			and stats_balances.time > to_timestamp((date_part('epoch', NOW()-'$sstart seconds'::interval)::integer / 675) * 675) 
+			and stats_balances.time < to_timestamp((date_part('epoch', NOW()-'$start seconds'::interval)::integer / 675) * 675) 
+			order by stats_balances.time asc limit 1) order by id desc limit 1) order by id desc limit 1;";
+
+		$result = pg_exec($link, $sql);
+		$numrows = pg_numrows($result);
+		if ($numrows > 0) {
+			$row = pg_fetch_array($result, 0);
+			$startbalance = $row["balance"];
+		} else {
+			$startbalance = 0;
+		}
+
+		#$sql = "select * from $psqlschema.stats_balances where server=$serverid and user_id=$user_id and server=$serverid and time > to_timestamp((date_part('epoch', NOW()-'$sstart seconds'::interval)::integer / 675) * 675) and time < to_timestamp((date_part('epoch', NOW()-'$start seconds'::interval)::integer / 675) * 675) order by time asc;";
+
+		$sql = "select stats_balances.server as server, stats_balances.id as id, stats_balances.time as time, stats_balances.user_id as user_id, stats_balances.everpaid as everpaid,stats_balances.balance as balance,stats_balances.credit as credit, 
+			(select time from $psqlschema.stats_blocks where server=$serverid and stats_blocks.confirmations > 0 and stats_blocks.time <= stats_balances.time+'675 seconds'::interval order by time desc limit 1) as blocktime
+			 from $psqlschema.stats_balances 
+			where stats_balances.server=$serverid 
+			and stats_balances.user_id=$user_id 
+			and stats_balances.time > to_timestamp((date_part('epoch', NOW()-'$sstart seconds'::interval)::integer / 675) * 675) 
+			and stats_balances.time < to_timestamp((date_part('epoch', NOW()-'$start seconds'::interval)::integer / 675) * 675) 
+			order by stats_balances.time asc;";
+
+
 		$result = pg_exec($link, $sql);
 		$numrows = pg_numrows($result);
 
-		print "date,everpaid,unpaid+everpaid,maximum reward\n";
+		print "date,everpaid,unpaid+everpaid+est,maximum reward,unpaid+everpaid\n";
 
 		$lastctime = 0;
 
@@ -70,6 +102,13 @@ if (isset($_GET["cmd"])) {
 
 			# 2012-12-18 03:22:30
 			$row = pg_fetch_array($result, $ri);
+
+			if (!isset($lastblocktime)) {
+				$lastblocktime = $row["blocktime"];
+			}
+			if (!isset($lasteverpaid)) {
+				$lasteverpaid = $row["everpaid"];
+			}
 
 			$thisctime = strtotime($row["time"]);
 
@@ -81,12 +120,23 @@ if (isset($_GET["cmd"])) {
 
 			}
 
+			if ($lastblocktime != $row["blocktime"]) {
+				$startbalance = $lastrowbalance;
+				$lastblocktime = $row["blocktime"];
+			}
+			if ($row["everpaid"] != $lasteverpaid) {
+				$startbalance -= ($row["everpaid"] - $lasteverpaid)>0? ($row["everpaid"] - $lasteverpaid):0;
+				if ($startbalance < 0) { $startbalance = 0; }
+				$lasteverpaid = $row["everpaid"];
+			}
+
 			$pline = $row["time"].",";
 			$pline .= ($row["everpaid"]/100000000).",";
 			$pline .= ($row["balance"]/100000000)+($row["everpaid"]/100000000).",";
-			$pline .= ($row["credit"]/100000000)+($row["balance"]/100000000)+($row["everpaid"]/100000000);
+			$pline .= ($row["credit"]/100000000)+($row["balance"]/100000000)+($row["everpaid"]/100000000).",";
+			$pline .= ($startbalance/100000000)+($row["everpaid"]/100000000);
 			print $pline."\n";
-
+			$lastrowbalance = $row["balance"];
 			$lastctime = $thisctime;
 
 
