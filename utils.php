@@ -143,3 +143,30 @@ if ( substr($gzData, 0, 3) == "\x1f\x8b\x08" ) {
 }
 }
 
+
+function get_stats_cache($link, $type, $hash) {
+
+	$sql = "select * from ".$GLOBALS["psqlschema"].".stats_cache where type_id=$type and query_hash='$hash' and expire_time > NOW() limit 1;";
+	$result = pg_exec($link, $sql);
+	$numrows = pg_numrows($result);
+	if ($numrows) {
+		$row = pg_fetch_array($result, 0);
+		return base64_decode($row["data"]);
+	}
+	return "";
+
+}
+
+function set_stats_cache($link, $type, $hash, $data, $expireseconds) {
+
+	# clean cache
+	$sql = "delete from ".$GLOBALS["psqlschema"].".stats_cache where expire_time < NOW();";
+	$result = pg_exec($link, $sql);
+
+	$b64data = pg_escape_string($link,base64_encode($data));
+	$sql = "insert into ".$GLOBALS["psqlschema"].".stats_cache (query_hash, type_id, create_time, expire_time, data) VALUES ('$hash', $type, NOW(), NOW()+'$expireseconds seconds', '$b64data')";
+	$result = pg_exec($link, $sql);
+
+
+}
+

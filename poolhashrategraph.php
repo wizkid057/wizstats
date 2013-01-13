@@ -22,13 +22,24 @@ $link = pg_Connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psq
 
 
 $sql = "select sum(hashrate) as hr,time from $psqlschema.stats_shareagg where server=$serverid and time > NOW()-'10 days'::interval-'12 hours'::interval group by time order by time asc;";
+
+header("Content-type: text/csv");
+
+$query_hash = hash("sha256", $sql);
+$cacheddata = get_stats_cache($link, 4, $query_hash);
+if ($cacheddata != "") {
+	print $cacheddata;
+	exit;
+}
+
+
 $result = pg_exec($link, $sql);
 $numrows = pg_numrows($result);
 
 
-print "date,hashrate,hashrate3hr,hashrate12hr\n";
+$tdata = "date,hashrate,hashrate3hr,hashrate12hr\n";
+print $tdata;
 
-header("Content-type: text/csv");
 
 	$an = 0;
 	$an2 = 0;
@@ -60,13 +71,17 @@ header("Content-type: text/csv");
 				$lavx = $lav - 32; if ($lavx < 0) { $lavx+=128; }
 				$lavy = $lav - 24; if ($lavy < 0) { $lavy+=128; }
 				$lavz = $lav - 0; if ($lavz < 0) { $lavz+=128; }
-				print $lagavg675[$lavx].",".$lagavg3[$lavy].",".$lagavg12[$lavz]."\n";
+				$tline = $lagavg675[$lavx].",".$lagavg3[$lavy].",".$lagavg12[$lavz]."\n";
+				$tdata .= $tline;
+				print $tline;
 			}
 		}
 
 		$lav++; if ($lav == 128) { $lav = 0; }
 
 	}
+
+	set_stats_cache($link, 4, $query_hash, $tdata, 675);
 
 exit();
 

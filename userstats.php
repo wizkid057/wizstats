@@ -52,7 +52,7 @@ if (isset($_GET["cmd"])) {
 	if (($res < 1) || ($res > 128)) { $res = 1; }
 	if (($start < 0)) { $start = 0; }
 	if (($back < 675)) { $back = 675; }
-	$sstart = $back+$start;
+	$sstart = round(($back+$start)/675)*675;
 	$ressec = $res * 675;
 
 
@@ -70,16 +70,22 @@ if (isset($_GET["cmd"])) {
 			and stats_balances.time < to_timestamp((date_part('epoch', NOW()-'$start seconds'::interval)::integer / 675) * 675) 
 			order by stats_balances.time asc limit 1) order by id desc limit 1) order by id desc limit 1;";
 
-		$result = pg_exec($link, $sql);
-		$numrows = pg_numrows($result);
-		if ($numrows > 0) {
-			$row = pg_fetch_array($result, 0);
-			$startbalance = $row["balance"];
+		$query_hash = hash("sha256", $sql);
+		$cacheddata = get_stats_cache($link, 3, $query_hash);
+		if ($cacheddata != "") {
+			$startbalance = $cacheddata + 0;
 		} else {
-			$startbalance = 0;
-		}
 
-		#$sql = "select * from $psqlschema.stats_balances where server=$serverid and user_id=$user_id and server=$serverid and time > to_timestamp((date_part('epoch', NOW()-'$sstart seconds'::interval)::integer / 675) * 675) and time < to_timestamp((date_part('epoch', NOW()-'$start seconds'::interval)::integer / 675) * 675) order by time asc;";
+			$result = pg_exec($link, $sql);
+			$numrows = pg_numrows($result);
+			if ($numrows > 0) {
+				$row = pg_fetch_array($result, 0);
+				$startbalance = $row["balance"];
+			} else {
+				$startbalance = 0;
+			}
+			set_stats_cache($link, 3, $query_hash, $startbalance, 675);
+		}
 
 		$sql = "select stats_balances.server as server, stats_balances.id as id, stats_balances.time as time, stats_balances.user_id as user_id, stats_balances.everpaid as everpaid,stats_balances.balance as balance,stats_balances.credit as credit, 
 			(select time from $psqlschema.stats_blocks where server=$serverid and stats_blocks.confirmations > 0 and stats_blocks.time <= stats_balances.time+'675 seconds'::interval order by time desc limit 1) as blocktime
@@ -90,11 +96,19 @@ if (isset($_GET["cmd"])) {
 			and stats_balances.time < to_timestamp((date_part('epoch', NOW()-'$start seconds'::interval)::integer / 675) * 675) 
 			order by stats_balances.time asc;";
 
+		$query_hash = hash("sha256", $sql);
+		$cacheddata = get_stats_cache($link, 1, $query_hash);
+		if ($cacheddata != "") {
+			# this output is cached!
+			print $cacheddata;
+			exit;
+		}
 
 		$result = pg_exec($link, $sql);
 		$numrows = pg_numrows($result);
 
-		print "date,everpaid,unpaid+everpaid+est,maximum reward,unpaid+everpaid\n";
+		$tdata = "date,everpaid,unpaid+everpaid+est,maximum reward,unpaid+everpaid\n";
+		print $tdata;
 
 		$lastctime = 0;
 
@@ -115,7 +129,8 @@ if (isset($_GET["cmd"])) {
 			if (($lastctime) && (($thisctime - $lastctime) > 2500)) {
 				# repeat last row data... except with this date - 1 second
 				if (strlen(strstr($pline,",")) > 0) {
-					print date("Y-m-d H:i:s",$thisctime-1).strstr($pline,",")."\n";
+					$tline = date("Y-m-d H:i:s",$thisctime-1).strstr($pline,",")."\n";
+					print $tline; $tdata .= $tline;
 				}
 
 			}
@@ -136,12 +151,15 @@ if (isset($_GET["cmd"])) {
 			$pline .= ($row["credit"]/100000000)+($row["balance"]/100000000)+($row["everpaid"]/100000000).",";
 			$pline .= ($startbalance/100000000)+($row["everpaid"]/100000000);
 			print $pline."\n";
+			$tdata .= $pline."\n";
 			$lastrowbalance = $row["balance"];
 			$lastctime = $thisctime;
 
 
 
 		}
+
+		set_stats_cache($link, 1, $query_hash, $tdata, 675);
 
 		exit;
 
@@ -150,9 +168,19 @@ if (isset($_GET["cmd"])) {
 	if ($cmd == "hashgraph") {
 
 
-		print "date,".$ressec." seconds,3 hour,12 hour\n";
 
 		$sql = "select gtime,COALESCE(hashrate,0) as hashrate from (select * from generate_series(to_timestamp(((date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1)-'$sstart seconds'::interval)::integer / 675) * 675)-43200), to_timestamp((date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1)-'$start seconds'::interval)::integer / 675) * 675), '$ressec seconds') as gtime) as gentime left join (select * from $psqlschema.stats_shareagg where server=$serverid and user_id=$user_id) as dstats on (dstats.time = gentime.gtime);";
+
+		$query_hash = hash("sha256", $sql);
+		$cacheddata = get_stats_cache($link, 2, $query_hash);
+		if ($cacheddata != "") {
+			# this output is cached!
+			print $cacheddata;
+			exit;
+		}
+
+
+
 		$result = pg_exec($link, $sql);
 		$numrows = pg_numrows($result);
 
@@ -163,6 +191,8 @@ if (isset($_GET["cmd"])) {
 		for($i=0;$i<64;$i++) { $ta[$i] = 0; $ta2[$i] = 0; }
 		for($i=0;$i<128;$i++) { $lagavg3[$i] = 0; $lagavg12[$i] = 0; }
 
+		$tdata =  "date,".$ressec." seconds,3 hour,12 hour\n";
+		print $tdata;
 
 		for($ri = 0; $ri < $numrows+32; $ri++) {
 			if ($ri < $numrows) {
@@ -187,11 +217,14 @@ if (isset($_GET["cmd"])) {
 					$lavy = $lav - 24; if ($lavy < 0) { $lavy+=128; }
 					$lavz = $lav - 0; if ($lavz < 0) { $lavz+=128; }
 
-					print $lagavg675[$lavx].",".$lagavg3[$lavy].",".$lagavg12[$lavz]."\n";
+					$tline = $lagavg675[$lavx].",".$lagavg3[$lavy].",".$lagavg12[$lavz]."\n";
+					print $tline; $tdata .= $tline;
 				}
 			}
 			$lav++; if ($lav == 128) { $lav = 0; }
 		}
+
+		set_stats_cache($link, 2, $query_hash, $tdata, 675);
 
 		exit;
 	}

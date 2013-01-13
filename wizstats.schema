@@ -1,3 +1,6 @@
+--
+-- PostgreSQL database dump
+--
 
 SET statement_timeout = 0;
 SET client_encoding = 'UTF8';
@@ -6,10 +9,20 @@ SET check_function_bodies = false;
 SET client_min_messages = warning;
 SET escape_string_warning = off;
 
+--
+-- Name: wizkid057; Type: SCHEMA; Schema: -; Owner: wizkid057
+--
 
 CREATE SCHEMA wizkid057;
 
+
+ALTER SCHEMA wizkid057 OWNER TO wizkid057;
+
 SET search_path = wizkid057, pg_catalog;
+
+--
+-- Name: hex_to_int(character varying); Type: FUNCTION; Schema: wizkid057; Owner: wizkid057
+--
 
 CREATE FUNCTION hex_to_int(hexval character varying) RETURNS integer
     LANGUAGE plpgsql IMMUTABLE STRICT
@@ -22,13 +35,48 @@ BEGIN
 END;
 $$;
 
+
 ALTER FUNCTION wizkid057.hex_to_int(hexval character varying) OWNER TO wizkid057;
 
+--
+-- Name: stats_aggregate_shares(integer, integer); Type: FUNCTION; Schema: wizkid057; Owner: wizkid057
+--
+
+CREATE FUNCTION stats_aggregate_shares(startbacksec integer, gobacksec integer) RETURNS void
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+INSERT INTO wizkid057.stats_shareagg (server, time, user_id, accepted_shares, rejected_shares, blocks_found, hashrate) select server, to_timestamp((date_part('epoch', time)::integer / 675) * 675) AS ttime, user_id, 0+SUM(our_result::integer) as acceptedshares, COUNT(*)-SUM(our_result::integer) as rejectedshares, SUM(upstream_result::integer+0) as blocksfound, ((SUM(our_result::integer) * POW(2, 32)) / 675) AS hashrate from public.shares where time > to_timestamp((date_part('epoch', NOW()-gobacksec-startbacksec::interval)::integer / 675) * 675) and time < to_timestamp((date_part('epoch', NOW()-startbacksec::interval)::integer / 675) * 675) and user_id group by ttime, server, user_id;
+EXCEPTION WHEN unique_violation THEN -- no worries
+END;
+$$;
+
+
+ALTER FUNCTION wizkid057.stats_aggregate_shares(startbacksec integer, gobacksec integer) OWNER TO wizkid057;
+
+--
+-- Name: stats_aggregate_shares(text, text); Type: FUNCTION; Schema: wizkid057; Owner: wizkid057
+--
+
+CREATE FUNCTION stats_aggregate_shares(startback text, goback text) RETURNS void
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+INSERT INTO wizkid057.stats_shareagg (server, time, user_id, accepted_shares, rejected_shares, blocks_found, hashrate) select server, to_timestamp((date_part('epoch', time)::integer / 675) * 675) AS ttime, user_id, 0+SUM(our_result::integer) as acceptedshares, COUNT(*)-SUM(our_result::integer) as rejectedshares, SUM(upstream_result::integer+0) as blocksfound, ((SUM(our_result::integer) * POW(2, 32)) / 675) AS hashrate from public.shares where time > to_timestamp((date_part('epoch', NOW()-goback::interval-startback::interval)::integer / 675) * 675) and time < to_timestamp((date_part('epoch', NOW()-startback::interval)::integer / 675) * 675) group by ttime, server, user_id;
+EXCEPTION WHEN unique_violation THEN -- no worries
+END;
+$$;
+
+
+ALTER FUNCTION wizkid057.stats_aggregate_shares(startback text, goback text) OWNER TO wizkid057;
 
 SET default_tablespace = '';
 
 SET default_with_oids = false;
 
+--
+-- Name: stats_balances; Type: TABLE; Schema: wizkid057; Owner: wizkid057; Tablespace: 
+--
 
 CREATE TABLE stats_balances (
     server smallint NOT NULL,
@@ -43,6 +91,9 @@ CREATE TABLE stats_balances (
 
 ALTER TABLE wizkid057.stats_balances OWNER TO wizkid057;
 
+--
+-- Name: stats_balances_id_seq; Type: SEQUENCE; Schema: wizkid057; Owner: wizkid057
+--
 
 CREATE SEQUENCE stats_balances_id_seq
     START WITH 1
@@ -54,10 +105,16 @@ CREATE SEQUENCE stats_balances_id_seq
 
 ALTER TABLE wizkid057.stats_balances_id_seq OWNER TO wizkid057;
 
+--
+-- Name: stats_balances_id_seq; Type: SEQUENCE OWNED BY; Schema: wizkid057; Owner: wizkid057
+--
 
 ALTER SEQUENCE stats_balances_id_seq OWNED BY stats_balances.id;
 
 
+--
+-- Name: stats_blocks; Type: TABLE; Schema: wizkid057; Owner: wizkid057; Tablespace: 
+--
 
 CREATE TABLE stats_blocks (
     server smallint NOT NULL,
@@ -80,6 +137,9 @@ CREATE TABLE stats_blocks (
 
 ALTER TABLE wizkid057.stats_blocks OWNER TO wizkid057;
 
+--
+-- Name: stats_blocks_id_seq; Type: SEQUENCE; Schema: wizkid057; Owner: wizkid057
+--
 
 CREATE SEQUENCE stats_blocks_id_seq
     START WITH 1
@@ -91,10 +151,31 @@ CREATE SEQUENCE stats_blocks_id_seq
 
 ALTER TABLE wizkid057.stats_blocks_id_seq OWNER TO wizkid057;
 
+--
+-- Name: stats_blocks_id_seq; Type: SEQUENCE OWNED BY; Schema: wizkid057; Owner: wizkid057
+--
 
 ALTER SEQUENCE stats_blocks_id_seq OWNED BY stats_blocks.id;
 
 
+--
+-- Name: stats_cache; Type: TABLE; Schema: wizkid057; Owner: wizkid057; Tablespace: 
+--
+
+CREATE TABLE stats_cache (
+    query_hash text NOT NULL,
+    type_id integer NOT NULL,
+    create_time timestamp without time zone,
+    expire_time timestamp without time zone,
+    data text
+);
+
+
+ALTER TABLE wizkid057.stats_cache OWNER TO wizkid057;
+
+--
+-- Name: stats_reject_details; Type: TABLE; Schema: wizkid057; Owner: wizkid057; Tablespace: 
+--
 
 CREATE TABLE stats_reject_details (
     server smallint NOT NULL,
@@ -108,6 +189,9 @@ CREATE TABLE stats_reject_details (
 
 ALTER TABLE wizkid057.stats_reject_details OWNER TO wizkid057;
 
+--
+-- Name: stats_reject_details_id_seq; Type: SEQUENCE; Schema: wizkid057; Owner: wizkid057
+--
 
 CREATE SEQUENCE stats_reject_details_id_seq
     START WITH 1
@@ -119,10 +203,16 @@ CREATE SEQUENCE stats_reject_details_id_seq
 
 ALTER TABLE wizkid057.stats_reject_details_id_seq OWNER TO wizkid057;
 
+--
+-- Name: stats_reject_details_id_seq; Type: SEQUENCE OWNED BY; Schema: wizkid057; Owner: wizkid057
+--
 
 ALTER SEQUENCE stats_reject_details_id_seq OWNED BY stats_reject_details.id;
 
 
+--
+-- Name: stats_reject_reasons; Type: TABLE; Schema: wizkid057; Owner: wizkid057; Tablespace: 
+--
 
 CREATE TABLE stats_reject_reasons (
     id integer NOT NULL,
@@ -132,6 +222,9 @@ CREATE TABLE stats_reject_reasons (
 
 ALTER TABLE wizkid057.stats_reject_reasons OWNER TO wizkid057;
 
+--
+-- Name: stats_reject_reasons_id_seq; Type: SEQUENCE; Schema: wizkid057; Owner: wizkid057
+--
 
 CREATE SEQUENCE stats_reject_reasons_id_seq
     START WITH 1
@@ -143,10 +236,16 @@ CREATE SEQUENCE stats_reject_reasons_id_seq
 
 ALTER TABLE wizkid057.stats_reject_reasons_id_seq OWNER TO wizkid057;
 
+--
+-- Name: stats_reject_reasons_id_seq; Type: SEQUENCE OWNED BY; Schema: wizkid057; Owner: wizkid057
+--
 
 ALTER SEQUENCE stats_reject_reasons_id_seq OWNED BY stats_reject_reasons.id;
 
 
+--
+-- Name: stats_shareagg; Type: TABLE; Schema: wizkid057; Owner: wizkid057; Tablespace: 
+--
 
 CREATE TABLE stats_shareagg (
     server smallint NOT NULL,
@@ -162,6 +261,9 @@ CREATE TABLE stats_shareagg (
 
 ALTER TABLE wizkid057.stats_shareagg OWNER TO wizkid057;
 
+--
+-- Name: stats_shareagg_id_seq; Type: SEQUENCE; Schema: wizkid057; Owner: wizkid057
+--
 
 CREATE SEQUENCE stats_shareagg_id_seq
     START WITH 1
@@ -173,84 +275,164 @@ CREATE SEQUENCE stats_shareagg_id_seq
 
 ALTER TABLE wizkid057.stats_shareagg_id_seq OWNER TO wizkid057;
 
+--
+-- Name: stats_shareagg_id_seq; Type: SEQUENCE OWNED BY; Schema: wizkid057; Owner: wizkid057
+--
 
 ALTER SEQUENCE stats_shareagg_id_seq OWNED BY stats_shareagg.id;
 
 
+--
+-- Name: id; Type: DEFAULT; Schema: wizkid057; Owner: wizkid057
+--
 
 ALTER TABLE stats_balances ALTER COLUMN id SET DEFAULT nextval('stats_balances_id_seq'::regclass);
 
 
+--
+-- Name: id; Type: DEFAULT; Schema: wizkid057; Owner: wizkid057
+--
 
 ALTER TABLE stats_blocks ALTER COLUMN id SET DEFAULT nextval('stats_blocks_id_seq'::regclass);
 
 
+--
+-- Name: id; Type: DEFAULT; Schema: wizkid057; Owner: wizkid057
+--
 
 ALTER TABLE stats_reject_details ALTER COLUMN id SET DEFAULT nextval('stats_reject_details_id_seq'::regclass);
 
 
+--
+-- Name: id; Type: DEFAULT; Schema: wizkid057; Owner: wizkid057
+--
 
 ALTER TABLE stats_reject_reasons ALTER COLUMN id SET DEFAULT nextval('stats_reject_reasons_id_seq'::regclass);
 
 
+--
+-- Name: id; Type: DEFAULT; Schema: wizkid057; Owner: wizkid057
+--
 
 ALTER TABLE stats_shareagg ALTER COLUMN id SET DEFAULT nextval('stats_shareagg_id_seq'::regclass);
 
 
+--
+-- Name: stats_balances_pkey; Type: CONSTRAINT; Schema: wizkid057; Owner: wizkid057; Tablespace: 
+--
 
 ALTER TABLE ONLY stats_balances
     ADD CONSTRAINT stats_balances_pkey PRIMARY KEY (server, id);
 
 
+--
+-- Name: stats_balances_server_user_id_time_key; Type: CONSTRAINT; Schema: wizkid057; Owner: wizkid057; Tablespace: 
+--
 
 ALTER TABLE ONLY stats_balances
     ADD CONSTRAINT stats_balances_server_user_id_time_key UNIQUE (server, user_id, "time");
 
 
+--
+-- Name: stats_blocks_pkey; Type: CONSTRAINT; Schema: wizkid057; Owner: wizkid057; Tablespace: 
+--
 
 ALTER TABLE ONLY stats_blocks
     ADD CONSTRAINT stats_blocks_pkey PRIMARY KEY (server, id);
 
 
+--
+-- Name: stats_cache_pkey; Type: CONSTRAINT; Schema: wizkid057; Owner: wizkid057; Tablespace: 
+--
+
+ALTER TABLE ONLY stats_cache
+    ADD CONSTRAINT stats_cache_pkey PRIMARY KEY (type_id, query_hash);
+
+
+--
+-- Name: stats_cache_query_hash_type_id_key; Type: CONSTRAINT; Schema: wizkid057; Owner: wizkid057; Tablespace: 
+--
+
+ALTER TABLE ONLY stats_cache
+    ADD CONSTRAINT stats_cache_query_hash_type_id_key UNIQUE (query_hash, type_id);
+
+
+--
+-- Name: stats_reject_details_pkey; Type: CONSTRAINT; Schema: wizkid057; Owner: wizkid057; Tablespace: 
+--
 
 ALTER TABLE ONLY stats_reject_details
     ADD CONSTRAINT stats_reject_details_pkey PRIMARY KEY (server, id);
 
 
+--
+-- Name: stats_reject_reasons_pkey; Type: CONSTRAINT; Schema: wizkid057; Owner: wizkid057; Tablespace: 
+--
 
 ALTER TABLE ONLY stats_reject_reasons
     ADD CONSTRAINT stats_reject_reasons_pkey PRIMARY KEY (id);
 
 
+--
+-- Name: stats_shareagg_pkey; Type: CONSTRAINT; Schema: wizkid057; Owner: wizkid057; Tablespace: 
+--
 
 ALTER TABLE ONLY stats_shareagg
     ADD CONSTRAINT stats_shareagg_pkey PRIMARY KEY (server, id);
 
 
+--
+-- Name: stats_shareagg_server_time_user_id_key; Type: CONSTRAINT; Schema: wizkid057; Owner: wizkid057; Tablespace: 
+--
 
 ALTER TABLE ONLY stats_shareagg
     ADD CONSTRAINT stats_shareagg_server_time_user_id_key UNIQUE (server, "time", user_id);
 
 
+--
+-- Name: stats_balances_useridindex; Type: INDEX; Schema: wizkid057; Owner: wizkid057; Tablespace: 
+--
 
 CREATE INDEX stats_balances_useridindex ON stats_balances USING btree (user_id);
 
 
+--
+-- Name: stats_cache_expire; Type: INDEX; Schema: wizkid057; Owner: wizkid057; Tablespace: 
+--
+
+CREATE INDEX stats_cache_expire ON stats_cache USING btree (expire_time);
+
+
+--
+-- Name: stats_shareagg_time_idx; Type: INDEX; Schema: wizkid057; Owner: wizkid057; Tablespace: 
+--
 
 CREATE INDEX stats_shareagg_time_idx ON stats_shareagg USING btree ("time");
 
 
+--
+-- Name: stats_shareagg_user_id_idx; Type: INDEX; Schema: wizkid057; Owner: wizkid057; Tablespace: 
+--
 
 CREATE INDEX stats_shareagg_user_id_idx ON stats_shareagg USING btree (user_id);
 
 
+--
+-- Name: stats_shareagg_user_id_time_idx; Type: INDEX; Schema: wizkid057; Owner: wizkid057; Tablespace: 
+--
 
 CREATE INDEX stats_shareagg_user_id_time_idx ON stats_shareagg USING btree (user_id, "time");
 
 
+--
+-- Name: stats_reject_details_reasonid_fkey; Type: FK CONSTRAINT; Schema: wizkid057; Owner: wizkid057
+--
 
 ALTER TABLE ONLY stats_reject_details
     ADD CONSTRAINT stats_reject_details_reasonid_fkey FOREIGN KEY (reasonid) REFERENCES stats_reject_reasons(id);
 
 
+--
+-- PostgreSQL database dump complete
+--
 
