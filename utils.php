@@ -120,3 +120,26 @@ function bits2hex($bits) {
 }
 
 
+function compatible_gzinflate($gzData) {
+
+if ( substr($gzData, 0, 3) == "\x1f\x8b\x08" ) {
+        $i = 10;
+        $flg = ord( substr($gzData, 3, 1) );
+        if ( $flg > 0 ) {
+                if ( $flg & 4 ) {
+                        list($xlen) = unpack('v', substr($gzData, $i, 2) );
+                        $i = $i + 2 + $xlen;
+                }
+                if ( $flg & 8 )
+                        $i = strpos($gzData, "\0", $i) + 1;
+                if ( $flg & 16 )
+                        $i = strpos($gzData, "\0", $i) + 1;
+                if ( $flg & 2 )
+                        $i = $i + 2;
+        }
+        return @gzinflate( substr($gzData, $i, -8) );
+} else {
+        return false;
+}
+}
+
