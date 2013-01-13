@@ -343,6 +343,106 @@ var mrhidden = 1;
 </script>
 ";
 
+
+if (isset($_GET["wizdebug"])) {
+
+$cppsrbjson = file_get_contents("/var/lib/eligius/$serverid/cppsrb.json");
+$cppsrbjsondec = json_decode($cppsrbjson,true);
+$mycppsrb = $cppsrbjsondec[$givenuser];
+
+$globalccpsrb = $cppsrbjsondec[""];
+
+$latest_chunk = $globalccpsrb['share_log_top_chunk'];
+
+#var_export ($globalccpsrb['share_log_top_chunk']);
+
+#print "<PRE>";
+
+#var_dump($mycppsrb);
+
+$my_shares = $mycppsrb["shares"];
+$my_share_log = $mycppsrb["share_log"];
+
+#var_dump($my_shares);
+#var_dump($my_share_log);
+
+for($i=8;$i<257;$i*=2) {
+	print "Instant $i second hashrate: " . prettyHashrate(($my_shares[$i] * 4294967296)/$i) . "<BR>";
+}
+
+
+if (isset($my_share_log["total"])) {
+
+	if ($my_share_log["encoding"] == "hex+gzip+base64") {
+		$d = base64_decode($my_share_log["data"]);
+		$data = compatible_gzinflate($d);
+	}
+	if ($my_share_log["encoding"] == "hex") {
+		$date = $my_share_log["data"];
+	}
+
+
+$x = 0;
+$dgd = "Chunk,Shares\\n";
+$firstchunk = $my_share_log["first_chunk"];
+$c = $firstchunk;
+for($i=0;$i<$c;$i++) { $dgd .= "$i,0\\n"; }
+while($x < strlen($data)) {
+
+	$a = hexdec(substr($data,$x,2))*256;
+	$a += hexdec(substr($data,$x+2,2));
+
+	$x+=4;
+
+	$dgd .= "$c,$a\\n";
+	$c++;
+
+}
+
+if ($c < $latest_chunk) {
+for($i=$c;$i<$latest_chunk;$i++) { $dgd .= "$i,0\\n"; }
+}
+
+print "<BR>Share log visualization (empty areas indicate either no mining or already paid, but not yet pruned, shares)<BR><div id=\"labels4\"  style=\"width:750px; height:40px;\"></div><div id=\"graphdiv4\" style=\"width:750px; height:100px;\"></div>";
+
+print "<script type=\"text/javascript\">
+
+function barChartPlotter(e) {
+  var ctx = e.drawingContext;
+  var points = e.points;
+  var y_bottom = e.dygraph.toDomYCoord(0);  // see http://dygraphs.com/jsdoc/symbols/Dygraph.html#toDomYCoord
+ 
+  // This should really be based on the minimum gap
+  var bar_width = 2/3 * (points[1].canvasx - points[0].canvasx);
+  ctx.fillStyle = e.color;
+ 
+  // Do the actual plotting.
+  for (var i = 0; i < points.length; i++) {
+    var p = points[i];
+    var center_x = p.canvasx;  // center of the bar
+ 
+    ctx.fillRect(center_x - bar_width / 2, p.canvasy,
+        bar_width, y_bottom - p.canvasy);
+    ctx.strokeRect(center_x - bar_width / 2, p.canvasy,
+        bar_width, y_bottom - p.canvasy);
+  }
+}
+
+  g4 = new Dygraph(
+    document.getElementById(\"graphdiv4\"),
+    \"$dgd\",
+        { plotter: barChartPlotter, labelsDiv: \"labels4\" } );
+
+</script>
+";
+
+
+}
+
+#print "</PRE>";
+
+}
+
 print_stats_bottom();
 
 ?>
