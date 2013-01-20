@@ -121,6 +121,7 @@ print "
 
 	function initShares()
 	{
+		updateSharesData();
 		updateRoundDuration();
 		countShares(); 
 ";
