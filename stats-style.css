@@ -1,0 +1,194 @@
+body {
+font-family: Arial, "Helvetica", sans-serif;
+color: #403B33;
+background-color:#D6E1C7;
+}
+
+h2 a {
+color:#F77825;
+text-decoration:none;
+}
+
+h4 {
+font-size: 0.8em;
+}
+
+
+
+#wrapper {
+    background-color: #EDEBE9;
+    border: 1px solid;
+    box-shadow: 0 0 5px 3px #A5A5A5;
+    margin: 20px auto;
+    padding: 0 20px 20px;
+    width: 1074px;
+}
+
+
+.blockconfirmed {
+background-color:#403B33;
+color:#ffffff;
+white-space:nowrap;
+}
+
+.oddblockconfirmed {
+background-color:#BA542B;
+color:#ffffff;
+white-space:nowrap;
+}
+
+.blockunconfirmed {
+background-color:#706B83;
+color:#ffffff;
+white-space:nowrap;
+}
+
+.oddblockunconfirmed {
+background-color:#AA849B;
+color:#ffffff;
+white-space:nowrap;
+}
+
+
+
+thead {
+background-color:#D6E1C7;
+}
+
+
+
+
+tr.contribhead {
+background-color:#D6E1C7;
+color:#403B33;
+font-weight:bold;
+}
+
+tr.odd {
+padding:5px;
+color:#ffffff;
+text-align:center;
+background-color:403B33;
+}
+
+tr.notodd {
+padding:5px;
+color:#ffffff;
+text-align:center;
+background-color:C3542B;
+}
+
+td.rank {
+padding:5px;
+}
+
+table.contributors {
+width:1074px;
+}
+
+#line {
+border-bottom:1px solid #CCCCCC;
+}
+
+//td {
+//text-align:center;
+//}
+
+
+
+table#blocklisttable {
+margin-bottom:5px;
+padding:2px;
+border-left:1px solid #cccccc;
+border-top:1px solid #cccccc;
+border-bottom:1px solid #000000;
+border-right:1px solid #000000;
+width:1074px;
+font-size: 0.93em;
+}
+
+a:link {
+color: #a4c7a6;
+font-weight:bold;
+}
+
+a:visited {
+color: #a4c7a6;
+font-weight:bold;
+}
+
+a:hover {
+color: #f3845B;
+font-weight:bold;
+}
+
+a:active {
+color: #efC7B6;
+font-weight:bold;
+}
+
+#Eligius-Title {
+margin-top:10px;
+height:45px;
+width:600px;
+float:left;
+}
+
+#luck {
+float:right;
+height:45px;
+padding:5px;
+width:400px;
+border:1px dotted #CCCCCC;
+margin-top:10px;
+}
+
+
+ul {
+    font-family: Arial, Verdana;
+    font-size: 14px;
+    margin: 0 auto;
+    padding: 0;
+    list-style: none;
+float:right;
+margin-top:5px;
+}
+
+ul li {
+    display: block;
+    float: left;
+    margin-left: 5px;
+    position: relative;
+    border: 1px solid;
+    padding-bottom: 1px;
+    padding-right: 1px;
+}
+li ul {
+    display: none;
+}
+ul li a {
+    display: block;
+    text-decoration: none;
+    color: #ffffff;
+    border-top: 1px solid #ffffff;
+    padding: 5px 15px 5px 15px;
+    background: #C3542B;
+    margin-left: 1px;
+    white-space: nowrap;
+}
+ul li a:hover {
+background: #D6E1C7;
+}
+li:hover ul {
+    display: block;
+    position: absolute;
+}
+li:hover li {
+    float: none;
+    font-size: 11px;
+}
+li:hover a { background: #3b3b3b; }
+li:hover li a:hover {
+    background: #1e7c9a;
+}
+

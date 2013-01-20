@@ -16,11 +16,6 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-
-include("utils.php");
-include("lib.util.php");
-include("common.php");
-
 $pooldatadir = "/var/lib/eligius";
 
 $psqluser = "psql username";

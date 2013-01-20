@@ -16,7 +16,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-require_once 'config.php';
+require_once 'includes.php';
 
 function block_table_start($sortable) {
 	if ($sortable) {
@@ -56,7 +56,7 @@ function block_table_row($row,$isodd) {
 	$blocks_row = "";
 
 	if (isset($row["acceptedshares"])) { $luck = 100 * ($row["network_difficulty"] / $row["acceptedshares"]); } else { $luck = 0; }
-	if ($luck > 9999) { $luck = ">9999%"; } else { $luck = round($luck,2)."%"; }
+	if ($luck > 9999) { $luck = ">9,999%"; } else { $luck = number_format(round($luck,1),1)."%"; }
 
 
 	$roundstart = substr($row["roundstart"],0,19);
@@ -73,14 +73,14 @@ function block_table_row($row,$isodd) {
 		$blocks_row .= "<TR id=\"blockrow$dbid\" BGCOLOR=\"#DFFFDF\" class=\"$isodd"."blockconfirmed\">"; 
 	}
 	else { 
-		$blocks_row .= "<TR class=\"$isodd\" id=\"blockrow$dbid\">";
+		$blocks_row .= "<TR class=\"$isodd"."blockunconfirmed\" id=\"blockrow$dbid\">";
 	}
 
-	$blocks_row .= "<TD sorttable_customkey=\"".$row["age"]."\">".prettyDuration($row["age"],false,1)."</TD>";
+	$blocks_row .= "<TD sorttable_customkey=\"".$row["age"]."\" style=\"font-size: 0.9em;\">".prettyDuration($row["age"],false,1)."</TD>";
 
 
 
-	$blocks_row .= "<TD>".$roundstart."</TD>";
+	$blocks_row .= "<TD style=\"font-size: 0.8em;\">".$roundstart."</TD>";
 
 	if (isset($row["duration"])) {
 		list($seconds, $minutes, $hours) = extractTime($row["duration"]);
@@ -97,13 +97,13 @@ function block_table_row($row,$isodd) {
 		$hashrate = "n/a";
 	}
 
-	$blocks_row .= "<TD style=\"text-align: right;\" sorttable_customkey=\"".$row["acceptedshares"]."\">".$row["acceptedshares"]."</TD>";
+	$blocks_row .= "<TD style=\"text-align: right;\" sorttable_customkey=\"".$row["acceptedshares"]."\">".number_format($row["acceptedshares"])."</TD>";
 
-	$blocks_row .= "<TD style=\"text-align: right;\">".round($row["network_difficulty"],0)."</TD>";
+	$blocks_row .= "<TD style=\"text-align: right;\">".number_format(round($row["network_difficulty"],0))."</TD>";
 	$blocks_row .= "<TD style=\"text-align: right;\">".$luck."</TD>";
 
-
-	$blocks_row .= "<TD style=\"text-align: right;\">".$hashrate."</TD>";
+	$hashrate = substr($hashrate,0,-2);
+	$blocks_row .= "<TD style=\"text-align: right; font-size: 0.9em;\">".$hashrate."</TD>";
 
 
 
@@ -116,18 +116,18 @@ function block_table_row($row,$isodd) {
 		$fulladdress = "";
 		$address = "(Unknown user)"; 
 	}
-	$blocks_row .= "<TD><A HREF=\"userstats.php/".$fulladdress."\">".$address."</A></TD>";
+	$blocks_row .= "<TD style=\"font-family:monospace;\"><A HREF=\"userstats.php/".$fulladdress."\">".$address."</A></TD>";
 
 
 	if ((isset($row["height"])) && ($row["height"] > 0)) {
-		$ht = $row["height"];
+		$ht = number_format($row["height"]);
 	} else {
 		$ht = "n/a";
 	}
 	$blocks_row .= "<TD style=\"text-align: right;\">$ht</TD>";
 
-	$nicehash = "...".substr($row["blockhash"],40,24);
-	$blocks_row .= "<TD><A HREF=\"http://blockchain.info/block/".$row["blockhash"]."\">".$nicehash."</A></TD>";
+	$nicehash = "...".substr($row["blockhash"],46,18);
+	$blocks_row .= "<TD style=\"font-family:monospace;\"><A HREF=\"http://blockchain.info/block/".$row["blockhash"]."\">".$nicehash."</A></TD>";
 	$blocks_row .= "</TR>";
 
 	return $blocks_row;

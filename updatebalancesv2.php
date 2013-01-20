@@ -22,7 +22,7 @@
 ###       it shouldn't be a problem as long as that file remains reasonably sized
 
 
-require_once 'config.php';
+require_once 'includes.php';
 
 
 $link = pg_Connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");

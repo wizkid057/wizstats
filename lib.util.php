@@ -124,7 +124,7 @@ function prettyDuration($duration, $align = false, $precision = 4) {
 
 	$prefix = '';
 	while(count($r) > $precision) {
-		$prefix = 'about ';
+		#$prefix = 'about ';
 		array_pop($r);
 	}
 

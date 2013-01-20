@@ -17,7 +17,7 @@
 
 
 
-require_once 'config.php';
+require_once 'includes.php';
 
 if (!isset($link)) { $link = pg_Connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost"); }
 
@@ -59,7 +59,7 @@ for($ri = 0; $ri < $numrows; $ri++) {
 		$address = "(Unknown user)";
 	}
 
-	if ($oe == 1) { $oclass = "class=\"odd\""; $oe = 0; } else { $oclass = ""; $oe = 1; }
+	if ($oe == 1) { $oclass = "class=\"odd\""; $oe = 0; } else { $oclass = "class=\"notodd\""; $oe = 1; }
 
 	$meshares = $row["sharecount"];
 

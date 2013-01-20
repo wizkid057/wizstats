@@ -16,7 +16,7 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require_once 'config.php';
+require_once 'includes.php';
 
 $link = pg_Connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");
 

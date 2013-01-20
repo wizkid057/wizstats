@@ -23,21 +23,79 @@ function print_stats_top() {
 	if (isset($GLOBALS["titleappend"])) { $localtitleappend = $GLOBALS["titleappend"]; }
 	if (isset($GLOBALS["headextras"])) { $localheadextras = $GLOBALS["headextras"]; }
 	if (isset($GLOBALS["bodytags"])) { $localbodytags = $GLOBALS["bodytags"]; }
+	if (isset($GLOBALS["ldmain"])) { $ldmain = $GLOBALS["ldmain"]; }
 
-	print("<HTML>
+
+	include("instant_livedata.php");
+
+	$roundduration = format_time($roundduration);
+	$liveluck = round(($netdiff/$roundshares)*100);
+	if ($liveluck > 9999) { $liveluck = ">9999%"; }
+
+print("<HTML>
 <HEAD>
-<meta http-equiv=\"X-UA-Compatible\" content=\"IE=EmulateIE7; IE=EmulateIE9\">
 <TITLE>".$localtitleprepend.$GLOBALS["poolname"]." Pool Statistics".$localtitleappend."</TITLE>
 <script type=\"text/javascript\" src=\"".$GLOBALS["urlprefix"]."dygraph-combined.js\"></script>
 <script type=\"text/javascript\" src=\"".$GLOBALS["urlprefix"]."jquery.js\"></script>
 <script type=\"text/javascript\" src=\"".$GLOBALS["urlprefix"]."sortable.js\"></script>
+<script type=\"text/javascript\" src=\"".$GLOBALS["urlprefix"]."instantscripts.php/livedata$ldmain.js\"></script>
 <!--[if IE]><script type=\"text/javascript\" src=\"".$GLOBALS["urlprefix"]."excanvas.js\"></script><![endif]-->
-<link rel=\"stylesheet\" href=\"".$GLOBALS["urlprefix"]."blocklist.css\" type=\"text/css\">
-<link rel=\"stylesheet\" href=\"".$GLOBALS["urlprefix"]."contributors.css\" type=\"text/css\">
+<link rel=\"stylesheet\" type=\"text/css\" href=\"".$GLOBALS["urlprefix"]."stats-style.css\">
 ".$localheadextras."
 </HEAD>
-<BODY BGCOLOR=\"#FFFFFF\" TEXT=\"#000000\" LINK=\"#0000FF\" VLINK=\"#0000FF\" ALINK=\"#FF0000\" ".$localbodytags.">
-<H2><A HREF=\"".$GLOBALS["urlprefix"]."\">".$GLOBALS["poolname"]." Pool Statistics</A></H2>");
+<BODY BGCOLOR=\"#FFFFFF\" TEXT=\"#000000\" LINK=\"#0000FF\" VLINK=\"#0000FF\" ALINK=\"#D3643B\" onLoad=\"initShares();\" ".$localbodytags.">
+<div id=\"wrapper\">
+<div id=\"Eligius-Title\">
+	<H2><A HREF=\"".$GLOBALS["urlprefix"]."\">".$GLOBALS["poolname"]." Pool Statistics</A></H2><!--[if IE]><BR><![endif]-->
+	<h4>Donations to help stats development:<BR><B>1Stats</B>gBq3C8PbF1SJw487MEUHhZahyvR</h4>
+</div>
+<div id=\"luck\">
+<TABLE class=\"lucktable\" width=\"100%\">
+<TR>
+<TD width=\"30%\" style=\"text-align: left\">Hashrate:</TD><TD width=\"25%\" style=\"text-align: right; border-right:1px dotted #CCCCCC; padding-right: 3px\" id=\"livehashrate\">$phash</TD>
+<TD width=\"25%\" style=\"text-align: left\">Round Time:</TD><TD width=\"20%\" style=\"text-align: right\" id=\"roundtime\">$roundduration</TD>
+</TR>
+<TR>
+<TD width=\"30%\" style=\"text-align: left\">Round Shares:</TD><TD width=\"25%\" style=\"text-align: right; border-right:1px dotted #CCCCCC; padding-right: 3px;\" id=\"sharecounter\">$roundshares</TD>
+<TD width=\"25%\" style=\"text-align: left\">Round Luck:</TD><TD width=\"20%\" style=\"text-align: right\" id=\"liveluck\">$liveluck%</TD>
+</TR>
+</TABLE>
+</div>
+<br>
+<br>
+<br>
+<br>
+<div id=\"line\"></div>
+<center>
+<ul id=\"menu\">
+    <li><a href=\"".$GLOBALS["urlprefix"]."\">Home</a></li>
+    <li><a href=\"".$GLOBALS["urlprefix"]."mystats.php\">My Stats</a></li>
+    <li><a href=\"".$GLOBALS["urlprefix"]."blocks.php\">Our Blocks</a></li>
+    <li><a href=\"".$GLOBALS["urlprefix"]."topcontributors.php\">Contributors</a></li>
+    <li><a href=\"https://github.com/wizkid057/wizstats\">GitHub</a></li>
+    <li><a href=\"/\">".$GLOBALS["poolname"]." Homepage</a></li>
+</ul>
+</center>
+<br>
+<br>
+<br>
+<!--[if IE]><H4>This page works best in <A HREF=\"http://www.google.com/chrome\">Google Chrome</A>.  You will not have an optimal experience using Internet Explorer.</H4><![endif]-->
+");
+
+#	print("<HTML>
+#<HEAD>
+#<meta http-equiv=\"X-UA-Compatible\" content=\"IE=EmulateIE7; IE=EmulateIE9\">
+#<TITLE>".$localtitleprepend.$GLOBALS["poolname"]." Pool Statistics".$localtitleappend."</TITLE>
+#<script type=\"text/javascript\" src=\"".$GLOBALS["urlprefix"]."dygraph-combined.js\"></script>
+#<script type=\"text/javascript\" src=\"".$GLOBALS["urlprefix"]."jquery.js\"></script>
+#<script type=\"text/javascript\" src=\"".$GLOBALS["urlprefix"]."sortable.js\"></script>
+#<!--[if IE]><script type=\"text/javascript\" src=\"".$GLOBALS["urlprefix"]."excanvas.js\"></script><![endif]-->
+#<link rel=\"stylesheet\" href=\"".$GLOBALS["urlprefix"]."blocklist.css\" type=\"text/css\">
+#<link rel=\"stylesheet\" href=\"".$GLOBALS["urlprefix"]."contributors.css\" type=\"text/css\">
+#".$localheadextras."
+#</HEAD>
+#<BODY BGCOLOR=\"#FFFFFF\" TEXT=\"#000000\" LINK=\"#0000FF\" VLINK=\"#0000FF\" ALINK=\"#FF0000\" ".$localbodytags.">
+#<H2><A HREF=\"".$GLOBALS["urlprefix"]."\">".$GLOBALS["poolname"]." Pool Statistics</A></H2>");
 
 }
 
@@ -47,7 +105,7 @@ function print_stats_bottom() {
 	$localafterbodyextras = "";
 	if (isset($GLOBALS["afterbodyextras"])) { $localafterbodyextras = $GLOBALS["afterbodyextras"]; }
 
-	print("<BR><HR>");
+	print("<BR><div id=\"line\">");
 	print("<H3>MUCH MORE TO COME - PLEASE BE PATIENT</H3>
 <BR>
 Source code/bug submissions/feature requests: <A HREF=\"https://github.com/wizkid057/wizstats\">wizkid057/wizstats on github</A><BR>

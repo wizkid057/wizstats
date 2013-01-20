@@ -16,7 +16,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-require_once 'config.php';
+require_once 'includes.php';
 require_once 'blocks_functions.php';
 
 $blocks_show_stale = 0;
