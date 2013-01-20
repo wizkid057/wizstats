@@ -87,22 +87,21 @@ function block_table_row($row,$isodd) {
 		$seconds = sprintf("%02d", $seconds);
 		$minutes = sprintf("%02d", $minutes);
 		$hours = sprintf("%02d", $hours);
-		$blocks_row .= "<td style=\"width: 1.5em;  text-align: right;\">$hours:$minutes:$seconds</td>";
+		$blocks_row .= "<td sorttable_customkey=\"".$row["duration"]."\" style=\"width: 1.5em;  text-align: right;\">$hours:$minutes:$seconds</td>";
 
 		$hashrate = ($row["acceptedshares"] * 4294967296) / $row["duration"];
 		$hashrate = prettyHashrate($hashrate);
-
+		$hashrate = substr($hashrate,0,-2);
 	} else {
 		$blocks_row .= "<td style=\"text-align: right;\">n/a</td>";
 		$hashrate = "n/a";
 	}
 
-	$blocks_row .= "<TD style=\"text-align: right;\" sorttable_customkey=\"".$row["acceptedshares"]."\">".number_format($row["acceptedshares"])."</TD>";
+	$blocks_row .= "<TD style=\"text-align: right;\" sorttable_customkey=\"".$row["acceptedshares"]."\">".($row["acceptedshares"]>0?number_format($row["acceptedshares"]):"n/a")."</TD>";
 
 	$blocks_row .= "<TD style=\"text-align: right;\">".number_format(round($row["network_difficulty"],0))."</TD>";
 	$blocks_row .= "<TD style=\"text-align: right;\">".$luck."</TD>";
 
-	$hashrate = substr($hashrate,0,-2);
 	$blocks_row .= "<TD style=\"text-align: right; font-size: 0.9em;\">".$hashrate."</TD>";
 
 
