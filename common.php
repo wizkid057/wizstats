@@ -52,7 +52,7 @@ print("<HTML>
 <div id=\"luck\">
 <TABLE class=\"lucktable\" width=\"100%\">
 <TR>
-<TD width=\"30%\" style=\"text-align: left\">Hashrate:</TD><TD width=\"25%\" style=\"text-align: right; border-right:1px dotted #CCCCCC; padding-right: 3px\" id=\"livehashrate\">$phash</TD>
+<TD width=\"30%\" style=\"text-align: left\">Hashrate:</TD><TD width=\"25%\" style=\"text-align: right; border-right:1px dotted #CCCCCC; padding-right: 3px; white-space: nowrap;\" id=\"livehashrate\">$phash</TD>
 <TD width=\"25%\" style=\"text-align: left\">Round Time:</TD><TD width=\"20%\" style=\"text-align: right\" id=\"roundtime\">$roundduration</TD>
 </TR>
 <TR>
