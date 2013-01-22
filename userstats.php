@@ -258,7 +258,7 @@ if ($mybal) {
 	}
 }
 
-$balanacesjsonSM = file_get_contents("/var/lib/eligius/$serverid/balances.json.smpps");
+$balanacesjsonSM = file_get_contents("/var/lib/eligius/$serverid/smpps_lastblock.json");
 $balanacesjsondecSM = json_decode($balanacesjsonSM,true);
 $mybalSM = $balanacesjsondecSM[$givenuser];
 
