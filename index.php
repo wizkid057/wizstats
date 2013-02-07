@@ -48,7 +48,7 @@ For example, <A HREF="http://eligius.st/~wizkid057/newstats/userstats.php/1EXfBq
 	labelsDivStyles: { border: '1px solid black' },
 	title: '<?php echo $poolname; ?> Hashrate Graph',
 	xlabel: 'Date',
-	ylabel: 'GH/sec',
+	ylabel: 'Gh/sec',
 	animatedZooms: true
 	}
   );

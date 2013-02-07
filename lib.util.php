@@ -175,10 +175,13 @@ function prettyDurationshort($duration, $align = false, $precision = 4) {
  */
 function prettyHashrate($hps) {
 	if($hps < 10000000) {
-		return number_format($hps / 1000, 2).' KH/s';
+		return number_format($hps / 1000, 2).' kh/s';
 	} else if($hps < 10000000000) {
-		return number_format($hps / 1000000, 2).' MH/s';
-	} else return number_format($hps / 1000000000, 2).' GH/s';
+		return number_format($hps / 1000000, 2).' Mh/s';
+	} else if ($hps < 1e13) {
+		return number_format($hps / 1e9, 2).' Gh/s';
+	} else
+		return number_format($hps / 1e12, 2).' Th/s';
 }
 
 /**
