@@ -237,11 +237,27 @@ $balanacesjsondec = json_decode($balanacesjson,true);
 $mybal = $balanacesjsondec[$givenuser];
 
 if ($mybal) {
-	$bal = $mybal["balance"];
-	$ec = $mybal["credit"];
+	if (isset($mybal["balance"])) {
+		$bal = $mybal["balance"];
+	} else {
+		$bal = 0;
+	}
+	if (isset($mybal["credit"])) {
+		$ec = $mybal["credit"];
+	} else {
+		$ec = 0;
+	}
 	$datadate = $mybal["newest"];
-	$lbal = $bal - $mybal["included_balance_estimate"];
-	$lec = $ec - $mybal["included_credit_estimate"];
+	if (isset($mybal["included_balance_estimate"])) {
+		$lbal = $bal - $mybal["included_balance_estimate"];
+	} else {
+		$lbal = $bal;
+	}
+	if (isset($mybal["included_credit_estimate"])) {
+		$lec = $ec - $mybal["included_credit_estimate"];
+	} else {
+		$lec = $ec;
+	}
 } else {
 	# fall back to sql
 	$sql = "select * from $psqlschema.stats_balances where server=$serverid and user_id=$user_id order by time desc limit 1";
@@ -263,7 +279,10 @@ $balanacesjsondecSM = json_decode($balanacesjsonSM,true);
 $mybalSM = $balanacesjsondecSM[$givenuser];
 
 if ($mybalSM) {
-	$smppsec = $mybalSM["credit"];
+	# SMPPS credit needed to be halved for the pool to be statistically viable
+	$smppsec = $mybalSM["credit"]; 
+	$smppshalf = $mybalSM["credit"]/2;
+	$smppsec -= $smppshalf;
 } else {
 	$smppsec = 0;
 }
