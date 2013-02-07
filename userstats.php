@@ -374,7 +374,7 @@ print "<script type=\"text/javascript\">
 	labelsDivStyles: { border: '1px solid black' },
 	title: 'Hashrate Graph ($givenuser)',
 	xlabel: 'Date',
-	ylabel: 'MH/sec',
+	ylabel: 'Mh/sec',
 	animatedZooms: true,
 	drawCallback: function(dg, is_initial) {
                 if (is_initial) {
