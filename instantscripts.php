@@ -33,7 +33,7 @@ if (($_SERVER['PATH_INFO'] == "/livedata-main.js") || ($_SERVER['PATH_INFO'] == 
 
 	print "
 	var intCountShares = $roundshares;
-	var intSharesPerUnit = ($sharesperunit) * 5;
+	var intSharesPerUnit = ($sharesperunit) * 0.02;
 	var intCurrentBlockHeight = $blockheight;
 	var intCurrentBlockConfirms = $latestconfirms;
 	var latestBlockHeight = $blockheight;
@@ -47,6 +47,8 @@ if (($_SERVER['PATH_INFO'] == "/livedata-main.js") || ($_SERVER['PATH_INFO'] == 
 	var dom_liveluck;
 	var dom_roundtime;
 	var dom_sharecounter;
+	var countSharesDelay;
+	var countSharesDelayNext = 41;
 
 	function updateRoundDuration()
 	{
@@ -85,7 +87,7 @@ if (($_SERVER['PATH_INFO'] == "/livedata-main.js") || ($_SERVER['PATH_INFO'] == 
 		\$.getJSON(\"".$GLOBALS["urlprefix"]."instant.php/livedata.json\",
 			function(data){
 				intCountShares = data.roundsharecount;
-				intSharesPerUnit = data.sharesperunit * 5;
+				intSharesPerUnit = data.sharesperunit * 0.02;
 				latestBlockHeight = data.lastblockheight;
 				latestBlockConfirms = data.lastconfirms;
 				intRoundDuration = data.roundduration;
@@ -135,10 +137,19 @@ print "
 
 	function countShares()
 	{
-		intCountShares += intSharesPerUnit;
+		intCountShares += intSharesPerUnit * countSharesDelay;
 		dom_sharecounter.data = Math.round(intCountShares);
-		setTimeout(\"countShares()\",250);
+		countSharesDelay = countSharesDelayNext;
+		setTimeout(\"countShares()\", countSharesDelay);
 	}
+
+	$(window).blur(function() {
+		countSharesDelayNext = 1318;
+	})
+
+	$(window).focus(function() {
+		countSharesDelayNext = 41;
+	})
 
 	function initShares()
 	{
