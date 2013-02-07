@@ -178,7 +178,10 @@ function prettyHashrate($hps) {
 		return number_format($hps / 1000, 2).' kh/s';
 	} else if($hps < 10000000000) {
 		return number_format($hps / 1000000, 2).' Mh/s';
-	} else return number_format($hps / 1000000000, 2).' Gh/s';
+	} else if ($hps < 1e13) {
+		return number_format($hps / 1e9, 2).' Gh/s';
+	} else
+		return number_format($hps / 1e12, 2).' Th/s';
 }
 
 /**
