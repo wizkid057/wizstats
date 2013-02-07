@@ -73,7 +73,7 @@ function block_table_row($row,$isodd) {
 		$blocks_row .= "<TR id=\"blockrow$dbid\" class=\"$isodd"."blockconfirmed\">"; 
 	}
 	else { 
-		$rowcolour = $isodd ? array(0xd3, 0xe3, 0xeb) : array(0xed, 0xeb, 0xe9);
+		$rowcolour = $isodd ? array(0xd3, 0xeb, 0xe3) : array(0xeb, 0xed, 0xe9);
 		$uccolour = array(0xff, 0x7f, 0);
 		$rowcolour = blend_colours($uccolour, $rowcolour, $row["confirmations"] / 120);
 		$blocks_row .= "<TR class=\"$isodd"."blockunconfirmed\" id=\"blockrow$dbid\" style=\"background-color: ".csscolour($rowcolour)."\">";
