@@ -70,10 +70,13 @@ function block_table_row($row,$isodd) {
 		$blocks_row .= "<TR id=\"blockrow$dbid\" BGCOLOR=\"#FFDFDF\" class=\"$isodd"."blockorphan\">"; 
 	}
 	else if ($row["confirmations"] >= 120) { 
-		$blocks_row .= "<TR id=\"blockrow$dbid\" BGCOLOR=\"#DFFFDF\" class=\"$isodd"."blockconfirmed\">"; 
+		$blocks_row .= "<TR id=\"blockrow$dbid\" class=\"$isodd"."blockconfirmed\">"; 
 	}
 	else { 
-		$blocks_row .= "<TR class=\"$isodd"."blockunconfirmed\" id=\"blockrow$dbid\">";
+		$rowcolour = $isodd ? array(0xd3, 0xe3, 0xeb) : array(0xed, 0xeb, 0xe9);
+		$uccolour = array(0xff, 0x7f, 0);
+		$rowcolour = blend_colours($uccolour, $rowcolour, $row["confirmations"] / 120);
+		$blocks_row .= "<TR class=\"$isodd"."blockunconfirmed\" id=\"blockrow$dbid\" style=\"background-color: ".csscolour($rowcolour)."\">";
 	}
 
 	$blocks_row .= "<TD sorttable_customkey=\"".$row["age"]."\" style=\"font-size: 0.9em;\">".prettyDuration($row["age"],false,1)."</TD>";

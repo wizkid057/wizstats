@@ -26,26 +26,24 @@ font-size: 0.8em;
 
 
 .blockconfirmed {
-background-color:#403B33;
-color:#ffffff;
+background-color:#edebe9;
+color:black;
 white-space:nowrap;
 }
 
 .oddblockconfirmed {
-background-color:#BA542B;
-color:#ffffff;
+background-color:#d3e3eb;
+color:black;
 white-space:nowrap;
 }
 
 .blockunconfirmed {
-background-color:#706B83;
-color:#ffffff;
+color:black;
 white-space:nowrap;
 }
 
 .oddblockunconfirmed {
-background-color:#AA849B;
-color:#ffffff;
+color:black;
 white-space:nowrap;
 }
 
