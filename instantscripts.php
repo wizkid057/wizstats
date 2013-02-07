@@ -33,7 +33,7 @@ if (($_SERVER['PATH_INFO'] == "/livedata-main.js") || ($_SERVER['PATH_INFO'] == 
 
 	print "
 	var intCountShares = $roundshares;
-	var intSharesPerUnit = $sharesperunit;
+	var intSharesPerUnit = ($sharesperunit) * 5;
 	var intCurrentBlockHeight = $blockheight;
 	var intCurrentBlockConfirms = $latestconfirms;
 	var latestBlockHeight = $blockheight;
@@ -42,12 +42,41 @@ if (($_SERVER['PATH_INFO'] == "/livedata-main.js") || ($_SERVER['PATH_INFO'] == 
 	var prettyRoundDuration = '';
 	var prettyHashrate = '$phash';
 	var networkDifficulty = $netdiff;
+	var networkDifficulty1000 = networkDifficulty * 1000;
+	var dom_livehashrate;
+	var dom_liveluck;
+	var dom_roundtime;
+	var dom_sharecounter;
 
 	function updateRoundDuration()
 	{
 		prettyRoundDuration = secondsToHms(intRoundDuration);
+		dom_roundtime.data = prettyRoundDuration;
 		intRoundDuration++;
-		setTimeout(\"updateRoundDuration()\",1000);
+	}
+
+	function updateLuck()
+	{
+		var luck = Math.round( networkDifficulty1000 / intCountShares ) / 10;
+		var newstr;
+		if (luck > 9999.9) {
+			newstr = '>9999.9%';
+		} else {
+			if (luck >= 1000.0) {
+				newstr = Math.round(luck) + '%';
+			} else {
+				newstr = luck + '%';
+			}
+		}
+		if (dom_liveluck.data != newstr)
+			dom_liveluck.data = newstr;
+	}
+
+	function updatePerSecond()
+	{
+		updateRoundDuration();
+		updateLuck();
+		setTimeout(\"updatePerSecond()\",1000);
 	}
 
 	function updateSharesData()
@@ -56,12 +85,15 @@ if (($_SERVER['PATH_INFO'] == "/livedata-main.js") || ($_SERVER['PATH_INFO'] == 
 		\$.getJSON(\"".$GLOBALS["urlprefix"]."instant.php/livedata.json\",
 			function(data){
 				intCountShares = data.roundsharecount;
-				intSharesPerUnit = data.sharesperunit;
+				intSharesPerUnit = data.sharesperunit * 5;
 				latestBlockHeight = data.lastblockheight;
 				latestBlockConfirms = data.lastconfirms;
 				intRoundDuration = data.roundduration;
 				prettyHashrate = data.hashratepretty;
 				networkDifficulty = data.network_difficulty;
+				networkDifficulty1000 = networkDifficulty * 1000;
+				
+				dom_livehashrate.data = prettyHashrate;
 			});
 
 		setTimeout(\"updateSharesData()\",$polltimer);
@@ -103,26 +135,20 @@ print "
 
 	function countShares()
 	{
-		intCountShares += intSharesPerUnit*5;
-		sharecounter.innerHTML = Math.round(intCountShares);
-		roundtime.innerHTML = prettyRoundDuration;
-		livehashrate.innerHTML = prettyHashrate;
-		if ((Math.round( (networkDifficulty / intCountShares )*1000)/10) > 9999.9) {
-			liveluck.innerHTML = '>9999.9%';
-		} else {
-			if ((Math.round( (networkDifficulty / intCountShares )*1000)/10) >= 1000.0) {
-				liveluck.innerHTML = Math.round( (networkDifficulty / intCountShares )*100) + '%';
-			} else {
-				liveluck.innerHTML = Math.round( (networkDifficulty / intCountShares )*1000)/10 + '%';
-			}
-		}
+		intCountShares += intSharesPerUnit;
+		dom_sharecounter.data = Math.round(intCountShares);
 		setTimeout(\"countShares()\",250);
 	}
 
 	function initShares()
 	{
+		dom_livehashrate = document.getElementById('livehashrate').childNodes[0];
+		dom_liveluck = document.getElementById('liveluck').childNodes[0];
+		dom_roundtime = document.getElementById('roundtime').childNodes[0];
+		dom_sharecounter = document.getElementById('sharecounter').childNodes[0];
+		
 		updateSharesData();
-		updateRoundDuration();
+		updatePerSecond();
 		countShares(); 
 ";
 if ($main) {
