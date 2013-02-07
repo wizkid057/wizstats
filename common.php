@@ -32,6 +32,8 @@ function print_stats_top() {
 	$liveluck = round(($netdiff/$roundshares)*100);
 	if ($liveluck > 9999) { $liveluck = ">9999%"; }
 
+	if (!isset($ldmain)) { $ldmain = ""; }
+
 print("<HTML>
 <HEAD>
 <TITLE>".$localtitleprepend.$GLOBALS["poolname"]." Pool Statistics".$localtitleappend."</TITLE>
