@@ -119,8 +119,11 @@ for($ri = 0; $ri < $numrows; $ri++) {
 				}
 			}
 		}
-		$sharecount = $orig_id - $orig_id2; # gets share count INCLUDING rejects...
-
+		# count block shares exactly using vardiff for POT targetmask...
+		$sql = "select sum(pow(2,targetmask-32)) as blockshares from shares where server=$serverid and our_result=true and id > $orig_id2 and id <= $orig_id;";
+		$result2 = pg_exec($link2, $sql);
+		$row2 = pg_fetch_array($result2, 0); # does NOT include rejects....
+		$sharecount = $row2["blockshares"];
 
 		## UPDATE LEFT REJECTS
 		$sql = "select count(*) as leftrejects from public.shares where server=$server and our_result!=true and id > $orig_id2 and id < $orig_id and time <= '$btime' and time > greatest(to_timestamp((date_part('epoch', '$btime'::timestamp without time zone)::integer / 675::integer) * 675::integer),(select time from $psqlschema.stats_blocks where orig_id=$orig_id2));";
@@ -146,8 +149,8 @@ for($ri = 0; $ri < $numrows; $ri++) {
 
 		$rejectcount = $prshares;
 
-		print "--- Total Shares: $sharecount minus $rejectcount Rejects = ".($sharecount - $rejectcount)."\n";
-		$accepted = ($sharecount - $rejectcount);
+		print "--- Total Shares: ".($sharecount + $rejectcount)." minus $rejectcount Rejects = $sharecount\n";
+		$accepted = $sharecount;
 
 		$addupdate = ", roundstart='$roundstart', acceptedshares=$accepted, rejectedshares=$rejectcount ";
 		$sql = "update $psqlschema.stats_blocks set roundstart='$roundstart', acceptedshares=$accepted, rejectedshares=$rejectcount,leftrejects=$leftrejects where id=$id";

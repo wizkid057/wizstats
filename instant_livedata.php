@@ -49,7 +49,7 @@
 		$tempid = $row["id"];
 		$netdiff = $row["network_difficulty"];
 
-		$sql = "select count(*) as instcount from shares where server=$serverid and our_result=true and id > $tempid";
+		$sql = "select sum(our_result::integer * pow(2,targetmask-32)) as instcount from shares where server=$serverid and our_result=true and id > $tempid";
 		$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
 		$roundshares += $row["instcount"];
 

@@ -35,7 +35,7 @@ For example, <A HREF="http://eligius.st/~wizkid057/newstats/userstats.php/1EXfBq
 	$subcall = 1;
 	include("blocks.php");
 ?>
-<SMALL>(This table updates in near-realtime automatically in most browsers.)</SMALL><BR>
+<SMALL>(This table updates in near-realtime automatically in most browsers.  Share counts are converted to difficulty 1 shares.)</SMALL><BR>
 <BR>
 <div id="line"></div>
 <div id="graphdiv3" style="width:100%; height:275px;"></div>
