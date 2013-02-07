@@ -1,11 +1,11 @@
 body {
 font-family: Arial, "Helvetica", sans-serif;
-color: #403B33;
+color: #3B4033;
 background-color:#D6E1C7;
 }
 
 h2 a {
-color:#F77825;
+color:#78F725;
 text-decoration:none;
 }
 
@@ -16,7 +16,7 @@ font-size: 0.8em;
 
 
 #wrapper {
-    background-color: #EDEBE9;
+    background-color: #EBEDE9;
     border: 1px solid;
     box-shadow: 0 0 5px 3px #A5A5A5;
     margin: 20px auto;
@@ -27,23 +27,19 @@ font-size: 0.8em;
 
 .blockconfirmed {
 background-color:#ebede9;
-color:black;
 white-space:nowrap;
 }
 
 .oddblockconfirmed {
 background-color:#d3ebe3;
-color:black;
 white-space:nowrap;
 }
 
 .blockunconfirmed {
-color:black;
 white-space:nowrap;
 }
 
 .oddblockunconfirmed {
-color:black;
 white-space:nowrap;
 }
 
@@ -64,16 +60,14 @@ font-weight:bold;
 
 tr.odd {
 padding:5px;
-color:#ffffff;
 text-align:center;
-background-color:403B33;
+background-color:#d3ebe3;
 }
 
 tr.notodd {
 padding:5px;
-color:#ffffff;
 text-align:center;
-background-color:C3542B;
+background-color:#ebede9;
 }
 
 td.rank {
@@ -106,22 +100,22 @@ font-size: 0.93em;
 }
 
 a:link {
-color: #a4c7a6;
+color: #7A977B;
 font-weight:bold;
 }
 
 a:visited {
-color: #a4c7a6;
+color: #7A977B;
 font-weight:bold;
 }
 
 a:hover {
-color: #f3845B;
+color: #86CD84;
 font-weight:bold;
 }
 
 a:active {
-color: #efC7B6;
+color: #55CDA5;
 font-weight:bold;
 }
 
@@ -166,18 +160,18 @@ ul li {
 li ul {
     display: none;
 }
-ul li a {
+ul li a, ul li a:link, ul li a:visited {
     display: block;
     text-decoration: none;
-    color: #ffffff;
+    color: inherit;
     border-top: 1px solid #ffffff;
     padding: 5px 15px 5px 15px;
-    background: #C3542B;
+    background-color: #54C32B;
     margin-left: 1px;
     white-space: nowrap;
 }
 ul li a:hover {
-background: #D6E1C7;
+	background-color: #b6E1b7;
 }
 li:hover ul {
     display: block;
