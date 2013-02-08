@@ -164,7 +164,7 @@ print "
 ";
 if ($main) {
 print "
-		setTimeout(\"updateBlockTable()\",$fullpolltimer);
+		setTimeout(\"updateBlockTable(1)\",$fullpolltimer);
 ";
 }
 print "
