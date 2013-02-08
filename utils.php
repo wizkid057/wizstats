@@ -176,3 +176,16 @@ function format_time($t,$f=':') // t = seconds, f = separator
   return sprintf("%02d%s%02d%s%02d", floor($t/3600), $f, ($t/60)%60, $f, $t%60);
 }
 
+function blend_colours($a, $b, $bOpacity)
+{
+	$aOpacity = 1 - $bOpacity;
+	$c = array(0,0,0);
+	for ($i = 0; $i < 3; ++$i)
+		$c[$i] = ($a[$i] * $aOpacity) + ($b[$i] * $bOpacity);
+	return $c;
+}
+
+function csscolour($c)
+{
+	return "rgb(".floor($c[0]).",".floor($c[1]).",".floor($c[2]).")";
+}
