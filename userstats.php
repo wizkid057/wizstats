@@ -16,6 +16,8 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+$cppsrbloaded = 0;
+
 # TODO: Allow worker sub-names
 
 if (!isset($_SERVER['PATH_INFO'])) {
@@ -331,37 +333,49 @@ print "<TR class=\"userstatsodd\"><TD>Estimated Total: </TD><TD style=\"text-ali
 print "</TABLE>";
 
 
-# 3 hour hashrate
-$sql = "select (sum(accepted_shares)*pow(2,32))/10800 as avghash,sum(accepted_shares) as share_total from $psqlschema.stats_shareagg where server=$serverid and user_id=$user_id and time > to_timestamp((date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1)-'3 hours'::interval)::integer / 675::integer) * 675::integer)";
-$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
-$u16avghash = isset($row["avghash"])?$row["avghash"]:0;
-$u16shares = isset($row["share_total"])?$row["share_total"]:0;
 
-# 22.5 minute hashrate
-$sql = "select (sum(accepted_shares)*pow(2,32))/1350 as avghash,sum(accepted_shares) as share_total from $psqlschema.stats_shareagg where server=$serverid and user_id=$user_id and time > to_timestamp((date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1))::integer / 675::integer)::integer * 675::integer)-'1350 seconds'::interval";
-$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
-$u2avghash = isset($row["avghash"])?$row["avghash"]:0;
-$u2shares = isset($row["share_total"])?$row["share_total"]:0;
+$query_hash = hash("sha256", "userstats.php hashrate table for $givenuser with id $user_id");
+$hashratetable = get_stats_cache($link, 11, $query_hash);
+if ($hashratetable != "") {
+	print $hashratetable;
+} else {
+
+	# 3 hour hashrate
+	$sql = "select (sum(accepted_shares)*pow(2,32))/10800 as avghash,sum(accepted_shares) as share_total from $psqlschema.stats_shareagg where server=$serverid and user_id=$user_id and time > to_timestamp((date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1)-'3 hours'::interval)::integer / 675::integer) * 675::integer)";
+	$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
+	$u16avghash = isset($row["avghash"])?$row["avghash"]:0;
+	$u16shares = isset($row["share_total"])?$row["share_total"]:0;
+
+	# 22.5 minute hashrate
+	$sql = "select (sum(accepted_shares)*pow(2,32))/1350 as avghash,sum(accepted_shares) as share_total from $psqlschema.stats_shareagg where server=$serverid and user_id=$user_id and time > to_timestamp((date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1))::integer / 675::integer)::integer * 675::integer)-'1350 seconds'::interval";
+	$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
+	$u2avghash = isset($row["avghash"])?$row["avghash"]:0;
+	$u2shares = isset($row["share_total"])?$row["share_total"]:0;
+
+	# instant hashrates from CPPSRB
+	$cppsrbjson = file_get_contents("/var/lib/eligius/$serverid/cppsrb.json");
+	$cppsrbjsondec = json_decode($cppsrbjson,true);
+	$mycppsrb = $cppsrbjsondec[$givenuser];
+	$globalccpsrb = $cppsrbjsondec[""];
+	$cppsrbloaded = 1;
+	$my_shares = $mycppsrb["shares"];
 
 
+	$pdata = "<TABLE class=\"userstatshashrate\">";
+	$pdata .= "<THEAD><TR><TH WIDTH=\"34%\"></TH><TH WIDTH=\"33%\">Hashrate Average</TH><TH WIDTH=\"33%\">Accepted Shares</TH></TR></THEAD>";
+	$pdata .= "<TR class=\"userstatseven\"><TD>3 hours</TD><TD style=\"text-align: right;\">".prettyHashrate($u16avghash)."</TD><TD style=\"text-align: right;\">$u16shares</TD></TR>";
+	$pdata .= "<TR class=\"userstatsodd\"><TD>22.5 minutes</TD><TD style=\"text-align: right;\">".prettyHashrate($u2avghash)."</TD><TD style=\"text-align: right;\">$u2shares</TD></TR>";
+	$oev = "even";
+	for($i=256;$i>127;$i=$i/2) {
+		$pdata .= "<TR class=\"userstats$oev\"><TD>$i seconds</TD><TD style=\"text-align: right;\">" . prettyHashrate(($my_shares[$i] * 4294967296)/$i) . "</TD><TD style=\"text-align: right;\">".(round($my_shares[$i]))."</TD></TR>";
+		$oev = $oev=="even"?$oev="odd":$oev="even";
+	}
+	$pdata .= "</TABLE>";
+	print $pdata;
+	set_stats_cache($link, 11, $query_hash, $pdata, 30);
 
-$cppsrbjson = file_get_contents("/var/lib/eligius/$serverid/cppsrb.json");
-$cppsrbjsondec = json_decode($cppsrbjson,true);
-$mycppsrb = $cppsrbjsondec[$givenuser];
-$globalccpsrb = $cppsrbjsondec[""];
-$my_shares = $mycppsrb["shares"];
-
-
-print "<TABLE class=\"userstatshashrate\">";
-print "<THEAD><TR><TH WIDTH=\"34%\"></TH><TH WIDTH=\"33%\">Hashrate Average</TH><TH WIDTH=\"33%\">Accepted Shares</TH></TR></THEAD>";
-print "<TR class=\"userstatseven\"><TD>3 hours</TD><TD style=\"text-align: right;\">".prettyHashrate($u16avghash)."</TD><TD style=\"text-align: right;\">$u16shares</TD></TR>";
-print "<TR class=\"userstatsodd\"><TD>22.5 minutes</TD><TD style=\"text-align: right;\">".prettyHashrate($u2avghash)."</TD><TD style=\"text-align: right;\">$u2shares</TD></TR>";
-$oev = "even";
-for($i=256;$i>127;$i=$i/2) {
-	print "<TR class=\"userstats$oev\"><TD>$i seconds</TD><TD style=\"text-align: right;\">" . prettyHashrate(($my_shares[$i] * 4294967296)/$i) . "</TD><TD style=\"text-align: right;\">".(round($my_shares[$i]))."</TD></TR>";
-	$oev = $oev=="even"?$oev="odd":$oev="even";
 }
-print "</TABLE>";
+
 
 # Reject data
 $sql = "select reason,count(*) as reject_count from public.shares where server=$serverid and user_id=$user_id and our_result!=true and time > NOW()-'3 hours'::interval group by reason order by reject_count;";
