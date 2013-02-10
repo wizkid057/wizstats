@@ -306,14 +306,16 @@ function prettyInvalidReason($reason) {
 		$desc = 'The pool had no record of giving this address any work at the time the share was submitted. Usually this only happens right after the pool server crashes or is restarted.';
 		break;
 	case 'unknown work':
-		$desc = 'The pool had no record of the work submitted. Possible causes include a miner corrupting the work, or holding on to it for over 2 minutes.';
+		$desc = 'The pool had no record of the work submitted. Possible causes include a miner corrupting the work, or holding on to it for over 2 minutes. This also indicates a stale-prevblk work when using stratum.';
+		break;
+	case 'high hash':
+		$desc = 'The miner submitted a share with a hash higher than the target provided by the pool.  This suggests that the miner software does not properly handle work with variable difficulty (Not pdiff 1).';
 		break;
 	}
-
 	if (isset($desc))
-		return "'<span title=\"$desc\">$reason</span>' share";
+		return "<span title=\"$desc\">$reason</span>";
 
-	return "'$reason' share";
+	return "$reason";
 }
 
 /**
