@@ -22,51 +22,66 @@ require_once 'includes.php';
 if (!isset($link)) { $link = pg_Connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost"); }
 
 
-# get total pool hashrate
-$sql = "select (sum(accepted_shares)*pow(2,32))/10800 as avghash from $psqlschema.stats_shareagg where server=$serverid and time > to_timestamp((date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1))::integer / 675::integer)::integer * 675::integer)-'3 hours'::interval";
-$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
-$poolhashrate3hr = $row["avghash"];
-
-
-$sql = "select (sum(accepted_shares)*pow(2,32))/10800 as avghash, sum(accepted_shares) as sharecount, keyhash from $psqlschema.stats_shareagg left join users on user_id=users.id where server=$serverid and time > to_timestamp((date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1)-'3 hours'::interval)::integer / 675) * 675) and accepted_shares > 0 group by keyhash order by avghash desc $minilimit;";
-$result = pg_exec($link, $sql);
-$numrows = pg_numrows($result);
-
 if (!isset($subcall)) {
 	$titleprepend = "Contributors - ";
 	print_stats_top();
+	$cachehash = "topcontributors.php subcall $minilimit";
+} else {
+	$cachehash = "topcontributors.php full call";
 }
 
-print "<TABLE BORDER=1 class=\"contributors\">";
+$cachehash = hash("sha256", $cachehash);
+$cacheddata = get_stats_cache($link, 20, $cachehash);
 
-print "<TR class=\"contribhead\"><TD>Rank</TD><TD>Address</TD><TD>3-hr Avg Hashrate</TD><TD>3-hr Shares</TD><TD>Percentage of Pool</TD></TR>";
+if ($cacheddata != "") {
+	print $cacheddata;
+} else {
 
-$oe = 0;
+	# get total pool hashrate
+	$sql = "select (sum(accepted_shares)*pow(2,32))/10800 as avghash from $psqlschema.stats_shareagg where server=$serverid and time > to_timestamp((date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1))::integer / 675::integer)::integer * 675::integer)-'3 hours'::interval";
+	$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
+	$poolhashrate3hr = $row["avghash"];
 
-$rank = 1;
 
-for($ri = 0; $ri < $numrows; $ri++) {
-	$row = pg_fetch_array($result, $ri);
-	$phash = prettyHashrate($row["avghash"]);
+	$sql = "select (sum(accepted_shares)*pow(2,32))/10800 as avghash, sum(accepted_shares) as sharecount, keyhash from $psqlschema.stats_shareagg left join users on user_id=users.id where server=$serverid and time > to_timestamp((date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1)-'3 hours'::interval)::integer / 675) * 675) and accepted_shares > 0 group by keyhash order by avghash desc $minilimit;";
+	$result = pg_exec($link, $sql);
+	$numrows = pg_numrows($result);
 
-	$tpercent = (($row["avghash"] / $poolhashrate3hr) * 100);
-	$tpercent = round($tpercent,4);
 
-	if (isset($row['keyhash'])) {
-                $address =  \Bitcoin::hash160ToAddress(bits2hex($row['keyhash']));
-		$address = "<A HREF=\"userstats.php/$address\">$address</A>";
-	} else {
-		$address = "(Unknown user)";
+	$pdata = "<TABLE BORDER=1 class=\"contributors\">";
+
+	$pdata .= "<TR class=\"contribhead\"><TD>Rank</TD><TD>Address</TD><TD>3-hr Avg Hashrate</TD><TD>3-hr Shares</TD><TD>Percentage of Pool</TD></TR>";
+
+	$oe = 0;
+
+	$rank = 1;
+
+	for($ri = 0; $ri < $numrows; $ri++) {
+		$row = pg_fetch_array($result, $ri);
+		$phash = prettyHashrate($row["avghash"]);
+
+		$tpercent = (($row["avghash"] / $poolhashrate3hr) * 100);
+		$tpercent = round($tpercent,4);
+
+		if (isset($row['keyhash'])) {
+	                $address =  \Bitcoin::hash160ToAddress(bits2hex($row['keyhash']));
+			$address = "<A HREF=\"userstats.php/$address\">$address</A>";
+		} else {
+			$address = "(Unknown user)";
+		}
+
+		if ($oe == 1) { $oclass = "class=\"odd\""; $oe = 0; } else { $oclass = "class=\"notodd\""; $oe = 1; }
+
+		$meshares = $row["sharecount"];
+
+		$pdata .= "<TR $oclass><TD class=\"rank\">#$rank</TD><TD>$address</TD><TD class=\"hash\">$phash</TD><TD class=\"shares\">$meshares</TD><TD class=\"percent\">$tpercent%</TD></TR>";
+		$rank++;
 	}
-
-	if ($oe == 1) { $oclass = "class=\"odd\""; $oe = 0; } else { $oclass = "class=\"notodd\""; $oe = 1; }
-
-	$meshares = $row["sharecount"];
-
-	print "<TR $oclass><TD class=\"rank\">#$rank</TD><TD>$address</TD><TD class=\"hash\">$phash</TD><TD class=\"shares\">$meshares</TD><TD class=\"percent\">$tpercent%</TD></TR>";
-	$rank++;
+	$pdata .= "</TABLE>";
+	set_stats_cache($link, 20, $cachehash, $pdata, 675);
+	print $pdata;
 }
-print "</TABLE>";
+
 
 if (!isset($subcall)) {
 	print_stats_bottom();
