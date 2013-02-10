@@ -316,35 +316,33 @@ print_stats_top();
 
 if ($smppsec) {
 	$snice = prettySatoshis($smppsec);
-	$smppsL1 = "<TD>Old <A HREF=\"http://eligius.st/wiki/index.php/Shared_Maximum_PPS\">SMPPS</A> Extra Credit</TD>";
+	$smppsL1 = "<TH>Old <A HREF=\"http://eligius.st/wiki/index.php/Shared_Maximum_PPS\">SMPPS</A> Extra Credit</TH>";
 	$smppsL2 = "<TD style=\"text-align: right; font-size: 70%;\">$snice</TD>";
 	$smppsL3 = "<TD style=\"text-align: right; font-size: 70%;\">0.00000000 BTC</TD>";
 	$smppsL4 = "<TD style=\"text-align: right; font-size: 70%;\">$snice</TD>";
 }
 
 print "<H2>$givenuser</H2>";
-print "<TABLE BORDER=1>";
-print "<TR><TD></TD><TD>Unpaid Balance</TD><TD>Shelved Shares (<A HREF=\"http://eligius.st/wiki/index.php/Capped_PPS_with_Recent_Backpay\">CPPSRB</A>)</TD>$smppsL1</TR>";
-print "<TR><TD>As of last block*: </TD><TD style=\"text-align: right;\">$xbal</TD><TD style=\"text-align: right; font-size: 80%;\">$xec</TD>$smppsL2</TR>";
-print "<TR><TD>Estimated Change: </TD><TD style=\"text-align: right;\">$cbalt</TD><TD style=\"text-align: right; font-size: 80%;\">$cect</TD>$smppsL3</TR>";
-print "<TR><TD>Estimated Total: </TD><TD style=\"text-align: right;\">$bal</TD><TD style=\"text-align: right; font-size: 80%;\">$ec</TD>$smppsL4</TR>";
+print "<TABLE class=\"userstatsbalance\">";
+print "<THEAD><TR><TH></TH><TH>Unpaid Balance</TH><TH>Shelved Shares (<A HREF=\"http://eligius.st/wiki/index.php/Capped_PPS_with_Recent_Backpay\">CPPSRB</A>)</TH>$smppsL1</TR></THEAD>";
+print "<TR class=\"userstatsodd\"><TD>As of last block: </TD><TD style=\"text-align: right;\">$xbal</TD><TD style=\"text-align: right; font-size: 80%;\">$xec</TD>$smppsL2</TR>";
+print "<TR class=\"userstatseven\"><TD>Estimated Change: </TD><TD style=\"text-align: right;\">$cbalt</TD><TD style=\"text-align: right; font-size: 80%;\">$cect</TD>$smppsL3</TR>";
+print "<TR class=\"userstatsodd\"><TD>Estimated Total: </TD><TD style=\"text-align: right;\">$bal</TD><TD style=\"text-align: right; font-size: 80%;\">$ec</TD>$smppsL4</TR>";
 print "</TABLE>";
 
 
 # 3 hour hashrate
-# FIX FOR BAD HASHRATE BUG 091512
-$sql = "select (sum(accepted_shares)*pow(2,32))/10800 as avghash from $psqlschema.stats_shareagg where server=$serverid and user_id=$user_id and time > to_timestamp((date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1)-'3 hours'::interval)::integer / 675::integer) * 675::integer)";
+$sql = "select (sum(accepted_shares)*pow(2,32))/10800 as avghash,sum(accepted_shares) as share_total from $psqlschema.stats_shareagg where server=$serverid and user_id=$user_id and time > to_timestamp((date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1)-'3 hours'::interval)::integer / 675::integer) * 675::integer)";
 $result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
 $u16avghash = isset($row["avghash"])?$row["avghash"]:0;
+$u16shares = isset($row["share_total"])?$row["share_total"]:0;
 
 # 22.5 minute hashrate
-# FIX FOR BAD HASHRATE BUG 091512
-$sql = "select (sum(accepted_shares)*pow(2,32))/1350 as avghash from $psqlschema.stats_shareagg where server=$serverid and user_id=$user_id and time > to_timestamp((date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1))::integer / 675::integer)::integer * 675::integer)-'1350 seconds'::interval";
+$sql = "select (sum(accepted_shares)*pow(2,32))/1350 as avghash,sum(accepted_shares) as share_total from $psqlschema.stats_shareagg where server=$serverid and user_id=$user_id and time > to_timestamp((date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1))::integer / 675::integer)::integer * 675::integer)-'1350 seconds'::interval";
 $result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
 $u2avghash = isset($row["avghash"])?$row["avghash"]:0;
+$u2shares = isset($row["share_total"])?$row["share_total"]:0;
 
-print "3 hour average hashrate: ".prettyHashrate($u16avghash)."<BR>\n";
-print "22.5 minute average hashrate: ".prettyHashrate($u2avghash)."<BR>\n";
 
 
 $cppsrbjson = file_get_contents("/var/lib/eligius/$serverid/cppsrb.json");
@@ -354,11 +352,69 @@ $globalccpsrb = $cppsrbjsondec[""];
 $my_shares = $mycppsrb["shares"];
 
 
+print "<TABLE class=\"userstatshashrate\">";
+print "<THEAD><TR><TH WIDTH=\"34%\"></TH><TH WIDTH=\"33%\">Hashrate Average</TH><TH WIDTH=\"33%\">Accepted Shares</TH></TR></THEAD>";
+print "<TR class=\"userstatseven\"><TD>3 hours</TD><TD style=\"text-align: right;\">".prettyHashrate($u16avghash)."</TD><TD style=\"text-align: right;\">$u16shares</TD></TR>";
+print "<TR class=\"userstatsodd\"><TD>22.5 minutes</TD><TD style=\"text-align: right;\">".prettyHashrate($u2avghash)."</TD><TD style=\"text-align: right;\">$u2shares</TD></TR>";
+$oev = "even";
+for($i=256;$i>127;$i=$i/2) {
+	print "<TR class=\"userstats$oev\"><TD>$i seconds</TD><TD style=\"text-align: right;\">" . prettyHashrate(($my_shares[$i] * 4294967296)/$i) . "</TD><TD style=\"text-align: right;\">".(round($my_shares[$i]))."</TD></TR>";
+	$oev = $oev=="even"?$oev="odd":$oev="even";
+}
+print "</TABLE>";
 
-for($i=128;$i<257;$i*=2) {
-	print "Instant $i second average hashrate: " . prettyHashrate(($my_shares[$i] * 4294967296)/$i) . "<BR>";
+# Reject data
+$sql = "select reason,count(*) as reject_count from public.shares where server=$serverid and user_id=$user_id and our_result!=true and time > NOW()-'3 hours'::interval group by reason order by reject_count;";
+$query_hash = hash("sha256", $sql);
+$rejecttable = get_stats_cache($link, 10, $query_hash);
+if ($rejecttable != "") {
+	print $rejecttable;
+} else {
+	$result = pg_exec($link, $sql);
+	$numrows = pg_numrows($result);
+	$pdata = "<TABLE class=\"userstatsrejects\" id=\"rejectdata\">";
+	$pdata .= "<THEAD><TR><TH STYLE=\"font-size: 70%;\" id=\"expandarea\"></TH><TH>Reject Count</TH></TR></THEAD>";
+	if ($numrows) {
+
+		$t = 0;
+		$rejectdetails = "";
+		$toggles = "";
+		$oev = "odd";
+		for($ri = 0; $ri < $numrows; $ri++) {
+			$row = pg_fetch_array($result, $ri);
+			$count = $row['reject_count'];
+			$t += $count;
+			$reason = prettyInvalidReason($row['reason']);
+			$rejectdetails .= "<TR class=\"userstats$oev\" id=\"rejectitem$ri\"><TD><FONT style=\"border-bottom: 1px dashed #999;\">$reason</FONT></TD><TD class=\"rtnumbers\">$count</TD></TR>";
+			$toggles .= "\$('#rejectitem$ri').toggle();\n";
+			$oev = $oev=="even"?$oev="odd":$oev="even";
+		}
+		$pdata .= "<TR class=\"userstatseven\"><TD>3-hour Total</TD><TD class=\"rtnumbers\">$t</TD></TR>";
+		$pdata .= $rejectdetails;
+		$pdata .= "</TABLE>";
+		$pdata .= "<script language=\"javascript\">\n<!--\n";
+		$pdata .= "\$(document).ready(function() {
+				\$('#expandarea').click(function(){
+					$toggles
+					if (!\$('#rejectitem0').is(':hidden')) {
+						\$('#expandarea').text('(Collapse Details)');
+					} else {
+						\$('#expandarea').text('(Expand Details)');
+					}
+					return false;
+				});
+				\$('#expandarea').css('cursor', 'pointer').click();;
+			});\n";
+		$pdata .= "\n--></script>\n";
+	} else {
+		$pdata .= "<TR class=\"userstatseven\"><TD>3-hour Total</TD><TD class=\"rtnumbers\">0</TD></TR>";
+		$pdata .= "</TABLE>";
+	}
+	print $pdata;
+	set_stats_cache($link, 10, $query_hash, $pdata, 60);
 }
 
+print "<BR><BR>";
 
 
 if (isset($_GET["timemachine"])) {
@@ -548,6 +604,8 @@ function barChartPlotter(e) {
 #print "</PRE>";
 
 }
+
+print "<BR><SMALL>(The data on this page is cached and updated periodically, generally about 30 seconds for the short-timeframe hashrate numbers, balances, and rejected shares data; and about 675 seconds for the graphs, longer-timeframe hashrate numbers, and other datas.</SMALL><BR>";
 
 print_stats_bottom();
 

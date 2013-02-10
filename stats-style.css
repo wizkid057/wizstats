@@ -186,3 +186,72 @@ li:hover li a:hover {
     background: #1e7c9a;
 }
 
+
+
+table.userstatsbalance {
+margin-bottom:5px;
+padding:2px;
+border-left:1px solid #cccccc;
+border-top:1px solid #cccccc;
+border-bottom:1px solid #000000;
+border-right:1px solid #000000;
+font-size: 0.93em;
+width: 748px;
+}
+
+.userstatseven {
+background-color:#ebede9;
+white-space:nowrap;
+}
+
+.userstatsodd {
+background-color:#d3ebe3;
+white-space:nowrap;
+}
+
+
+table.userstatshashrate {
+margin-bottom:5px;
+padding:2px;
+border-left:1px solid #cccccc;
+border-top:1px solid #cccccc;
+border-bottom:1px solid #000000;
+border-right:1px solid #000000;
+font-size: 80%;
+width: 448px;
+display: inline-block;
+white-space: nowrap;
+}
+
+table.userstatsrejects {
+margin-bottom:5px;
+padding:2px;
+border-left:1px solid #cccccc;
+border-top:1px solid #cccccc;
+border-bottom:1px solid #000000;
+border-right:1px solid #000000;
+font-size: 80%;
+width: 300px;
+display: inline-block;
+vertical-align:top;
+white-space: nowrap;
+
+}
+
+
+table.userstatsbalance thead {
+text-align: right;
+}
+
+table.userstatsrejects thead {
+text-align: right;
+}
+
+table.userstatshashrate thead {
+text-align: right;
+}
+
+.rtnumbers {
+text-align: right;
+}
+
