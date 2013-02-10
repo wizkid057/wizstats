@@ -16,13 +16,16 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+require_once 'includes.php';
+
 # TODO: Allow worker sub-names
 if (!isset($_SERVER['PATH_INFO'])) {
-	print "Error: Specify username in path\n";
+	print_stats_top();
+	print "<BR><FONT COLOR=\"RED\"><B>Error:</B> No username specified in URL path  Please try again.</FONT><BR>";
+	print_stats_bottom();
 	exit;
 }
 
-require_once 'includes.php';
 $link = pg_Connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");
 
 $givenuser = substr($_SERVER['PATH_INFO'],1,strlen($_SERVER['PATH_INFO'])-1);
@@ -32,7 +35,10 @@ $sql = "select id from public.users where keyhash='$bits' order by id asc limit 
 $result = pg_exec($link, $sql);
 $numrows = pg_numrows($result);
 if (!$numrows) {
-	print "Error: Username <I>$givenuser</I> not found in database.  Please try again later.".$_SERVER['PATH_INFO'];
+	print_stats_top();
+	print "<BR><FONT COLOR=\"RED\"><B>Error:</B> Username <I>$givenuser</I> not found in database.  Please try again later. If this issue persists, please report it to the pool operator.</FONT><BR>";
+	print_stats_bottom();
+
 	exit;
 }
 
