@@ -153,6 +153,7 @@ $query_hash = hash("sha256", "userstats.php hashrate table for $givenuser with i
 $hashratetable = get_stats_cache($link, 11, $query_hash);
 if ($hashratetable != "") {
 	print $hashratetable;
+	$u16avghash = get_stats_cache($link, 111, $query_hash);
 } else {
 
 	# 3 hour hashrate
@@ -188,6 +189,7 @@ if ($hashratetable != "") {
 	$pdata .= "</TABLE>";
 	print $pdata;
 	set_stats_cache($link, 11, $query_hash, $pdata, 30);
+	set_stats_cache($link, 111, $query_hash, $u16avghash, 30);
 
 }
 
@@ -400,8 +402,22 @@ if ($savedbal) {
 
 	print "<B>Estimated Position in Payout Queue</B><BR>";
 	$payoutqueue = file_get_contents("/var/lib/eligius/$serverid/payout_queue.txt");
+	print "<span style=\"font-size: 0.8em\">";
 	if ((strpos($payoutqueue,$givenuser) == false) && (substr($payoutqueue,0,strlen($givenuser)) != $givenuser)) {
-		print "Not yet in queue.";
+		$diff = 67108864 - $savedbal;
+		print "Approximately ".prettySatoshis($diff)." remaining to enter payout queue.";
+
+		if ($u16avghash > 0) {
+			$sql = "select id,(pow(10,((29-hex_to_int(substr(encode(solution,'hex'),145,2)))::double precision*2.4082399653118495617099111577959::double precision)+log(  (65535::double precision /  hex_to_int(substr(encode(solution,'hex'),147,6)))::double precision   )::double precision))::double precision as network_difficulty from shares where server=$serverid and time < (select time from $psqlschema.stats_shareagg where server=$serverid order by id desc limit 1) and our_result=true order by id desc limit 1;";
+	                $result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
+	                $netdiff = $row["network_difficulty"];
+
+			$shares = $diff / (2500000000/$netdiff);
+			$stime = $shares / ($u16avghash / 4294967296);
+			$netdiff = round($netdiff,2);
+			print " Maintaining your 3 hour hashrate avarage, this will take at least another ".prettyDuration($stime). " at current network difficulty of $netdiff.";
+		}
+
 	} else {
 		# add up balances and see where we end up.
 		$tb = 0; $bc = 0;
@@ -419,8 +435,23 @@ if ($savedbal) {
 				break;
 			}
 		}
-		print prettySatoshis($tb)." ".($tb==1?"is":"are")." ahead of this user in queue for a $bc block delay.<BR><SMALL style=\"font-size: 70%\"><I>Note: This is constantly changing. See <A HREF=\"http://eligius.st/~twmz/\" target=\"_blank\">the payout queue</A>.</I>";
+		if ($bc == 0) {
+			$delay = "in our next block";
+		} else {
+			$delay = "after a $bc block delay";
+		}
+		if ($bc == 0) {
+			$aheadtext = "Less than 25 BTC ahead in queue";
+		} else {
+			if ($tb < 2500000000) {
+				$aheadtext = prettySatoshis($tb)." ".($tb==1?"is":"are")." ahead in queue, and our payout is more than ".prettySatoshis(2500000000-$tb);
+			} else {
+				$aheadtext = prettySatoshis($tb)." ".($tb==1?"is":"are")." ahead in queue";
+			}
+		}
+		print $aheadtext.", putting this user's payout $delay.<BR><SMALL style=\"font-size: 70%\"><I>Note: This is constantly changing. See <A HREF=\"http://eligius.st/~twmz/\" target=\"_blank\">the payout queue</A>.</I></SMALL>";
 	}
+	print "</span>";
 }
 
 print "</div>";
