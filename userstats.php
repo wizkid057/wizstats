@@ -336,49 +336,59 @@ print "<div id=\"userstatsright\">";
 
 print "<B>Latest Payouts</B>";
 
-
 if ($everpaid > 0) {
 
-	# walk the blocklist back a ways to check for payouts
-	$blockjsondec = json_decode(file_get_contents("/var/lib/eligius/$serverid/blocks/latest.json"),true);
-	$myblockdata = $blockjsondec[$givenuser];
-	$lastep = $everpaid;
-	$lastblock = "latest";
-	$thisep = $lastep;
-
-	$maxlook = 500;
-	$maxtable = 8;
-	$xdata = "";
-	$oev = "even";
-	#print "$maxlook $maxtable $thisep\n";
-	#print "opened $lastblock, opening ".$blockjsondec[""]["mylastblk"]."<BR>";
-	while(($maxlook) && ($maxtable) && ($thisep > 0)) {
-		$paidblock = $lastblock;
-		$paydate = date("Y-m-d H:i",$blockjsondec[""]["roundend"]);
-		$lastblock = $blockjsondec[""]["mylastblk"];
-		$blockjsondec = json_decode(file_get_contents("/var/lib/eligius/$serverid/blocks/".($lastblock).".json"),true); $myblockdata = $blockjsondec[$givenuser];
-		$thisep = $myblockdata["everpaid"];
-		$maxlook--;
-		if ($thisep < $lastep) {
-			$paid = $lastep - $thisep;
-			$paid = prettySatoshis($paid);
-			if (strpos($paidblock,'_send') != false) {
-				$type = "S";
-			} else {
-				$type = "G";
-			}
-			$xdata .= "<TR class=\"userstats$oev\"><TD title=\"$paidblock\">$paydate ($type)</TD><TD class=\"rtnumbers\">$paid</TD></TR>";
-			$oev = $oev=="even"?$oev="odd":$oev="even";
-			$lastep = $thisep;
-			$maxtable--;
-		}
-	}
-	if ($xdata != "") {
-		print "<table id=\"paymentlist\"><THEAD><TR><TH>Date (<SPAN title=\"G = Payout from coinbase/generation; S = Payout from normal send/sendmany\" style=\"border-bottom: 1px dashed #cccccc\">Type</SPAN>)</TH><TH>Amount</TH></TR></THEAD>$xdata</table>";
+	$query_hash = hash("sha256", "userstats.php latest payouts for $givenuser with id $user_id and latest everpaid of $everpaid");
+	$latestpayouts = get_stats_cache($link, 12, $query_hash);
+	if ($latestpayouts != "") {
+		print $latestpayouts;
 	} else {
-		print "<BR>No data available.<BR>";
+		# walk the blocklist back a ways to check for payouts
+		$blockjsondec = json_decode(file_get_contents("/var/lib/eligius/$serverid/blocks/latest.json"),true);
+		$myblockdata = $blockjsondec[$givenuser];
+		$lastep = $everpaid;
+		$lastblock = "latest";
+		$thisep = $lastep;
+
+		$maxlook = 500;
+		$maxtable = 8;
+		$xdata = "";
+		$oev = "even";
+
+		while(($maxlook) && ($maxtable) && ($thisep > 0)) {
+			$paidblock = $lastblock;
+			$paydate = date("Y-m-d H:i",$blockjsondec[""]["roundend"]);
+			$lastblock = $blockjsondec[""]["mylastblk"];
+			$blockjsondec = json_decode(file_get_contents("/var/lib/eligius/$serverid/blocks/".($lastblock).".json"),true); $myblockdata = $blockjsondec[$givenuser];
+			$thisep = $myblockdata["everpaid"];
+			$maxlook--;
+			if ($thisep < $lastep) {
+				$paid = $lastep - $thisep;
+				$paid = prettySatoshis($paid);
+				if (strpos($paidblock,'_send') != false) {
+					$type = "S";
+				} else {
+					$type = "G";
+				}
+				$xdata .= "<TR class=\"userstats$oev\"><TD title=\"$paidblock\">$paydate ($type)</TD><TD class=\"rtnumbers\">$paid</TD></TR>";
+				$oev = $oev=="even"?$oev="odd":$oev="even";
+				$lastep = $thisep;
+				$maxtable--;
+			}
+		}
+		if ($xdata != "") {
+			$pdata = "<table id=\"paymentlist\"><THEAD><TR><TH>Date (<SPAN title=\"G = Payout from coinbase/generation; S = Payout from normal send/sendmany\" style=\"border-bottom: 1px dashed #cccccc\">Type</SPAN>)</TH><TH>Amount</TH></TR></THEAD>$xdata</table>";
+		} else {
+			$pdata = "<BR>No data available.<BR>";
+		}
+		print $pdata;
+		# cache this data for 24 hours. if the user is paid, the hash will change and invalidate this forcing a rebuild. genius!
+		set_stats_cache($link, 12, $query_hash, $pdata, 3600*24);
 	}
+} else {
+	print "<BR>No data available.<BR>";
 }
+
 print "All time total payout: ".prettySatoshis($everpaid);
 print "<BR><BR>";
 
