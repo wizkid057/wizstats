@@ -75,7 +75,7 @@ print("<HTML>
     <li><a href=\"".$GLOBALS["urlprefix"]."mystats.php\">My Stats</a></li>
     <li><a href=\"".$GLOBALS["urlprefix"]."blocks.php\">Our Blocks</a></li>
     <li><a href=\"".$GLOBALS["urlprefix"]."topcontributors.php\">Contributors</a></li>
-    <li><a href=\"https://github.com/wizkid057/wizstats\">GitHub</a></li>
+    <li><a target=\"_blank\" href=\"https://github.com/wizkid057/wizstats\">GitHub</a></li>
     <li><a href=\"/\">".$GLOBALS["poolname"]." Homepage</a></li>
 </ul>
 </center>
