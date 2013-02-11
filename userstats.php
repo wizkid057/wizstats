@@ -177,7 +177,7 @@ if ($hashratetable != "") {
 
 
 	$pdata = "<TABLE class=\"userstatshashrate\">";
-	$pdata .= "<THEAD><TR><TH WIDTH=\"34%\"></TH><TH WIDTH=\"33%\">Hashrate Average</TH><TH WIDTH=\"33%\"><span title=\"Weighted shares are the number of shares accepted by the pool multiplied by the difficulty of the work that was given.  This number is essentially the equivilent difficulty 1 shares submitted to the pool.\" style=\"border-bottom: 1px dashed #cccccc\">Weighted Shares</span></TH></TR></THEAD>";
+	$pdata .= "<THEAD><TR><TH WIDTH=\"34%\"></TH><TH WIDTH=\"33%\">Hashrate Average</TH><TH WIDTH=\"33%\"><span title=\"Weighted shares are the number of shares accepted by the pool multiplied by the difficulty of the work that was given.  This number is essentially the equivilent difficulty 1 shares submitted to the pool.\" style=\"border-bottom: 1px dashed #888888\">Weighted Shares</span></TH></TR></THEAD>";
 	$pdata .= "<TR class=\"userstatseven\"><TD>3 hours</TD><TD style=\"text-align: right;\">".prettyHashrate($u16avghash)."</TD><TD style=\"text-align: right;\">$u16shares</TD></TR>";
 	$pdata .= "<TR class=\"userstatsodd\"><TD>22.5 minutes</TD><TD style=\"text-align: right;\">".prettyHashrate($u2avghash)."</TD><TD style=\"text-align: right;\">$u2shares</TD></TR>";
 	$oev = "even";
@@ -201,7 +201,7 @@ if ($rejecttable != "") {
 	$result = pg_exec($link, $sql);
 	$numrows = pg_numrows($result);
 	$pdata = "<TABLE class=\"userstatsrejects\" id=\"rejectdata\">";
-	$pdata .= "<THEAD><TR><TH STYLE=\"font-size: 70%;\" id=\"expandarea\"></TH><TH><SPAN title=\"Rejected share counts here are absolute counts and are not weighted.\" style=\"border-bottom: 1px dashed #cccccc\">Rejected Shares</span></TH></TR></THEAD>";
+	$pdata .= "<THEAD><TR><TH STYLE=\"font-size: 70%;\" id=\"expandarea\"></TH><TH><SPAN title=\"Rejected share counts here are absolute counts and are not weighted.\" style=\"border-bottom: 1px dashed #888888\">Rejected Shares</span></TH></TR></THEAD>";
 	if ($numrows) {
 
 		$t = 0;
@@ -380,7 +380,7 @@ if ($everpaid > 0) {
 			}
 		}
 		if ($xdata != "") {
-			$pdata = "<table id=\"paymentlist\"><THEAD><TR><TH>Date (<SPAN title=\"G = Payout from coinbase/generation; S = Payout from normal send/sendmany\" style=\"border-bottom: 1px dashed #cccccc\">Type</SPAN>)</TH><TH>Amount</TH></TR></THEAD>$xdata</table>";
+			$pdata = "<table id=\"paymentlist\"><THEAD><TR><TH>Date (<SPAN title=\"G = Payout from coinbase/generation; S = Payout from normal send/sendmany\" style=\"border-bottom: 1px dashed #888888\">Type</SPAN>)</TH><TH>Amount</TH></TR></THEAD>$xdata</table>";
 		} else {
 			$pdata = "<BR>No data available.<BR>";
 		}
@@ -396,10 +396,34 @@ print "All time total payout: ".prettySatoshis($everpaid);
 print "<BR><BR>";
 
 
+if ($savedbal) {
+
+	print "<B>Estimated Position in Payout Queue</B><BR>";
+	$payoutqueue = file_get_contents("/var/lib/eligius/$serverid/payout_queue.txt");
+	if ((strpos($payoutqueue,$givenuser) == false) && (substr($payoutqueue,0,strlen($givenuser)) != $givenuser)) {
+		print "Not yet in queue.";
+	} else {
+		# add up balances and see where we end up.
+		$tb = 0; $bc = 0;
+		foreach(preg_split("/((\r?\n)|(\r\n?))/", $payoutqueue) as $pquser){
+			if ($pquser != $givenuser) {
+				$tb += $balanacesjsondec[$pquser]["balance"];
+				if ($tb > 2500000000) {
+					$tb = $tb - 2500000000;
+					$bc++;
+				}
+			} else {
+				if (($tb+$balanacesjsondec[$pquser]["balance"]) > 2500000000) {
+					$bc++;
+				}
+				break;
+			}
+		}
+		print prettySatoshis($tb)." ".($tb==1?"is":"are")." ahead of this user in queue for a $bc block delay.<BR><SMALL style=\"font-size: 70%\"><I>Note: This is constantly changing. See <A HREF=\"http://eligius.st/~twmz/\" target=\"_blank\">the payout queue</A>.</I>";
+	}
+}
 
 print "</div>";
-
-
 
 print "<BR><SMALL>(The data on this page is cached and updated periodically, generally about 30 seconds for the short-timeframe hashrate numbers, balances, and rejected shares data; and about 675 seconds for the graphs, longer-timeframe hashrate numbers, and other datas.</SMALL><BR>";
 print_stats_bottom();
