@@ -420,34 +420,35 @@ if ($savedbal) {
 
 	} else {
 		# add up balances and see where we end up.
-		$tb = 0; $bc = 0;
+		$tb = 0; $bc = 0; $overflow = 0;
 		foreach(preg_split("/((\r?\n)|(\r\n?))/", $payoutqueue) as $pquser){
 			if ($pquser != $givenuser) {
 				$tb += $balanacesjsondec[$pquser]["balance"];
-				if ($tb > 2500000000) {
+				while ($tb > 2500000000) {
 					$tb = $tb - 2500000000;
 					$bc++;
 				}
 			} else {
 				if (($tb+$balanacesjsondec[$pquser]["balance"]) > 2500000000) {
-					$bc++;
+					$overflow = 1;
 				}
 				break;
+			}
+		}
+		if (($bc == 0) && (!$overflow)) {
+			$aheadtext = "Less than 25 BTC ahead in queue";
+		} else {
+			if ($overflow) {
+				$aheadtext = prettySatoshis($tb+(2500000000*($bc)))." ".(($tb+(2500000000*($bc+1)))==1?"is":"are")." ahead in queue, but our payout is more than the remaining block reward of ".prettySatoshis((2500000000)-$tb);
+				$bc++;
+			} else {
+				$aheadtext = prettySatoshis($tb+(2500000000*($bc)))." ".(($tb+(2500000000*($bc+1)))==1?"is":"are")." ahead in queue";
 			}
 		}
 		if ($bc == 0) {
 			$delay = "in our next block";
 		} else {
 			$delay = "after a $bc block delay";
-		}
-		if ($bc == 0) {
-			$aheadtext = "Less than 25 BTC ahead in queue";
-		} else {
-			if ($tb < 2500000000) {
-				$aheadtext = prettySatoshis($tb)." ".($tb==1?"is":"are")." ahead in queue, and our payout is more than ".prettySatoshis(2500000000-$tb);
-			} else {
-				$aheadtext = prettySatoshis($tb)." ".($tb==1?"is":"are")." ahead in queue";
-			}
 		}
 		print $aheadtext.", putting this user's payout $delay.<BR><SMALL style=\"font-size: 70%\"><I>Note: This is constantly changing. See <A HREF=\"http://eligius.st/~twmz/\" target=\"_blank\">the payout queue</A>.</I></SMALL>";
 	}
