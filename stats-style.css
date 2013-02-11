@@ -255,3 +255,32 @@ text-align: right;
 text-align: right;
 }
 
+#userstatsmain {
+width: 750px;
+display: inline-block;
+}
+
+#userstatsright {
+width: 300px;
+vertical-align:top;
+display: inline-block;
+float: right;
+}
+
+
+
+#paymentlist {
+margin-bottom:5px;
+padding:2px;
+border-left:1px solid #cccccc;
+border-top:1px solid #cccccc;
+border-bottom:1px solid #000000;
+border-right:1px solid #000000;
+font-size: 80%;
+width: 100%;
+
+}
+
+#paymentlist td {
+border: 1px solid black;
+}

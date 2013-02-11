@@ -78,6 +78,8 @@ if ($mybal) {
 	} else {
 		$lec = $ec;
 	}
+	$everpaid = $mybal["everpaid"];
+
 } else {
 	# fall back to sql
 	$sql = "select * from $psqlschema.stats_balances where server=$serverid and user_id=$user_id order by time desc limit 1";
@@ -91,6 +93,7 @@ if ($mybal) {
 		$ec = $row["credit"];
 		$lbal = "N/A";
 		$datadate = $row["time"];
+		$everpaid = $row["everpaid"];
 	}
 }
 
@@ -121,6 +124,7 @@ else { $cect = prettySatoshis($cec); }
 
 $xbal = prettySatoshis($xbal);
 $xec = prettySatoshis($xec);
+$savedbal = $bal;
 $bal = prettySatoshis($bal);
 $ec = prettySatoshis($ec-$smppsec);
 
@@ -136,6 +140,8 @@ if ($smppsec) {
 }
 
 print "<H2>$givenuser</H2>";
+
+print "<div id=\"userstatsmain\">";
 print "<TABLE class=\"userstatsbalance\">";
 print "<THEAD><TR><TH></TH><TH>Unpaid Balance</TH><TH>Shelved Shares (<A HREF=\"http://eligius.st/wiki/index.php/Capped_PPS_with_Recent_Backpay\">CPPSRB</A>)</TH>$smppsL1</TR></THEAD>";
 print "<TR class=\"userstatsodd\"><TD>As of last block: </TD><TD style=\"text-align: right;\">$xbal</TD><TD style=\"text-align: right; font-size: 80%;\">$xec</TD>$smppsL2</TR>";
@@ -171,7 +177,7 @@ if ($hashratetable != "") {
 
 
 	$pdata = "<TABLE class=\"userstatshashrate\">";
-	$pdata .= "<THEAD><TR><TH WIDTH=\"34%\"></TH><TH WIDTH=\"33%\">Hashrate Average</TH><TH WIDTH=\"33%\">Accepted Shares</TH></TR></THEAD>";
+	$pdata .= "<THEAD><TR><TH WIDTH=\"34%\"></TH><TH WIDTH=\"33%\">Hashrate Average</TH><TH WIDTH=\"33%\"><span title=\"Weighted shares are the number of shares accepted by the pool multiplied by the difficulty of the work that was given.  This number is essentially the equivilent difficulty 1 shares submitted to the pool.\" style=\"border-bottom: 1px dashed #cccccc\">Weighted Shares</span></TH></TR></THEAD>";
 	$pdata .= "<TR class=\"userstatseven\"><TD>3 hours</TD><TD style=\"text-align: right;\">".prettyHashrate($u16avghash)."</TD><TD style=\"text-align: right;\">$u16shares</TD></TR>";
 	$pdata .= "<TR class=\"userstatsodd\"><TD>22.5 minutes</TD><TD style=\"text-align: right;\">".prettyHashrate($u2avghash)."</TD><TD style=\"text-align: right;\">$u2shares</TD></TR>";
 	$oev = "even";
@@ -195,7 +201,7 @@ if ($rejecttable != "") {
 	$result = pg_exec($link, $sql);
 	$numrows = pg_numrows($result);
 	$pdata = "<TABLE class=\"userstatsrejects\" id=\"rejectdata\">";
-	$pdata .= "<THEAD><TR><TH STYLE=\"font-size: 70%;\" id=\"expandarea\"></TH><TH>Reject Count</TH></TR></THEAD>";
+	$pdata .= "<THEAD><TR><TH STYLE=\"font-size: 70%;\" id=\"expandarea\"></TH><TH><SPAN title=\"Rejected share counts here are absolute counts and are not weighted.\" style=\"border-bottom: 1px dashed #cccccc\">Rejected Shares</span></TH></TR></THEAD>";
 	if ($numrows) {
 
 		$t = 0;
@@ -322,8 +328,67 @@ print "<script type=\"text/javascript\">
 	}
 </script>\n";
 
-print "<BR><SMALL>(The data on this page is cached and updated periodically, generally about 30 seconds for the short-timeframe hashrate numbers, balances, and rejected shares data; and about 675 seconds for the graphs, longer-timeframe hashrate numbers, and other datas.</SMALL><BR>";
+print "</div>";
 
+# right side
+print "<div id=\"userstatsright\">";
+
+
+print "<B>Latest Payouts</B>";
+
+
+if ($everpaid > 0) {
+
+	# walk the blocklist back a ways to check for payouts
+	$blockjsondec = json_decode(file_get_contents("/var/lib/eligius/$serverid/blocks/latest.json"),true);
+	$myblockdata = $blockjsondec[$givenuser];
+	$lastep = $everpaid;
+	$lastblock = "latest";
+	$thisep = $lastep;
+
+	$maxlook = 500;
+	$maxtable = 8;
+	$xdata = "";
+	$oev = "even";
+	#print "$maxlook $maxtable $thisep\n";
+	#print "opened $lastblock, opening ".$blockjsondec[""]["mylastblk"]."<BR>";
+	while(($maxlook) && ($maxtable) && ($thisep > 0)) {
+		$paidblock = $lastblock;
+		$paydate = date("Y-m-d H:i",$blockjsondec[""]["roundend"]);
+		$lastblock = $blockjsondec[""]["mylastblk"];
+		$blockjsondec = json_decode(file_get_contents("/var/lib/eligius/$serverid/blocks/".($lastblock).".json"),true); $myblockdata = $blockjsondec[$givenuser];
+		$thisep = $myblockdata["everpaid"];
+		$maxlook--;
+		if ($thisep < $lastep) {
+			$paid = $lastep - $thisep;
+			$paid = prettySatoshis($paid);
+			if (strpos($paidblock,'_send') != false) {
+				$type = "S";
+			} else {
+				$type = "G";
+			}
+			$xdata .= "<TR class=\"userstats$oev\"><TD title=\"$paidblock\">$paydate ($type)</TD><TD class=\"rtnumbers\">$paid</TD></TR>";
+			$oev = $oev=="even"?$oev="odd":$oev="even";
+			$lastep = $thisep;
+			$maxtable--;
+		}
+	}
+	if ($xdata != "") {
+		print "<table id=\"paymentlist\"><THEAD><TR><TH>Date (<SPAN title=\"G = Payout from coinbase/generation; S = Payout from normal send/sendmany\" style=\"border-bottom: 1px dashed #cccccc\">Type</SPAN>)</TH><TH>Amount</TH></TR></THEAD>$xdata</table>";
+	} else {
+		print "<BR>No data available.<BR>";
+	}
+}
+print "All time total payout: ".prettySatoshis($everpaid);
+print "<BR><BR>";
+
+
+
+print "</div>";
+
+
+
+print "<BR><SMALL>(The data on this page is cached and updated periodically, generally about 30 seconds for the short-timeframe hashrate numbers, balances, and rejected shares data; and about 675 seconds for the graphs, longer-timeframe hashrate numbers, and other datas.</SMALL><BR>";
 print_stats_bottom();
 
 ?>
