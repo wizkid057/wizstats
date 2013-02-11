@@ -370,6 +370,9 @@ if ($everpaid > 0) {
 				} else {
 					$type = "G";
 				}
+				if ($paidblock != "latest") {
+					$type = "<A HREF=\"http://blockchain.info/search?search=".substr($paidblock,0,64)."\">$type</A>";
+				}
 				$xdata .= "<TR class=\"userstats$oev\"><TD title=\"$paidblock\">$paydate ($type)</TD><TD class=\"rtnumbers\">$paid</TD></TR>";
 				$oev = $oev=="even"?$oev="odd":$oev="even";
 				$lastep = $thisep;
