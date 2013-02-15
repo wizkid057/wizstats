@@ -359,7 +359,19 @@ if ($everpaid > 0) {
 
 		while(($maxlook) && ($maxtable) && ($thisep > 0)) {
 			$paidblock = $lastblock;
-			$paydate = date("Y-m-d H:i",$blockjsondec[""]["roundend"]);
+			$forcetype = "";
+			if ($blockjsondec[""]["roundend"] > 0) {
+				$paydate = date("Y-m-d H:i",$blockjsondec[""]["roundend"]);
+			} else {
+				# get time from manual send creation time
+				$paydatectime = filectime("/var/lib/eligius/$serverid/blocks/".($lastblock).".json");
+				if ($paydatectime > 0) {
+					$paydate = date("Y-m-d H:i",$paydatectime); 
+					$forcetype = "S";
+				} else {
+					$paydate = "Unknown";
+				}
+			}
 			$lastblock = $blockjsondec[""]["mylastblk"];
 			$blockjsondec = json_decode(file_get_contents("/var/lib/eligius/$serverid/blocks/".($lastblock).".json"),true); $myblockdata = $blockjsondec[$givenuser];
 			$thisep = $myblockdata["everpaid"];
@@ -370,7 +382,11 @@ if ($everpaid > 0) {
 				if (strpos($paidblock,'_send') != false) {
 					$type = "S";
 				} else {
-					$type = "G";
+					if ($forcetype != "") {
+						$type = $forcetype;
+					} else {
+						$type = "G";
+					}
 				}
 				if ($paidblock != "latest") {
 					$type = "<A HREF=\"http://blockchain.info/search?search=".substr($paidblock,0,64)."\">$type</A>";
