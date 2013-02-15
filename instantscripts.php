@@ -24,6 +24,7 @@ if (($_SERVER['PATH_INFO'] == "/livedata-main.js") || ($_SERVER['PATH_INFO'] == 
 	if ($_SERVER['PATH_INFO'] == "/livedata-main.js") { $main = 1; } else { $main = 0; }
 
 	header("Content-type: application/javascript");
+	header("Cache-Control: no-cache, must-revalidate");
 
 	include("instant_livedata.php");
 
@@ -84,7 +85,7 @@ if (($_SERVER['PATH_INFO'] == "/livedata-main.js") || ($_SERVER['PATH_INFO'] == 
 	function updateSharesData()
 	{
 
-		\$.getJSON(\"".$GLOBALS["urlprefix"]."instant.php/livedata.json\",
+		\$.getJSON(\"".$GLOBALS["urlprefix"]."instant.php/livedata.json?rand=\" + Math.random(),
 			function(data){
 				intCountShares = data.roundsharecount;
 				intSharesPerUnit = data.sharesperunit * 0.02;

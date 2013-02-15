@@ -34,6 +34,8 @@ function print_stats_top() {
 
 	if (!isset($ldmain)) { $ldmain = ""; }
 
+	$rnd = (rand() * rand() + rand());
+
 print("<HTML>
 <HEAD>
 <TITLE>".$localtitleprepend.$GLOBALS["poolname"]." Pool Statistics".$localtitleappend."</TITLE>
@@ -41,7 +43,7 @@ print("<HTML>
 <script type=\"text/javascript\" src=\"".$GLOBALS["urlprefix"]."dygraph-combined.js\"></script>
 <script type=\"text/javascript\" src=\"".$GLOBALS["urlprefix"]."jquery.js\"></script>
 <script type=\"text/javascript\" src=\"".$GLOBALS["urlprefix"]."sortable.js\"></script>
-<script type=\"text/javascript\" src=\"".$GLOBALS["urlprefix"]."instantscripts.php/livedata$ldmain.js\"></script>
+<script type=\"text/javascript\" src=\"".$GLOBALS["urlprefix"]."instantscripts.php/livedata$ldmain.js?rand=$rnd\"></script>
 <!--[if IE]><script type=\"text/javascript\" src=\"".$GLOBALS["urlprefix"]."excanvas.js\"></script><![endif]-->
 <link rel=\"stylesheet\" type=\"text/css\" href=\"".$GLOBALS["urlprefix"]."stats-style.css\">
 ".$localheadextras."
