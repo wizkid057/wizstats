@@ -16,12 +16,18 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 error_reporting(E_ALL ^ E_NOTICE);
-
 require_once 'includes.php';
+
+
 $link = pg_Connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");
 
-
 $sql = "select *,date_part('epoch', time)::integer-date_part('epoch', roundstart)::integer as duration from $psqlschema.stats_blocks where server=$serverid and confirmations > 0 and height > 210000 and time > NOW()-'60 days'::interval order by time asc;";
+$query_hash = hash("sha256", $sql.(isset($_GET["btc"])?"BTC":"PERCENTPPS"));
+$cacheddata = get_stats_cache($link, 30, $query_hash);
+if ($cacheddata != "") {
+        print $cacheddata;
+        exit;
+}
 
 header("Content-type: text/csv");
 
@@ -50,9 +56,6 @@ $ignorepoints = 5;
 			if ($row["height"] < 210000) {
 				$subsidy = 5000000000;
 			}
-
-			#$cdf = getCDF($row["acceptedshares"],$row["network_difficulty"])*100;
-			#print $row["time"].",".$cdf."\n";
 
 			$diff = round($row["network_difficulty"],0);
 			$shares = $row["acceptedshares"];
@@ -84,18 +87,23 @@ $ignorepoints = 5;
 			}
 
 
-			if ($ri > $ignorepoints) {
-				$thisctime = strtotime($row["time"]);
-				$date = date("Y-m-d H:i:s",$thisctime-1);
-				if (isset($_GET["btc"])) {
-					print $date.",".sprintf("%.8f",round($unpaidbal/100000000,8)).",".sprintf("%.8f",round($shelvedshares/100000000,8)).",".sprintf("%.8f",round($maxbal/100000000,8))."\n";
-				} else {
-					print $date.",".sprintf("%.8f",round(($unpaidbal/$maxbal)*100,8))."%,".sprintf("%.8f",round(($shelvedshares/$maxbal)*100,8))."%\n";
+			$thisctime = strtotime($row["time"]);
+			$date = date("Y-m-d H:i:s",$thisctime-1);
+			if (isset($_GET["btc"])) {
+				$tline = $date.",".sprintf("%.8f",round($unpaidbal/100000000,8)).",".sprintf("%.8f",round($shelvedshares/100000000,8)).",".sprintf("%.8f",round($maxbal/100000000,8))."\n";
+				$tdata .= $tline;
+				print $tline;
+			} else {
+				if ($ri > $ignorepoints) {
+					$tline = $date.",".sprintf("%.8f",round(($unpaidbal/$maxbal)*100,8))."%,".sprintf("%.8f",round(($shelvedshares/$maxbal)*100,8))."%\n";
+					$tdata .= $tline;
+					print $tline;
 				}
 			}
 
-	}
 
+	}
+	set_stats_cache($link, 30, $query_hash, $tdata, 3600);
 
 exit();
 
