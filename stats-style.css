@@ -284,3 +284,12 @@ width: 100%;
 #paymentlist td {
 border: 1px solid black;
 }
+
+
+#graphdiv3 .dygraph-legend { width: 550px !important; left: 60px !important; }
+#graphdiv4 .dygraph-legend { width: 100px; top: 40px !important; }
+#graphdiv5 .dygraph-legend { width: 100px; left: 140px !important; }
+
+#ugraphdiv2 .dygraph-legend { width: 680px !important; left: 60px !important; }
+#ugraphdiv3 .dygraph-legend { left: 60px !important; }
+

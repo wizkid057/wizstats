@@ -253,9 +253,9 @@ if (isset($_GET["timemachine"])) {
 	$secondsback = 604800;
 }
 
-print "<div id=\"graphdiv2\" style=\"width:750px; height:375px;\"></div>";
+print "<div id=\"ugraphdiv2\" style=\"width:750px; height:375px;\"></div>";
 print "<INPUT TYPE=\"BUTTON\" onClick=\"showmax();\" VALUE=\"Toggle Graphing of Maximum Reward\"><BR>";
-print "<div id=\"graphdiv3\" style=\"width:750px; height:375px;\"></div>";
+print "<div id=\"ugraphdiv3\" style=\"width:750px; height:375px;\"></div>";
 
 if (!isset($_GET["timemachine"])) {
 	print "<A HREF=\"?timemachine=1\">(Click for up to 60 days of hashrate/balance data)</A><BR>";
@@ -267,7 +267,7 @@ print "<script type=\"text/javascript\">
 	var blockUpdateA = 0;
 	var blockUpdateB = 0;
 
-	g2 = new Dygraph(document.getElementById(\"graphdiv2\"),\"$givenuser?cmd=hashgraph&start=0&back=$secondsback&res=1\",{ 
+	g2 = new Dygraph(document.getElementById(\"ugraphdiv2\"),\"$givenuser?cmd=hashgraph&start=0&back=$secondsback&res=1\",{ 
 		strokeWidth: 2.25,
 		'675 seconds': { fillGraph: true, strokeWidth: 1.5 },
 		labelsDivStyles: { border: '1px solid black' },
@@ -294,7 +294,7 @@ print "<script type=\"text/javascript\">
 	var mrindex = 0;
 	var mrhidden = 1;
 	g3 = new Dygraph(
-	document.getElementById(\"graphdiv3\"),\"$givenuser?cmd=balancegraph&start=0&back=$secondsback&res=1\",{ 
+	document.getElementById(\"ugraphdiv3\"),\"$givenuser?cmd=balancegraph&start=0&back=$secondsback&res=1\",{ 
 		strokeWidth: 2.25,
 		fillGraph: true,
 		labelsDivStyles: { border: '1px solid black' },

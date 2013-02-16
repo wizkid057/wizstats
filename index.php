@@ -56,7 +56,6 @@ For example, <A HREF="http://eligius.st/~wizkid057/newstats/userstats.php/1EXfBq
 <BR>
 <div id="line"></div>
 <CENTER><H3><?php echo $poolname; ?> CPPSRB Variance</H3></CENTER>
-<style type="text/css">#graphdiv4 .dygraph-legend { width: 100px; top: 40px !important; }</style>
 <div id="graphdiv4" style="width:100%; height:150px;"></div>
 <script type="text/javascript">
   g3 = new Dygraph(
@@ -72,7 +71,6 @@ For example, <A HREF="http://eligius.st/~wizkid057/newstats/userstats.php/1EXfBq
   );
 </script>
 
-<style type="text/css">#graphdiv5 .dygraph-legend { width: 100px; left: 140px !important; }</style>
 <div id="graphdiv5" style="width:100%; height:150px;"></div>
 <script type="text/javascript">
   g3 = new Dygraph(
