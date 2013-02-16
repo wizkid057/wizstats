@@ -22,9 +22,7 @@ $link = pg_Connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psq
 
 
 $sql = "select sum(hashrate) as hr,time from $psqlschema.stats_shareagg where server=$serverid and time > NOW()-'10 days'::interval-'12 hours'::interval group by time order by time asc;";
-
 header("Content-type: text/csv");
-
 $query_hash = hash("sha256", $sql);
 $cacheddata = get_stats_cache($link, 4, $query_hash);
 if ($cacheddata != "") {

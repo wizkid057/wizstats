@@ -53,6 +53,41 @@ For example, <A HREF="http://eligius.st/~wizkid057/newstats/userstats.php/1EXfBq
 	}
   );
 </script>
+<BR>
+<div id="line"></div>
+<CENTER><H3><?php echo $poolname; ?> CPPSRB Variance</H3></CENTER>
+<style type="text/css">#graphdiv4 .dygraph-legend { width: 100px; top: 40px !important; }</style>
+<div id="graphdiv4" style="width:100%; height:150px;"></div>
+<script type="text/javascript">
+  g3 = new Dygraph(
+    document.getElementById("graphdiv4"),
+    "poolluckgraph.php",
+   	{ strokeWidth: 2.25,
+	'hashrate': {fillGraph: true },
+	labelsDivStyles: { border: '1px solid black' },
+	xlabel: 'Date',
+	ylabel: 'Percent of PPS',
+	animatedZooms: true
+	}
+  );
+</script>
+
+<style type="text/css">#graphdiv5 .dygraph-legend { width: 100px; left: 140px !important; }</style>
+<div id="graphdiv5" style="width:100%; height:150px;"></div>
+<script type="text/javascript">
+  g3 = new Dygraph(
+    document.getElementById("graphdiv5"),
+    "poolluckgraph.php?btc=1",
+   	{ strokeWidth: 2.25,
+	fillGraph: true,
+	labelsDivStyles: { border: '1px solid black' },
+	xlabel: 'Date',
+	ylabel: 'Est. BTC',
+	animatedZooms: true
+	}
+  );
+</script>
+<SMALL>(These graphs shows the estimated earnings, as a percentage of maximum PPS, of a hypothetical 1GH miner who started mining at <?php echo $poolname; ?> approximately 60 days ago.)</SMALL><BR>
 
 <BR><div id="line"></div>
 <H3><CENTER>Top Miners (3 hr rate) <A HREF="topcontributors.php">(Full)</A></CENTER></H3>
