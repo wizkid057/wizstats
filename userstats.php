@@ -26,7 +26,7 @@ if (!isset($_SERVER['PATH_INFO'])) {
 	exit;
 }
 
-$link = pg_Connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");
+$link = pg_pconnect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");
 
 $givenuser = substr($_SERVER['PATH_INFO'],1,strlen($_SERVER['PATH_INFO'])-1);
 $bits =  hex2bits(\Bitcoin::addressToHash160($givenuser));
@@ -34,11 +34,11 @@ $bits =  hex2bits(\Bitcoin::addressToHash160($givenuser));
 $sql = "select id from public.users where keyhash='$bits' order by id asc limit 1";
 $result = pg_exec($link, $sql);
 $numrows = pg_numrows($result);
+
 if (!$numrows) {
 	print_stats_top();
 	print "<BR><FONT COLOR=\"RED\"><B>Error:</B> Username <I>$givenuser</I> not found in database.  Please try again later. If this issue persists, please report it to the pool operator.</FONT><BR>";
 	print_stats_bottom();
-
 	exit;
 }
 
@@ -352,7 +352,7 @@ if ($everpaid > 0) {
 		$lastblock = "latest";
 		$thisep = $lastep;
 
-		$maxlook = 500;
+		$maxlook = 5000;
 		$maxtable = 8;
 		$xdata = "";
 		$oev = "even";
@@ -373,8 +373,11 @@ if ($everpaid > 0) {
 				}
 			}
 			$lastblock = $blockjsondec[""]["mylastblk"];
+			if (!isset($blockjsondec[""]["mylastblk"])) { $maxlook = 1; }
 			$blockjsondec = json_decode(file_get_contents("/var/lib/eligius/$serverid/blocks/".($lastblock).".json"),true); $myblockdata = $blockjsondec[$givenuser];
-			$thisep = $myblockdata["everpaid"];
+			if (isset($myblockdata["everpaid"])) {
+				$thisep = $myblockdata["everpaid"];
+			} 
 			$maxlook--;
 			if ($thisep < $lastep) {
 				$paid = $lastep - $thisep;
