@@ -18,7 +18,7 @@
 error_reporting(E_ALL ^ E_NOTICE);
 
 require_once 'includes.php';
-$link = pg_Connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");
+$link = pg_pconnect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");
 
 
 $sql = "select sum(hashrate) as hr,time from $psqlschema.stats_shareagg where server=$serverid and time > NOW()-'10 days'::interval-'12 hours'::interval group by time order by time asc;";

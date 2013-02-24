@@ -39,7 +39,7 @@ if ($_SERVER['PATH_INFO'] == "/blockinfo.json") {
 
 	if ( (!isset($_GET["height"])) && (!isset($_GET["dbid"]))) { exit(); }
 
-	$link = pg_Connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");
+	$link = pg_pconnect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");
 	if (isset($_GET["height"])) { 
 		$cleanheight = pg_escape_string($link, $_GET["height"]); 
 		$sql = "select *,stats_blocks.id as blockid,date_part('epoch', NOW())::integer-date_part('epoch', time)::integer as age,date_part('epoch', time)::integer-date_part('epoch', roundstart)::integer as duration from $psqlschema.stats_blocks left join users on user_id=users.id where height=$cleanheight;";

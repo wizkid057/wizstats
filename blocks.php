@@ -21,7 +21,7 @@ require_once 'blocks_functions.php';
 
 $blocks_show_stale = 0;
 
-if (!isset($link)) { $link = pg_Connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost"); }
+if (!isset($link)) { $link = pg_pconnect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost"); }
 
 if (!isset($subcall)) {
 	$titleprepend = "Block List - ";

@@ -25,8 +25,8 @@
 require_once 'includes.php';
 
 
-$link = pg_Connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");
-$link2 = pg_Connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");
+$link = pg_connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost", PGSQL_CONNECT_FORCE_NEW );
+$link2 = pg_connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost", PGSQL_CONNECT_FORCE_NEW );
 
 $serverid = 7;
 

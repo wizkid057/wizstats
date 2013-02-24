@@ -18,7 +18,7 @@
 
 require_once 'includes.php';
 
-$link = pg_Connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");
+$link = pg_Connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost", PGSQL_CONNECT_FORCE_NEW );
 
 # All the work for this is done by postgresql, which is nice, under this query
 $sql = "INSERT INTO $psqlschema.stats_shareagg 

@@ -3,7 +3,7 @@
 
 
 require_once 'includes.php';
-$link = pg_Connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");
+$link = pg_pconnect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");
 
 
 if (isset($_GET["lastblockirc"])) {

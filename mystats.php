@@ -19,7 +19,7 @@
 
 require_once 'includes.php';
 
-if (!isset($link)) { $link = pg_Connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost"); }
+if (!isset($link)) { $link = pg_pconnect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost"); }
 
 $titleprepend = "My Stats - ";
 print_stats_top();

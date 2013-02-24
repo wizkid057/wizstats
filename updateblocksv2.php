@@ -18,8 +18,8 @@
 
 require_once 'includes.php';
 
-$link = pg_Connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");
-$link2 = pg_Connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");
+$link = pg_Connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost", PGSQL_CONNECT_FORCE_NEW );
+$link2 = pg_Connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost", PGSQL_CONNECT_FORCE_NEW );
 
 ### OPTIMIZE THIS TO KNOW WHEN THE LAST BLOCK WAS?!
 $sql = "INSERT INTO $psqlschema.stats_blocks (server, orig_id, time, user_id, solution, network_difficulty) select server, id, time, user_id, solution, (pow(10,((29-hex_to_int(substr(encode(solution,'hex'),145,2)))::double precision*2.4082399653118495617099111577959::double precision)+log(  (65535::double precision /  hex_to_int(substr(encode(solution,'hex'),147,6)))::double precision   )::double precision))::double precision as network_difficulty from shares where upstream_result=true and solution NOT IN (select solution from $psqlschema.stats_blocks);";
