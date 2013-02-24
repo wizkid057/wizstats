@@ -21,7 +21,7 @@
 	# in case we're in a function....
 	include("config.php");
 
-	$link = pg_Connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");
+	if (!isset($link)) { $link = pg_pconnect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost"); }
 
 	$livedata = get_stats_cache($link, 5, "livedata.json");
 	if ($livedata != "") {
@@ -40,14 +40,18 @@
 	} else {
 
 		# get round share count...
-		$sql = "select ((select id from shares where server=$serverid and time < (select time from $psqlschema.stats_shareagg where server=$serverid order by id desc limit 1) order by id desc limit 1)-(select orig_id-coalesce(rightrejects,0) from $psqlschema.stats_blocks where server=$serverid and confirmations > 0 order by id desc limit 1)-(select coalesce(sum(rejected_shares),0) from $psqlschema.stats_shareagg where time >= (select to_timestamp((date_part('epoch', time)::integer / 675::integer)::integer * 675::integer) from $psqlschema.stats_blocks where server=$serverid and confirmations > 0 order by id desc limit 1))) as currentround;";
-		$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
-		$roundshares = $row["currentround"];
+		#$sql = "select ((select id from shares where server=$serverid and time < (select time from $psqlschema.stats_shareagg where server=$serverid order by id desc limit 1) order by id desc limit 1)-(select orig_id-coalesce(rightrejects,0) from $psqlschema.stats_blocks where server=$serverid and confirmations > 0 order by id desc limit 1)-(select coalesce(sum(rejected_shares),0) from $psqlschema.stats_shareagg where time >= (select to_timestamp((date_part('epoch', time)::integer / 675::integer)::integer * 675::integer) from $psqlschema.stats_blocks where server=$serverid and confirmations > 0 order by id desc limit 1))) as currentround;";
+		#$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
+		#$roundshares = $row["currentround"];
 
 		$sql = "select id,(pow(10,((29-hex_to_int(substr(encode(solution,'hex'),145,2)))::double precision*2.4082399653118495617099111577959::double precision)+log(  (65535::double precision /  hex_to_int(substr(encode(solution,'hex'),147,6)))::double precision   )::double precision))::double precision as network_difficulty from shares where server=$serverid and time < (select time from $psqlschema.stats_shareagg where server=$serverid order by id desc limit 1) and our_result=true order by id desc limit 1;";
 		$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
-		$tempid = $row["id"];
 		$netdiff = $row["network_difficulty"];
+		#$tempid = $row["id"];
+
+		$sql = "select orig_id from stats_blocks where server=$serverid and confirmations > 0 order by id desc limit 1;";
+		$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
+		$tempid = $row["orig_id"];
 
 		$sql = "select sum(our_result::integer * pow(2,targetmask-32)) as instcount from shares where server=$serverid and our_result=true and id > $tempid";
 		$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
