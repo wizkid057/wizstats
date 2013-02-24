@@ -16,14 +16,27 @@ if (isset($_GET["lastblockirc"])) {
 	exit;
 }
 
+if (isset($_GET["poolhashrate"])) {
+	$cppsrbjson = file_get_contents("/var/lib/eligius/$serverid/cppsrb.json");
+	$cppsrbjsondec = json_decode($cppsrbjson,true);
+	$globalcppsrb = $cppsrbjsondec[''];
+	$my_shares = $globalcppsrb["shares"];
+	if (!isset($_GET["numeric"])) {
+		print "Insta-hashrate for $poolname - ";
+		print "64 second: " . prettyHashrate(($my_shares[64] * 4294967296)/64) . " - ";
+		print "128 second: " . prettyHashrate(($my_shares[128] * 4294967296)/128) . " - ";
+		print "256 second: " . prettyHashrate(($my_shares[256] * 4294967296)/256);
+	} else {
+		print (($my_shares[256] * 4294967296)/256);
+	}
+	exit;
+}
+
 # TODO: Allow worker sub-names
 if (!isset($_SERVER['PATH_INFO'])) {
         print "Error: Specify username in path\n";
         exit;
 }
-
-require_once 'includes.php';
-$link = pg_Connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");
 
 
 $givenuser = substr($_SERVER['PATH_INFO'],1,strlen($_SERVER['PATH_INFO'])-1);
