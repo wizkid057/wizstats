@@ -170,6 +170,15 @@ function set_stats_cache($link, $type, $hash, $data, $expireseconds) {
 
 }
 
+function update_stats_cache($link, $type, $hash, $data, $expireseconds) {
+
+	$b64data = pg_escape_string($link,base64_encode($data));
+	$sql = "update ".$GLOBALS["psqlschema"].".stats_cache set create_time=NOW(), expire_time=NOW()+'$expireseconds seconds', data='$b64data' where type_id=$type and query_hash='$hash'";
+	$result = pg_exec($link, $sql);
+
+
+}
+
 // src: stackoverflow
 function format_time($t,$f=':') // t = seconds, f = separator 
 {
