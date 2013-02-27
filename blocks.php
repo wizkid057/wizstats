@@ -40,7 +40,7 @@ if (!isset($subcall)) {
 
 
 } else {
-	$blocks_show_stale = 1;
+	$blocks_show_stale = 0;
 }
 
 if (isset($blocklimit)) {
