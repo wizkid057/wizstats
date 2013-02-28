@@ -356,28 +356,41 @@ if ($everpaid > 0) {
 		$maxtable = 8;
 		$xdata = "";
 		$oev = "even";
-
 		while(($maxlook) && ($maxtable) && ($thisep > 0)) {
 			$paidblock = $lastblock;
 			$forcetype = "";
 			if ($blockjsondec[""]["roundend"] > 0) {
 				$paydate = date("Y-m-d H:i",$blockjsondec[""]["roundend"]);
+				$paydateshort = date("Y-m-d",$blockjsondec[""]["roundend"]);
 			} else {
 				# get time from manual send creation time
 				$paydatectime = filectime("/var/lib/eligius/$serverid/blocks/".($lastblock).".json");
 				if ($paydatectime > 0) {
 					$paydate = date("Y-m-d H:i",$paydatectime); 
+					$paydateshort = date("Y-m-d",$paydatectime); 
 					$forcetype = "S";
 				} else {
 					$paydate = "Unknown";
 				}
 			}
+
 			$lastblock = $blockjsondec[""]["mylastblk"];
 			if (!isset($blockjsondec[""]["mylastblk"])) { $maxlook = 1; }
+			$oldblockjsondec = $blockjsondec;
 			$blockjsondec = json_decode(file_get_contents("/var/lib/eligius/$serverid/blocks/".($lastblock).".json"),true); $myblockdata = $blockjsondec[$givenuser];
 			if (isset($myblockdata["everpaid"])) {
 				$thisep = $myblockdata["everpaid"];
-			} 
+			} else {
+				if (isset($blockjsondec[$givenuser])) {
+					$thisep = 0;
+				} else {
+					if (isset($oldblockjsondec[$givenuser])) {
+						# this user was either fully paid and old, then started mining again, or, they just started and the last block was their first payout ever.
+						$thisep = 0;
+						$forcetype = "O";
+					}
+				}
+			}
 			$maxlook--;
 			if ($thisep < $lastep) {
 				$paid = $lastep - $thisep;
@@ -385,16 +398,20 @@ if ($everpaid > 0) {
 				if (strpos($paidblock,'_send') != false) {
 					$type = "S";
 				} else {
-					if ($forcetype != "") {
-						$type = $forcetype;
-					} else {
-						$type = "G";
-					}
+					$type = "G";
+				}
+				if ($forcetype != "") {
+					$type = $forcetype;
 				}
 				if ($paidblock != "latest") {
 					$type = "<A HREF=\"http://blockchain.info/search?search=".substr($paidblock,0,64)."\">$type</A>";
 				}
-				$xdata .= "<TR class=\"userstats$oev\"><TD title=\"$paidblock\">$paydate ($type)</TD><TD class=\"rtnumbers\">$paid</TD></TR>";
+
+				if ($forcetype != "O") {
+					$xdata .= "<TR class=\"userstats$oev\"><TD title=\"$paidblock\">$paydate ($type)</TD><TD class=\"rtnumbers\">$paid</TD></TR>";
+				} else {
+					$xdata .= "<TR class=\"userstats$oev\"><TD>$paydateshort <small>and prior</small></TD><TD class=\"rtnumbers\">$paid</TD></TR>";
+				}
 				$oev = $oev=="even"?$oev="odd":$oev="even";
 				$lastep = $thisep;
 				$maxtable--;
