@@ -349,7 +349,8 @@ if ($everpaid > 0) {
 		$blockjsondec = json_decode(file_get_contents("/var/lib/eligius/$serverid/blocks/latest.json"),true);
 		$myblockdata = $blockjsondec[$givenuser];
 		$lastep = $everpaid;
-		$lastblock = "latest";
+		$lastblock = substr(readlink("/var/lib/eligius/$serverid/blocks/latest.json"),0,-5);
+		if (strlen($lastblock) < 64) { $lastblock = "latest"; }
 		$thisep = $lastep;
 
 		$maxlook = 5000;
