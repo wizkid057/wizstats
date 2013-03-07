@@ -79,7 +79,7 @@ if ($mybal) {
 		$lec = $ec;
 	}
 	$everpaid = $mybal["everpaid"];
-
+	$balupdate = $mybal["last_balance_update"];
 } else {
 	# fall back to sql
 	$sql = "select * from $psqlschema.stats_balances where server=$serverid and user_id=$user_id order by time desc limit 1";
@@ -443,6 +443,15 @@ if ($savedbal) {
 	if ((strpos($payoutqueue,$givenuser) == false) && (substr($payoutqueue,0,strlen($givenuser)) != $givenuser)) {
 		$diff = 67108864 - $savedbal;
 		print "Approximately ".prettySatoshis($diff)." remaining to enter payout queue.";
+
+		if (($u16avghash == 0) && (isset($balupdate))) {
+			$timetoqueue = (3600*24*7) - (time() - $balupdate);
+			print " If you remain inactive";
+			if ((isset($lec)) && ($lec > 0)) {
+				print ", and the pool does not pay towards any of your shelved shares,";
+			}
+			print " then you will enter the payout queue, due to inactivity, in approximately ".prettyDuration($timetoqueue).".";
+		}
 
 		if ($u16avghash > 0) {
 			$sql = "select id,(pow(10,((29-hex_to_int(substr(encode(solution,'hex'),145,2)))::double precision*2.4082399653118495617099111577959::double precision)+log(  (65535::double precision /  hex_to_int(substr(encode(solution,'hex'),147,6)))::double precision   )::double precision))::double precision as network_difficulty from shares where server=$serverid and time < (select time from $psqlschema.stats_shareagg where server=$serverid order by id desc limit 1) and our_result=true order by id desc limit 1;";
