@@ -474,7 +474,7 @@ if ($savedbal) {
 			$shares = $diff / (2500000000/$netdiff);
 			$stime = $shares / ($u16avghash / 4294967296);
 			$netdiff = round($netdiff,2);
-			print " Maintaining your 3 hour hashrate avarage, this will take at least another ".prettyDuration($stime). " at current network difficulty of $netdiff.";
+			print " Maintaining your 3 hour hashrate average, this will take at least another ".prettyDuration($stime). " at current network difficulty of $netdiff.";
 		}
 
 	} else {
