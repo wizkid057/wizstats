@@ -39,82 +39,113 @@
 		$datanew = 0;
 	} else {
 
-		# get latest network difficulty from latest accepted share's "bits" field
-		$sql = "select id,(pow(10,((29-hex_to_int(substr(encode(solution,'hex'),145,2)))::double precision*2.4082399653118495617099111577959::double precision)+log(  (65535::double precision /  hex_to_int(substr(encode(solution,'hex'),147,6)))::double precision   )::double precision))::double precision as network_difficulty from shares where server=$serverid and time < (select time from $psqlschema.stats_shareagg where server=$serverid order by id desc limit 1) and our_result=true order by id desc limit 1;";
+		$sql = "select pg_try_advisory_lock(1000002) as l";
 		$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
-		$netdiff = $row["network_difficulty"];
-
-		# Get the share id of the last valid block we've found
-		$sql = "select orig_id from stats_blocks where server=$serverid and confirmations > 0 order by id desc limit 1;";
-		$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
-		$tempid = $row["orig_id"];
-
-		# check cache for latest speed boost data
-		$livedataspeedup = get_stats_cache($link, 105, "livedata.json - share count from $tempid");
-		if ($livedataspeedup == "") {
-			# no boost for this block yet, lets make it!
-			$sql = "select sum(our_result::integer * pow(2,targetmask-32)) as instcount, max(id) as latest_id from shares where server=$serverid and our_result=true and id > $tempid";
-			$sqlcheck = "select count(*) as check from pg_stat_activity where current_query='$sql'";
-			$result = pg_exec($link, $sqlcheck); $row = pg_fetch_array($result, 0);
-			$runningqueries = $row["check"];
-			$fetch = 1;
-			if ($runningqueries > 0) {
-				# someone else is already running this possibly intense query..
-				$done = 10;
-				while($done > 0) {
-					$done--;
-					sleep(1);
-					$livedataspeedup = get_stats_cache($link, 105, "livedata.json - share count from $tempid");
-					if ($livedataspeedup != "") {
-						# woot, fruits of the other query's labor!
-						list($roundshares, $maxid) = explode(":", $livedataspeedup);
-						$done = 0; $fetch = 0;
-					}
+		$lock = $row["l"];
+		if (isset($_GET["wizdebug"])) { print "Lock: $lock\n";  }
+		if ($lock == "f") {
+			for($t=0;$t<15;$t++) {
+				if (isset($_GET["wizdebug"])) { print "Sleep for 2...\n";  }
+				sleep(2);
+				$livedata = get_stats_cache($link, 5, "livedata.json");
+				if ($livedata != "") {
+					$instantjsondec = json_decode($livedata,true);
+					$phash = $instantjsondec["hashratepretty"];
+					$roundduration = $instantjsondec["roundduration"];
+					$sharesperunit = $instantjsondec["sharesperunit"];
+					$netdiff = $instantjsondec["network_difficulty"];
+					$roundshares = $instantjsondec["roundsharecount"];
+					$blockheight = $instantjsondec["lastblockheight"];
+					$latestconfirms = $instantjsondec["lastconfirms"];
+					$datanew = 0;
+					$t = 100;
 				}
 			}
-			if ($fetch == 1) {
-				$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
-				$roundshares = $row["instcount"];
-				$maxid = $row["latest_id"];
-				if (($roundshares > 0) && ($maxid > $tempid)) {
-					set_stats_cache($link, 105, "livedata.json - share count from $tempid", "$roundshares:$maxid", 86400*7);
-				}
+			if ($t < 100) {
+				# Error!
+				$tline = "{\"error\":\"Could not retrieve live stats\"}\n";
 			}
 		} else {
-			list($roundshares, $maxid) = explode(":", $livedataspeedup);
-			if ($maxid < $tempid) {
-				# should never happen, but just in case
-				print "{\"error\":\"$maxid < $tempid ... $livedataspeedup\"}\n";
-				exit();
-			}
-			$sql = "select sum(our_result::integer * pow(2,targetmask-32)) as instcount, max(id) as latest_id from shares where server=$serverid and our_result=true and id > $maxid";
+
+
+			# get latest network difficulty from latest accepted share's "bits" field
+			$sql = "select id,(pow(10,((29-hex_to_int(substr(encode(solution,'hex'),145,2)))::double precision*2.4082399653118495617099111577959::double precision)+log(  (65535::double precision /  hex_to_int(substr(encode(solution,'hex'),147,6)))::double precision   )::double precision))::double precision as network_difficulty from shares where server=$serverid and time < (select time from $psqlschema.stats_shareagg where server=$serverid order by id desc limit 1) and our_result=true order by id desc limit 1;";
 			$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
-			$roundshares += $row["instcount"];
-			$maxid = $row["latest_id"];
-			if (($roundshares > 0) && ($maxid > $tempid)) {
-				update_stats_cache($link, 105, "livedata.json - share count from $tempid", "$roundshares:$maxid", 86400*7);
+			$netdiff = $row["network_difficulty"];
+
+			# Get the share id of the last valid block we've found
+			$sql = "select orig_id from stats_blocks where server=$serverid and confirmations > 0 order by id desc limit 1;";
+			$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
+			$tempid = $row["orig_id"];
+
+			# check cache for latest speed boost data
+			$livedataspeedup = get_stats_cache($link, 105, "livedata.json - share count from $tempid");
+			if ($livedataspeedup == "") {
+				# no boost for this block yet, lets make it!
+				$sql = "select sum(our_result::integer * pow(2,targetmask-32)) as instcount, max(id) as latest_id from shares where server=$serverid and our_result=true and id > $tempid";
+				$sqlcheck = "select count(*) as check from pg_stat_activity where current_query='$sql'";
+				$result = pg_exec($link, $sqlcheck); $row = pg_fetch_array($result, 0);
+				$runningqueries = $row["check"];
+				$fetch = 1;
+				if ($runningqueries > 0) {
+					# someone else is already running this possibly intense query..
+					$done = 10;
+					while($done > 0) {
+						$done--;
+						sleep(1);
+						$livedataspeedup = get_stats_cache($link, 105, "livedata.json - share count from $tempid");
+					if ($livedataspeedup != "") {
+							# woot, fruits of the other query's labor!
+							list($roundshares, $maxid) = explode(":", $livedataspeedup);
+							$done = 0; $fetch = 0;
+						}
+					}
+				}
+				if ($fetch == 1) {
+					$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
+					$roundshares = $row["instcount"];
+					$maxid = $row["latest_id"];
+					if (($roundshares > 0) && ($maxid > $tempid)) {
+						set_stats_cache($link, 105, "livedata.json - share count from $tempid", "$roundshares:$maxid", 86400*7);
+					}
+				}
+			} else {
+				list($roundshares, $maxid) = explode(":", $livedataspeedup);
+				if ($maxid < $tempid) {
+					# should never happen, but just in case
+					print "{\"error\":\"$maxid < $tempid ... $livedataspeedup\"}\n";
+					exit();
+				}
+				$sql = "select sum(our_result::integer * pow(2,targetmask-32)) as instcount, max(id) as latest_id from shares where server=$serverid and our_result=true and id > $maxid";
+				$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
+				$roundshares += $row["instcount"];
+				$maxid = $row["latest_id"];
+				if (($roundshares > 0) && ($maxid > $tempid)) {
+					update_stats_cache($link, 105, "livedata.json - share count from $tempid", "$roundshares:$maxid", 86400*7);
+				}
 			}
+
+			# get hashrate
+			$cppsrbjson = file_get_contents("/var/lib/eligius/$serverid/cppsrb.json");
+			$cppsrbjsondec = json_decode($cppsrbjson,true);
+			$hashrate256 = $cppsrbjsondec[""]["shares"][256] * 16777216;
+
+
+			# get latest block height
+			$sql = "select date_part('epoch',NOW() - time) as roundduration,height,confirmations from $psqlschema.stats_blocks where server=$serverid and confirmations > 0 and height > 0 order by id desc limit 1;";
+			$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
+			$blockheight = $row["height"];
+			$roundduration = $row["roundduration"];
+			$latestconfirms = $row["confirmations"];
+
+
+			$sharesperunit = ($hashrate256/4294967296)/20;
+
+			$phash = prettyHashrate($hashrate256);
+			$datanew = 1;
+			$sql = "select pg_advisory_unlock(1000002) as l";
+			$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
 		}
-
-		# get hashrate
-		$cppsrbjson = file_get_contents("/var/lib/eligius/$serverid/cppsrb.json");
-		$cppsrbjsondec = json_decode($cppsrbjson,true);
-		$hashrate256 = $cppsrbjsondec[""]["shares"][256] * 16777216;
-
-
-		# get latest block height
-		$sql = "select date_part('epoch',NOW() - time) as roundduration,height,confirmations from $psqlschema.stats_blocks where server=$serverid and confirmations > 0 and height > 0 order by id desc limit 1;";
-		$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
-		$blockheight = $row["height"];
-		$roundduration = $row["roundduration"];
-		$latestconfirms = $row["confirmations"];
-
-
-		$sharesperunit = ($hashrate256/4294967296)/20;
-
-
-		$phash = prettyHashrate($hashrate256);
-		$datanew = 1;
 
 	}
 	if (!($roundshares > 0)) { $roundshares = 0; }
