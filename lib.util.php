@@ -349,3 +349,5 @@ function getCDF($shares, $difficulty) {
 	return 1.0 - exp(- SHARE_DIFF * $shares / $difficulty);
 }
 
+function reverseCDF($cdf, $difficulty) { return ($difficulty * log(-(1/($cdf-1)))) / SHARE_DIFF; }
+
