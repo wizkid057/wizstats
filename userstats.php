@@ -454,7 +454,7 @@ if ($savedbal) {
 	$payoutqueue = file_get_contents("/var/lib/eligius/$serverid/payout_queue.txt");
 	print "<span style=\"font-size: 0.8em\">";
 	if ((strpos($payoutqueue,$givenuser) == false) && (substr($payoutqueue,0,strlen($givenuser)) != $givenuser)) {
-		$diff = 67108864 - $savedbal;
+		$diff = 16777216 - $savedbal;
 		print "Approximately ".prettySatoshis($diff)." remaining to enter payout queue.";
 
 		if (($u16avghash == 0) && (isset($balupdate))) {
