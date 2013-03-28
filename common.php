@@ -74,8 +74,8 @@ print("<HTML>
 <center>
 <ul id=\"menu\">
     <li><a href=\"".$GLOBALS["urlprefix"]."\">Home</a></li>
-    <li><a href=\"".$GLOBALS["urlprefix"]."mystats.php\">My Stats</a></li>
-    <li><a href=\"".$GLOBALS["urlprefix"]."blocks.php\">Our Blocks</a></li>
+    <li><a href=\"".$GLOBALS["urlprefix"]."mystats.php\">My ".$GLOBALS["poolname"]."</a></li>
+    <li><a href=\"".$GLOBALS["urlprefix"]."blocks.php\">Blocks</a></li>
     <li><a href=\"".$GLOBALS["urlprefix"]."topcontributors.php\">Contributors</a></li>
     <li><a target=\"_blank\" href=\"https://github.com/wizkid057/wizstats\">GitHub</a></li>
     <li><a href=\"/\">".$GLOBALS["poolname"]." Homepage</a></li>
@@ -86,21 +86,6 @@ print("<HTML>
 <br>
 <!--[if IE]><H4>This page works best in <A HREF=\"http://www.google.com/chrome\">Google Chrome</A>.  You will not have an optimal experience using Internet Explorer.</H4><![endif]-->
 ");
-
-#	print("<HTML>
-#<HEAD>
-#<meta http-equiv=\"X-UA-Compatible\" content=\"IE=EmulateIE7; IE=EmulateIE9\">
-#<TITLE>".$localtitleprepend.$GLOBALS["poolname"]." Pool Statistics".$localtitleappend."</TITLE>
-#<script type=\"text/javascript\" src=\"".$GLOBALS["urlprefix"]."dygraph-combined.js\"></script>
-#<script type=\"text/javascript\" src=\"".$GLOBALS["urlprefix"]."jquery.js\"></script>
-#<script type=\"text/javascript\" src=\"".$GLOBALS["urlprefix"]."sortable.js\"></script>
-#<!--[if IE]><script type=\"text/javascript\" src=\"".$GLOBALS["urlprefix"]."excanvas.js\"></script><![endif]-->
-#<link rel=\"stylesheet\" href=\"".$GLOBALS["urlprefix"]."blocklist.css\" type=\"text/css\">
-#<link rel=\"stylesheet\" href=\"".$GLOBALS["urlprefix"]."contributors.css\" type=\"text/css\">
-#".$localheadextras."
-#</HEAD>
-#<BODY BGCOLOR=\"#FFFFFF\" TEXT=\"#000000\" LINK=\"#0000FF\" VLINK=\"#0000FF\" ALINK=\"#FF0000\" ".$localbodytags.">
-#<H2><A HREF=\"".$GLOBALS["urlprefix"]."\">".$GLOBALS["poolname"]." Pool Statistics</A></H2>");
 
 }
 
