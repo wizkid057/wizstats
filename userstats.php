@@ -28,6 +28,19 @@ if (!isset($_SERVER['PATH_INFO'])) {
 
 $link = pg_pconnect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");
 
+if (pg_connection_status($link) != PGSQL_CONNECTION_OK) {
+	pg_close($link);
+	$link = pg_pconnect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");
+	if (pg_connection_status($link) != PGSQL_CONNECTION_OK) {
+		print_stats_top();
+		print "<BR><FONT COLOR=\"RED\"><B>Error:</B> Unable to establish a connection to the stats database.  Please try again later. If this issue persists, please report it to the pool operator.</FONT><BR>";
+		print_stats_bottom();
+		exit;
+	}
+}
+
+
+
 $givenuser = substr($_SERVER['PATH_INFO'],1,strlen($_SERVER['PATH_INFO'])-1);
 $bits =  hex2bits(\Bitcoin::addressToHash160($givenuser));
 
