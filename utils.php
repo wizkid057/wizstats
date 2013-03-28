@@ -198,3 +198,15 @@ function csscolour($c)
 {
 	return "rgb(".floor($c[0]).",".floor($c[1]).",".floor($c[2]).")";
 }
+
+function verifymessage($bcaddr, $signature, $msg) {
+
+	$json = "{\"method\":\"verifymessage\", \"id\":\"1\", \"params\":[\"$bcaddr\",\"$signature\",\"$msg\"]}";
+	$response = my_curl_request($GLOBALS["sigbitcoinrpcurl"], $json);
+
+	if ($response["result"] == "true") {
+		return 1;
+	}
+	return 0;
+
+}

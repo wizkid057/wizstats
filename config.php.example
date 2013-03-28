@@ -34,6 +34,9 @@ $urlprefix = "/~wizkid057/newstats/";
 # bitcoin rpc url
 $bitcoinrpcurl = "http://x:x@127.0.0.1:8333/";
 
+# signature verify RPC url (can simply be = $bitcoinrpcurl if desired)
+$sigbitcoinrpcurl = "http://y:y@127.0.0.1:8334/";
+
 $poolname = "Eligius";
 
 
