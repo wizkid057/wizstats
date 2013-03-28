@@ -93,6 +93,7 @@ function block_table_row($row,$isodd) {
 		$blocks_row .= "<td sorttable_customkey=\"".$row["duration"]."\" style=\"width: 1.5em;  text-align: right;\">$hours:$minutes:$seconds</td>";
 
 		$hashrate = ($row["acceptedshares"] * 4294967296) / $row["duration"];
+		$hashratenum = $hashrate;
 		$hashrate = prettyHashrate($hashrate);
 		$hashrate = substr($hashrate,0,-2);
 	} else {
@@ -105,7 +106,7 @@ function block_table_row($row,$isodd) {
 	$blocks_row .= "<TD style=\"text-align: right;\">".number_format(round($row["network_difficulty"],0))."</TD>";
 	$blocks_row .= "<TD style=\"text-align: right;\">".$luck."</TD>";
 
-	$blocks_row .= "<TD style=\"text-align: right; font-size: 0.9em;\">".$hashrate."</TD>";
+	$blocks_row .= "<TD style=\"text-align: right; font-size: 0.9em;\" sorttable_customkey=\"".$hashratenum."\" >".$hashrate."</TD>";
 
 
 
