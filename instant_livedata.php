@@ -42,10 +42,8 @@
 		$sql = "select pg_try_advisory_lock(1000002) as l";
 		$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
 		$lock = $row["l"];
-		if (isset($_GET["wizdebug"])) { print "Lock: $lock\n";  }
 		if ($lock == "f") {
 			for($t=0;$t<15;$t++) {
-				if (isset($_GET["wizdebug"])) { print "Sleep for 2...\n";  }
 				sleep(2);
 				$livedata = get_stats_cache($link, 5, "livedata.json");
 				if ($livedata != "") {
