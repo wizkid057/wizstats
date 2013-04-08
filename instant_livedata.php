@@ -72,7 +72,7 @@
 			$netdiff = $row["network_difficulty"];
 
 			# Get the share id of the last valid block we've found
-			$sql = "select orig_id from stats_blocks where server=$serverid and confirmations > 0 order by id desc limit 1;";
+			$sql = "select orig_id from stats_blocks where server=$serverid and confirmations > 0 order by time desc limit 1;";
 			$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
 			$tempid = $row["orig_id"];
 
@@ -130,7 +130,7 @@
 
 
 			# get latest block height
-			$sql = "select date_part('epoch',NOW() - time) as roundduration,height,confirmations from $psqlschema.stats_blocks where server=$serverid and confirmations > 0 and height > 0 order by id desc limit 1;";
+			$sql = "select date_part('epoch',NOW() - time) as roundduration,height,confirmations from $psqlschema.stats_blocks where server=$serverid and confirmations > 0 and height > 0 order by height desc limit 1;";
 			$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
 			$blockheight = $row["height"];
 			$roundduration = $row["roundduration"];
