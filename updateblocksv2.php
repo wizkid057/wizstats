@@ -126,7 +126,7 @@ for($ri = 0; $ri < $numrows; $ri++) {
 		$sharecount = $row2["blockshares"];
 
 		## UPDATE LEFT REJECTS
-		$sql = "select count(*) as leftrejects from public.shares where server=$server and our_result!=true and id > $orig_id2 and id < $orig_id and time <= '$btime' and time > greatest(to_timestamp((date_part('epoch', '$btime'::timestamp without time zone)::integer / 675::integer) * 675::integer),(select time from $psqlschema.stats_blocks where orig_id=$orig_id2));";
+		$sql = "select count(*) as leftrejects from public.shares where server=$server and our_result!=true and id > $orig_id2 and id < $orig_id and time <= '$btime' and time > greatest(to_timestamp((date_part('epoch', '$btime'::timestamp without time zone)::integer / 675::integer) * 675::integer),(select time from $psqlschema.stats_blocks where orig_id=$orig_id2 order by id desc limit 1));";
 		print "SQL2: $sql ; \n";
 		$result2 = pg_exec($link2, $sql);
 		$row2 = pg_fetch_array($result2, 0);
@@ -135,7 +135,7 @@ for($ri = 0; $ri < $numrows; $ri++) {
 		print "LEFT REJECTS: $leftrejects\n";
 
 		## UPDATE FAR LEFT REJECTS
-		$sql = "select SUM(rejected_shares) as farleftrejects from $psqlschema.stats_shareagg where server=$server and time < to_timestamp((date_part('epoch', '$btime'::timestamp without time zone)::integer / 675::integer) * 675::integer) and time > (select time from $psqlschema.stats_blocks where orig_id=$orig_id2);";
+		$sql = "select SUM(rejected_shares) as farleftrejects from $psqlschema.stats_shareagg where server=$server and time < to_timestamp((date_part('epoch', '$btime'::timestamp without time zone)::integer / 675::integer) * 675::integer) and time > (select time from $psqlschema.stats_blocks where orig_id=$orig_id2 order by id desc limit 1);";
 		print "SQL2: $sql ; \n";
 		$result2 = pg_exec($link2, $sql);
 		$row2 = pg_fetch_array($result2, 0);
@@ -180,5 +180,9 @@ for($ri = 0; $ri < $numrows; $ri++) {
 	}
 
 }
+
+# Clean up potentially duplicate blocks, keeping the oldest
+$sql = "delete from $psqlschema.stats_blocks using $psqlschema.stats_blocks sb2 where $psqlschema.stats_blocks.blockhash = sb2.blockhash AND $psqlschema.stats_blocks.id < sb2.id;";
+$result = pg_exec($link, $sql);
 
 ?>
