@@ -23,6 +23,7 @@ print_stats_top();
 
 ?>
 
+
 For individual stats, use http://eligius.st/~wizkid057/newstats/userstats.php/[your miner address] for individual stats.<BR>
 For example, <A HREF="http://eligius.st/~wizkid057/newstats/userstats.php/1EXfBqvLTyFbL6Dr5CG1fjxNKEPSezg7yF">http://eligius.st/~wizkid057/newstats/userstats.php/1EXfBqvLTyFbL6Dr5CG1fjxNKEPSezg7yF</A>
 <BR><BR>
@@ -95,5 +96,15 @@ For example, <A HREF="http://eligius.st/~wizkid057/newstats/userstats.php/1EXfBq
 	$minilimit = "limit 10"; 
 	include("topcontributors.php"); 
 
+
+?>
+<BR><BR>
+Current network difficulty: <?php echo $netdiff; ?><BR>
+Current maximum PPS at this difficulty: <?php printf("%.12f",currentPPSsatoshi($netdiff)/100000000); ?> BTC<BR>
+Average time to find a block at <?php echo $phash; ?> at this difficulty: <?php echo prettyDuration($netdiff/($sharesperunit*20)); ?><BR>
+Average pool blocks per day at <?php echo $phash; ?> at this difficulty: <?php echo printf("%.2f",86400/($netdiff/($sharesperunit*20))); ?><BR>
+
+
+<?php
 	print_stats_bottom(); 
 ?>
