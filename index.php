@@ -21,6 +21,11 @@ $ldmain = "-main";
 
 print_stats_top();
 
+$announce = file_get_contents("announce.txt");
+if (strlen($announce) > 0) {
+	print $announce."<BR><BR>";
+}
+
 ?>
 
 

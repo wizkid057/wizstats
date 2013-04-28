@@ -28,6 +28,10 @@ function print_stats_top() {
 
 	include("instant_livedata.php");
 
+	$GLOBALS["netdiff"] = $netdiff;
+	$GLOBALS["phash"] = $phash;
+	$GLOBALS["sharesperunit"] = $sharesperunit;
+
 	$roundduration = format_time($roundduration);
 	$liveluck = round(($netdiff/$roundshares)*100);
 	if ($liveluck > 9999) { $liveluck = ">9999%"; }
