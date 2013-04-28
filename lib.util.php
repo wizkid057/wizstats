@@ -351,3 +351,8 @@ function getCDF($shares, $difficulty) {
 
 function reverseCDF($cdf, $difficulty) { return ($difficulty * log(-(1/($cdf-1)))) / SHARE_DIFF; }
 
+
+function currentPPSsatoshi($difficulty) {
+	return (((25*SHARE_DIFF)*100000000)/$difficulty);
+}
+
