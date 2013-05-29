@@ -18,6 +18,8 @@
 
 require_once 'includes.php';
 
+require_once 'hashrate.php';
+
 # TODO: Allow worker sub-names
 if (!isset($_SERVER['PATH_INFO'])) {
 	print_stats_top();
@@ -169,41 +171,34 @@ if ($hashratetable != "") {
 	$u16avghash = get_stats_cache($link, 111, $query_hash);
 } else {
 
-	# 3 hour hashrate
-	$sql = "select (sum(accepted_shares)*pow(2,32))/10800 as avghash,sum(accepted_shares) as share_total from $psqlschema.stats_shareagg where server=$serverid and user_id=$user_id and time > to_timestamp((date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1)-'3 hours'::interval)::integer / 675::integer) * 675::integer)";
-	$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
-	$u16avghash = isset($row["avghash"])?$row["avghash"]:0;
-	$u16shares = isset($row["share_total"])?$row["share_total"]:0;
-
-	# 22.5 minute hashrate
-	$sql = "select (sum(accepted_shares)*pow(2,32))/1350 as avghash,sum(accepted_shares) as share_total from $psqlschema.stats_shareagg where server=$serverid and user_id=$user_id and time > to_timestamp((date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1))::integer / 675::integer)::integer * 675::integer)-'1350 seconds'::interval";
-	$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
-	$u2avghash = isset($row["avghash"])?$row["avghash"]:0;
-	$u2shares = isset($row["share_total"])?$row["share_total"]:0;
-
-	# instant hashrates from CPPSRB
-	$cppsrbjson = file_get_contents("/var/lib/eligius/$serverid/cppsrb.json");
-	$cppsrbjsondec = json_decode($cppsrbjson,true);
-	$mycppsrb = $cppsrbjsondec[$givenuser];
-	$globalccpsrb = $cppsrbjsondec[""];
-	$cppsrbloaded = 1;
-	$my_shares = $mycppsrb["shares"];
-
+	$hashrate_info = get_hashrate_stats($link, $givenuser, $user_id);
 
 	$pdata = "<TABLE class=\"userstatshashrate\">";
 	$pdata .= "<THEAD><TR><TH WIDTH=\"34%\"></TH><TH WIDTH=\"33%\">Hashrate Average</TH><TH WIDTH=\"33%\"><span title=\"Weighted shares are the number of shares accepted by the pool multiplied by the difficulty of the work that was given.  This number is essentially the equivilent difficulty 1 shares submitted to the pool.\" style=\"border-bottom: 1px dashed #888888\">Weighted Shares</span></TH></TR></THEAD>";
-	$pdata .= "<TR class=\"userstatseven\"><TD>3 hours</TD><TD style=\"text-align: right;\">".prettyHashrate($u16avghash)."</TD><TD style=\"text-align: right;\">$u16shares</TD></TR>";
-	$pdata .= "<TR class=\"userstatsodd\"><TD>22.5 minutes</TD><TD style=\"text-align: right;\">".prettyHashrate($u2avghash)."</TD><TD style=\"text-align: right;\">$u2shares</TD></TR>";
+
 	$oev = "even";
-	for($i=256;$i>127;$i=$i/2) {
-		$pdata .= "<TR class=\"userstats$oev\"><TD>$i seconds</TD><TD style=\"text-align: right;\">" . prettyHashrate(($my_shares[$i] * 4294967296)/$i) . "</TD><TD style=\"text-align: right;\">".(round($my_shares[$i]))."</TD></TR>";
+
+	foreach ($hashrate_info["intervals"] as $interval)
+	{
+		$hashrate_info_for_interval = $hashrate_info[$interval];
+
+		$interval_name = $hashrate_info_for_interval["interval_name"];
+		$hashrate = $hashrate_info_for_interval["hashrate"];
+		$shares = $hashrate_info_for_interval["shares"];
+
+		$pdata .= "<TR class=\"userstats$oev\"><TD>$interval_name</TD><TD style=\"text-align: right;\">" . prettyHashrate($hashrate) . "</TD><TD style=\"text-align: right;\">" . $shares . "</TD></TR>";
+
 		$oev = $oev=="even"?$oev="odd":$oev="even";
 	}
+
 	$pdata .= "</TABLE>";
+
 	print $pdata;
+
+	$u16avghash = $hashrate_info[10800]["hashrate"];
+
 	set_stats_cache($link, 11, $query_hash, $pdata, 30);
 	set_stats_cache($link, 111, $query_hash, $u16avghash, 30);
-
 }
 
 
