@@ -51,7 +51,11 @@ if (isset($blocklimit)) {
 }
 
 
-$sql = "select *,stats_blocks.id as blockid,date_part('epoch', NOW())::integer-date_part('epoch', time)::integer as age,date_part('epoch', time)::integer-date_part('epoch', roundstart)::integer as duration from $psqlschema.stats_blocks left join users on user_id=users.id order by time desc $blim;";
+if ($blocks_show_stale) {
+	$sql = "select *,stats_blocks.id as blockid,date_part('epoch', NOW())::integer-date_part('epoch', time)::integer as age,date_part('epoch', time)::integer-date_part('epoch', roundstart)::integer as duration from $psqlschema.stats_blocks left join users on user_id=users.id order by time desc $blim;";
+} else {
+	$sql = "select *,stats_blocks.id as blockid,date_part('epoch', NOW())::integer-date_part('epoch', time)::integer as age,date_part('epoch', time)::integer-date_part('epoch', roundstart)::integer as duration from $psqlschema.stats_blocks left join users on user_id=users.id where confirmations > 0 order by time desc $blim;";
+}
 $result = pg_exec($link, $sql);
 $numrows = pg_numrows($result);
 
