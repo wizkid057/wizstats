@@ -50,7 +50,7 @@ $numrows = pg_numrows($result);
 
 if (!$numrows) {
 	print_stats_top();
-	print "<BR><FONT COLOR=\"RED\"><B>Error:</B> Username <I>$givenuser</I> not found in database.  Please try again later. If this issue persists, please report it to the pool operator.</FONT><BR>";
+	print "<BR><FONT COLOR=\"RED\"><B>Error:</B> Username <I>$givenuser</I> not found in database.  Please try again later., as the stats server is probably just overloaded. If this issue persists for several hours, please report it to the pool operator.</FONT><BR>";
 	print_stats_bottom();
 	exit;
 }
@@ -273,19 +273,19 @@ if ($rejecttable != "") {
 print "<BR><BR>";
 
 
-if (isset($_GET["timemachine"])) {
-	$secondsback = 5184000;
-} else {
+#if (isset($_GET["timemachine"])) {
+#	$secondsback = 5184000;
+#} else {
 	$secondsback = 604800;
-}
+#}
 
 print "<div id=\"ugraphdiv2\" style=\"width:750px; height:375px;\"></div>";
 print "<INPUT TYPE=\"BUTTON\" onClick=\"showmax();\" VALUE=\"Toggle Graphing of Maximum Reward\"><BR>";
 print "<div id=\"ugraphdiv3\" style=\"width:750px; height:375px;\"></div>";
 
-if (!isset($_GET["timemachine"])) {
-	print "<A HREF=\"?timemachine=1\">(Click for up to 60 days of hashrate/balance data)</A><BR>";
-}
+#if (!isset($_GET["timemachine"])) {
+#	print "<A HREF=\"?timemachine=1\">(Click for up to 60 days of hashrate/balance data)</A><BR>";
+#}
 
 # script for dygraphs
 print "<script type=\"text/javascript\">
@@ -522,7 +522,7 @@ if ($savedbal) {
 		} else {
 			$delay = "after a $bc block delay";
 		}
-		print $aheadtext.", putting this user's payout $delay.<BR><SMALL style=\"font-size: 70%\"><I>Note: This is constantly changing. See <A HREF=\"http://eligius.st/~twmz/\" target=\"_blank\">the payout queue</A>.</I></SMALL>";
+		print $aheadtext.", putting this user's payout $delay.<BR><SMALL style=\"font-size: 70%\"><I>Note: This is constantly changing. See <A HREF=\"http://eligius.st/~wizkid057/newstats/payoutqueue.php#$givenuser\">the payout queue</A>.</I></SMALL>";
 	}
 	print "</span>";
 }
