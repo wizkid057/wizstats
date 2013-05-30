@@ -158,8 +158,13 @@ for($ri = 0; $ri < $numrows; $ri++) {
 	}
 
 	if (($row["blockhash"] != $blockhash) || ($row["confirmations"] != $confs)) {
-		$sql = "update $psqlschema.stats_blocks set height=$height, blockhash='$blockhash', confirmations=$confs where id=$id";
-		$result2 = pg_exec($link2, $sql);
+		if (strlen($height) > 0) {
+			$sql = "update $psqlschema.stats_blocks set height=$height, blockhash='$blockhash', confirmations=$confs where id=$id";
+			$result2 = pg_exec($link2, $sql);
+		}
+		else {
+			print "Broken height $height\n";
+		}
 	}
 
 	if ((!isset($row["rightrejects"])) && ($confs > 0)  ) {
