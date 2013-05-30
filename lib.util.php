@@ -46,7 +46,10 @@ function satoshiToTBC($satoshi) {
  * @return string TBC or BTC, according to settings.
  */
 function getPrefferedMonetaryUnit() {
-	if(isset($_COOKIE['a2_tbc']) && $_COOKIE['a2_tbc']) {
+	if ( 
+		(isset($_COOKIE['a2_tbc']) && $_COOKIE['a2_tbc']) 
+		|| (isset($_GET["tonal"]) && $_GET["tonal"])
+	) {
 		return 'TBC';
 	} else return 'BTC';
 }
