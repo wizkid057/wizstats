@@ -124,9 +124,15 @@
 			}
 
 			# get hashrate
-			$cppsrbjson = file_get_contents("/var/lib/eligius/$serverid/cppsrb.json");
-			$cppsrbjsondec = json_decode($cppsrbjson,true);
-			$hashrate256 = $cppsrbjsondec[""]["shares"][256] * 16777216;
+			if (filemtime("/var/lib/eligius/$serverid/cppsrb.json") > (time()-1350)) {
+				$cppsrbjson = file_get_contents("/var/lib/eligius/$serverid/cppsrb.json");
+				$cppsrbjsondec = json_decode($cppsrbjson,true);
+				$hashrate256 = $cppsrbjsondec[""]["shares"][256] * 16777216;
+			} else {
+				$sql = "select (sum(accepted_shares)*pow(2,32))/1350 as avghash,sum(accepted_shares) as share_total from $psqlschema.stats_shareagg where server=$serverid and time > to_timestamp((date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1))::integer / 675::integer)::integer * 675::integer)-'1350 seconds'::interval";
+				$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
+				$hashrate256 = $row["avghash"];
+			}
 
 
 			# get latest block height
