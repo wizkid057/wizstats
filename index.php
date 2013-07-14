@@ -55,7 +55,8 @@ For example, <A HREF="http://eligius.st/~wizkid057/newstats/userstats.php/1EXfBq
 	title: '<?php echo $poolname; ?> Hashrate Graph',
 	xlabel: 'Date',
 	ylabel: 'Gh/sec',
-	animatedZooms: true
+	animatedZooms: true,
+	includeZero: true
 	}
   );
 </script>
