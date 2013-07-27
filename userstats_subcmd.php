@@ -26,7 +26,7 @@
 	if (($back < 675)) { $back = 675; }
 	$sstart = round(($back+$start)/675)*675;
 	$ressec = $res * 675;
-
+	$start = pg_escape_string($link, $start);
 
 	if ($cmd == "balancegraph") {
 
