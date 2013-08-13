@@ -27,13 +27,6 @@ if (!isset($link)) { $link = pg_pconnect("dbname=$psqldb user=$psqluser password
 $titleprepend = "My $poolname - ";
 print_stats_top();
 
-
-if (!isset($_GET["wizdebug"])) { 
-	echo("<BR>This page is under construction! Check back soon! :)<BR>"); 
-	print_stats_bottom();
-	exit();
-}
-
 ?>
 
 <?php
@@ -60,19 +53,32 @@ if (((!isset($_COOKIE["u"])) && (!isset($_GET["u"]))) || ( (isset($_GET["u"])) &
 	}
 }
 
+if ($_GET["cmd"]) {
+	$cmd = $_GET["cmd"];
+} else {
+	$cmd = "menu";
+}
+
+if ($cmd == "switchaddr") {
+	$nouser = 1;
+}
+
 if ($nouser == 1) {
 
+	if ($cmd != "switchaddr") {
 	?>
 
-	<H2>No username sent for <I>My Stats</I> page</H2><BR>
+	<H2>No address sent for <I>My Stats</I> page</H2><BR>
+	<?php 
+	}
+	?>
 	<?php echo $reason; ?>
-	To use <I>My Stats</I> you must specify your <?php echo $poolname; ?> username (mining address).<BR>
+	To use <I>My Stats</I> you must specify your <?php echo $poolname; ?> mining address.<BR>
 	<BR>
 
-	<FORM METHOD="GET">Username: <INPUT TYPE="text" name="u" size=40 maxlength=512><BR>
-	<input type="checkbox" name="storecookie" CHECKED> Store username in browser cookie?<BR>
+	<FORM METHOD="GET">Mining Address: <INPUT TYPE="text" name="u" size=40 maxlength=512><BR>
+	<input type="checkbox" name="storecookie" CHECKED> Store mining address in browser cookie?<BR>
 	<input type="submit" value="Proceed!">
-	<input type="hidden" name="wizdebug" value="1">
 	</FORM>
 
 	<?php
@@ -84,17 +90,12 @@ if ($nouser == 1) {
 print "Welcome, $u! <BR>";
 
 
-if ($_GET["cmd"]) {
-	$cmd = $_GET["cmd"];
-} else {
-	$cmd = "menu";
-}
-
 if ($cmd) {
 
 	if ($cmd == "menu") {
 		print "<A HREF=\"userstats.php/$u\">My User Stats Page</A><BR>\n";
-		print "<A HREF=\"?cmd=options&wizdebug=1\">Configurable Options</A><BR>\n";
+		print "<A HREF=\"?cmd=options\">Configurable Options</A><BR>\n";
+		print "<A HREF=\"?cmd=switchaddr\">Switch Mining Address</A><BR>\n";
 	}
 
 	if ($cmd == "submitsig") {
@@ -203,7 +204,8 @@ if ($cmd) {
 
 				$signature = pg_escape_string($link,$sig);
 				$sql = "insert into $psqlschema.stats_mystats (server, user_id, time, signed_options, signature) VALUES ($serverid, $user_id, to_timestamp($msgdateunix), '$signedoptions', '$signature');";
-				print "SQL: $sql";
+				$result = pg_exec($link, $sql);
+				#print "SQL: $sql";
 			}
 			else {
 				print "Signature fails!";
@@ -293,6 +295,7 @@ if ($cmd) {
 		<TR><TD style="text-align:right;"><SMALL>Stats Development:</SMALL></TD><TD><INPUT TYPE="TEXT" name="Donate_Stats" size=6 value="<?php echo htmlspecialchars($msgvars_array["Donate_Stats"]); ?>" maxlength=32 onChange="updateOptionsMessage()" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange()">% (Default: 0.00%)</TD></TR>
 		<TR><TD style="text-align:right;"><SMALL>Pool Hosting:</SMALL></TD><TD><INPUT TYPE="TEXT" name="Donate_Hosting" size=6 value="<?php echo htmlspecialchars($msgvars_array["Donate_Hosting"]); ?>" maxlength=32 onChange="updateOptionsMessage()" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange()">% (Default: 0.00%)</TD></TR>
 		<TR><TD style="text-align:right;"><SMALL><B>Total</B></SMALL></TD><TD id="totaldonate"><?php echo $donatesum; ?></TD></TR>
+		<TR><TD><B>NMC Merged Mining Addr</B>:</TD><TD><INPUT TYPE="TEXT" name="NMC_Address" size=35 maxlength=35 value="<?php echo htmlspecialchars($msgvars_array["NMC_Address"]); ?>" onChange="updateOptionsMessage()" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange()"> (Default: Blank)</TD></TR>
 		</TABLE></FORM>
 
 		<HR><BR>
@@ -303,7 +306,6 @@ if ($cmd) {
 		<input type="text" name="msg" size="128" value="<?php echo htmlspecialchars($msg); ?>"><BR>
 		<B>Signature</B>:<BR><INPUT TYPE="text" size="128" name="sig" value="<?php echo htmlspecialchars($sig); ?>"><BR>
 		<input type="submit" value="Submit Changes!">
-		<input type="hidden" name="wizdebug" value="1">
 		<input type="hidden" name="cmd" value="submitsig">
 		</FORM>
 
