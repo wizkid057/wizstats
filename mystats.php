@@ -25,7 +25,27 @@ else { if (isset($_COOKIE["u"])) { setcookie("u", $_COOKIE["u"], time()+86400*36
 if (!isset($link)) { $link = pg_pconnect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost"); }
 
 $titleprepend = "My $poolname - ";
+
+if ((isset($_GET["cmd"])) && (strlen($_GET["cmd"]) > 0)) {
+	$cmd = $_GET["cmd"];
+} else {
+	$cmd = "menu";
+}
+
+if ($cmd == "logout") {
+	setcookie ("u", "", time() - 3600);
+	unset($_COOKIE["u"]);
+	unset($_GET["u"]);
+}
+
+
 print_stats_top();
+
+print "<H2>*** Panel is in BETA.  Not all options are supported yet. ***</H2>You may set all options now, and they will take effect as backend support is completed!<BR><BR><HR><BR>";
+
+if ($cmd == "logout") {
+	print "Logout successful.<BR>";
+}
 
 ?>
 
@@ -53,15 +73,11 @@ if (((!isset($_COOKIE["u"])) && (!isset($_GET["u"]))) || ( (isset($_GET["u"])) &
 	}
 }
 
-if ($_GET["cmd"]) {
-	$cmd = $_GET["cmd"];
-} else {
-	$cmd = "menu";
-}
 
 if ($cmd == "switchaddr") {
 	$nouser = 1;
 }
+
 
 if ($nouser == 1) {
 
@@ -162,7 +178,7 @@ if ($cmd) {
 		if ($donatesum < 0) { $donatesum = 0; }
 		$donatesum = "<I>$donatesum%</I>";
 
-		if (($validate) && ( (filter_var($msgvars_array["Minimum_Work_Diff"], FILTER_VALIDATE_INT) === FALSE) || 
+		if (($validate) && isset($msgvars_array["Minimum_Work_Diff"]) && ( (filter_var($msgvars_array["Minimum_Work_Diff"], FILTER_VALIDATE_INT) === FALSE) || 
 			($msgvars_array["Minimum_Work_Diff"] < 1) || 
 			($msgvars_array["Minimum_Work_Diff"] > 65536) || 
 			(($msgvars_array["Minimum_Work_Diff"] & ($msgvars_array["Minimum_Work_Diff"]-1)) != 0))) {
@@ -307,7 +323,10 @@ if ($cmd) {
 		<B>Signature</B>:<BR><INPUT TYPE="text" size="128" name="sig" value="<?php echo htmlspecialchars($sig); ?>"><BR>
 		<input type="submit" value="Submit Changes!">
 		<input type="hidden" name="cmd" value="submitsig">
+		<input type="hidden" name="u" value="<?php echo $u; ?>">
 		</FORM>
+
+		Using an MtGox wallet address? Copy your message to your clipboard, then <A TARGET="_blank" HREF="https://classic.mtgox.com/users/signmessage?signin[bcaddr]=<?php echo $u; ?>&signin[msg]=&signin[callback]=http://eligius.st/~wizkid057/newstats/mystats.php?cmd=options">Click here for MtGox's message signing interface</A><BR><BR>
 
 		<BR><H3><U><FONT COLOR="RED">WARNING - READ BEFORE SUBMITTING</FONT></U></H3>
 		<B>Quick terms: By submitting a valid signature for your mining address, you are agreeing to these terms.<BR>Submitting the changes with a valid signature will immediately save the changes to the server.<BR>
@@ -318,7 +337,8 @@ if ($cmd) {
 		* Nickname - Please keep it clean.  No URLs, ads, etc.  This will be displayed on your userstats page under your address.<BR><BR>
 		* Minimum Work Difficulty - This option will have the pool use a best-effort attempt at serving work at or above this difficulty to your workers.  Due to the way Stratum handles authentication and work processing, you may still receive some difficulty 1 work at first because work is given before the pool knows who you are.  The pool reserves the right to reset this value to the pool default for any miner at any time at it's sole discretion.<BR><BR>
 		* Minimum Payout - This option does not take effect instantly.  You may still be subject to a previously set (or default) value for up to 24 hours after submitting changes.<BR><BR>
-		* Optional Donation %s - The various donation &quot;buckets&quot; each have their own bitcoin address which will be paid by the pool based on the standard payout queue.  For details see (insert link to wiki page about donations).<BR><BR>
+		* Optional Donation %s - The various donation &quot;buckets&quot; each have their own bitcoin address which will be paid by the pool based on the standard payout queue.<BR><BR>
+		* NMC Merged Mining Addr - Namecoin payouts for your mining will go to this address.
 		<HR>
 		<?php
 	}
@@ -329,5 +349,9 @@ if ($cmd) {
 
 
 ?>
+
+<A HREF="mystats.php?cmd=menu">My Stats Menu</A><BR>
+<A HREF="mystats.php?cmd=logout">Log Out</A><BR>
+
 <?php print_stats_bottom(); ?>
 
