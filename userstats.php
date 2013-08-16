@@ -154,7 +154,43 @@ if ($smppsec) {
 	$smppsL4 = "<TD style=\"text-align: right; font-size: 70%;\">$snice</TD>";
 }
 
-print "<H2>$givenuser</H2>";
+
+$nickname = "";
+$query_hash = "userstats.php Nickname ".hash("sha256", "userstats.php nickname for $givenuser with id $user_id");
+
+if($nickname = apc_fetch($query_hash)) {
+} else {
+	$sql = "select * from $psqlschema.stats_mystats where server=$serverid and user_id=$user_id order by time desc limit 1";
+	$result = pg_exec($link, $sql);
+	$row = pg_fetch_array($result, 0);
+	if (isset($row["signed_options"])) {
+		$msg = $row["signed_options"];
+		$msghead = "My ".$poolname." - ";
+                $msgvars = substr($msg,strlen($msghead)+26,10000);
+                $msgvars = str_replace(" ","&",$msgvars);
+                parse_str($msgvars, $msgvars_array);
+
+		if (isset($msgvars_array["Nickname"])) {
+			$nickname = htmlspecialchars($msgvars_array["Nickname"]);
+		} else {
+			$nickname = "No nickname";
+		}
+	} else {
+		$nickname = "No nickname";
+	}
+	apc_add($query_hash, $nickname, 3600);
+}
+
+if ($nickname == "No nickname") { 
+	$nickname = ""; 
+}
+
+if ($nickname != "") {
+	print "<H2><I>$nickname</I> <small> - $givenuser</small></H2>";
+} else {
+	print "<h2>$givenuser</h2>";
+}
+
 
 print "<div id=\"userstatsmain\">";
 print "<TABLE class=\"userstatsbalance\">";
@@ -268,19 +304,19 @@ if ($rejecttable != "") {
 print "<BR><BR>";
 
 
-#if (isset($_GET["timemachine"])) {
-#	$secondsback = 5184000;
-#} else {
+if (isset($_GET["timemachine"])) {
+	$secondsback = 5184000;
+} else {
 	$secondsback = 604800;
-#}
+}
 
 print "<div id=\"ugraphdiv2\" style=\"width:750px; height:375px;\"></div>";
 print "<INPUT TYPE=\"BUTTON\" onClick=\"showmax();\" VALUE=\"Toggle Graphing of Maximum Reward\"><BR>";
 print "<div id=\"ugraphdiv3\" style=\"width:750px; height:375px;\"></div>";
 
-#if (!isset($_GET["timemachine"])) {
-#	print "<A HREF=\"?timemachine=1\">(Click for up to 60 days of hashrate/balance data)</A><BR>";
-#}
+if (!isset($_GET["timemachine"])) {
+	print "<A HREF=\"?timemachine=1\">(Click for up to 60 days of hashrate/balance data)</A><BR>";
+}
 
 # script for dygraphs
 print "<script type=\"text/javascript\">
@@ -463,6 +499,7 @@ if ($savedbal) {
 	print "<span style=\"font-size: 0.8em\">";
 	if ((strpos($payoutqueue,$givenuser) == false) && (substr($payoutqueue,0,strlen($givenuser)) != $givenuser)) {
 		$diff = 16777216 - $savedbal;
+		if ($diff < 0) { $diff = 0; }
 		print "Approximately ".prettySatoshis($diff)." remaining to enter payout queue.";
 
 		if (($u16avghash == 0) && (isset($balupdate))) {
