@@ -3,10 +3,10 @@
 
 
 require_once 'includes.php';
-$link = pg_pconnect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");
 
 
 if (isset($_GET["lastblockirc"])) {
+	$link = pg_pconnect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");
 	$sql = "select username,shares.time,height from shares left join users on user_id=users.id left join stats_blocks on shares.id=stats_blocks.orig_id where shares.server=7 and upstream_result=true and confirmations > 0 order by shares.id desc limit 1;";
 	$result = pg_exec($link, $sql);
 	$numrows = pg_numrows($result);
