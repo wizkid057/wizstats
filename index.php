@@ -62,7 +62,7 @@ For example, <A HREF="http://eligius.st/~wizkid057/newstats/userstats.php/1EXfBq
 </script>
 <BR>
 <div id="line"></div>
-<CENTER><H3><?php echo $poolname; ?> CPPSRB Variance</H3></CENTER>
+<CENTER><H3><?php echo $poolname; ?> Reward Variance</H3></CENTER>
 <div id="graphdiv4" style="width:100%; height:150px;"></div>
 <script type="text/javascript">
   g3 = new Dygraph(
