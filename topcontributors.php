@@ -25,9 +25,9 @@ if (!isset($link)) { $link = pg_pconnect("dbname=$psqldb user=$psqluser password
 if (!isset($subcall)) {
 	$titleprepend = "Contributors - ";
 	print_stats_top();
-	$cachehash = "topcontributors.php subcall $minilimit";
+	$cachehash = "topcontributors.php v2 subcall $minilimit";
 } else {
-	$cachehash = "topcontributors.php full call";
+	$cachehash = "topcontributors.php v2 full call";
 }
 
 $cachehash = hash("sha256", $cachehash);
@@ -43,7 +43,7 @@ if ($cacheddata != "") {
 	$poolhashrate3hr = $row["avghash"];
 
 
-	$sql = "select (sum(accepted_shares)*pow(2,32))/10800 as avghash, sum(accepted_shares) as sharecount, keyhash from $psqlschema.stats_shareagg left join users on user_id=users.id where server=$serverid and time > to_timestamp((date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1)-'3 hours'::interval)::integer / 675) * 675) and accepted_shares > 0 group by keyhash order by avghash desc $minilimit;";
+	$sql = "select (sum(accepted_shares)*pow(2,32))/10800 as avghash, sum(accepted_shares) as sharecount, keyhash, users.id as user_id from $psqlschema.stats_shareagg left join users on user_id=users.id where server=$serverid and time > to_timestamp((date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1)-'3 hours'::interval)::integer / 675) * 675) and accepted_shares > 0 group by keyhash,users.id order by avghash desc $minilimit;";
 	$result = pg_exec($link, $sql);
 	$numrows = pg_numrows($result);
 
@@ -63,9 +63,18 @@ if ($cacheddata != "") {
 		$tpercent = (($row["avghash"] / $poolhashrate3hr) * 100);
 		$tpercent = round($tpercent,4);
 
+		$user_id = $row["user_id"];
+
+
 		if (isset($row['keyhash'])) {
+			$nickname = get_nickname($link,$user_id);
 	                $address =  \Bitcoin::hash160ToAddress(bits2hex($row['keyhash']));
-			$address = "<A HREF=\"userstats.php/$address\">$address</A>";
+
+			if ($nickname != "") {
+				$address = "<A HREF=\"userstats.php/$address\">$nickname<BR><FONT SIZE=\"-3\">($address)</FONT></A>";
+			} else {
+				$address = "<A HREF=\"userstats.php/$address\">$address</A>";
+			}
 		} else {
 			$address = "(Unknown user)";
 		}
@@ -74,7 +83,7 @@ if ($cacheddata != "") {
 
 		$meshares = $row["sharecount"];
 
-		$pdata .= "<TR $oclass><TD class=\"rank\">#$rank</TD><TD>$address</TD><TD class=\"hash\">$phash</TD><TD class=\"shares\">$meshares</TD><TD class=\"percent\">$tpercent%</TD></TR>";
+		$pdata .= "<TR HEIGHT=\"38\" $oclass><TD class=\"rank\">#$rank</TD><TD>$address</TD><TD class=\"hash\">$phash</TD><TD class=\"shares\">$meshares</TD><TD class=\"percent\">$tpercent%</TD></TR>";
 		$rank++;
 	}
 	$pdata .= "</TABLE>";
