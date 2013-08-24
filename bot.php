@@ -18,7 +18,7 @@ if (isset($_GET["lastblockirc"])) {
 
 if (isset($_GET["lastblockdatairc"])) {
 	$link = pg_pconnect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");
-	$sql = "select username,blockhash,shares.time,height,acceptedshares,network_difficulty,date_part('epoch', shares.time)::integer-date_part('epoch', roundstart)::integer as duration from shares left join users on user_id=users.id left join stats_blocks on shares.id=stats_blocks.orig_id where shares.server=7 and stats_blocks.server=7 and upstream_result=true and confirmations > 0 order by shares.id desc limit 1;";
+	$sql = "select users.id as user_id,username,blockhash,shares.time,height,acceptedshares,network_difficulty,date_part('epoch', shares.time)::integer-date_part('epoch', roundstart)::integer as duration from shares left join users on user_id=users.id left join stats_blocks on shares.id=stats_blocks.orig_id where shares.server=7 and stats_blocks.server=7 and upstream_result=true and confirmations > 0 order by shares.id desc limit 1;";
 	$result = pg_exec($link, $sql);
 	$numrows = pg_numrows($result);
 	$row = pg_fetch_array($result, 0);
@@ -28,12 +28,15 @@ if (isset($_GET["lastblockdatairc"])) {
 	$acceptedshares = $row["acceptedshares"];
 	$networkdifficulty = $row["network_difficulty"];
 	$duration = $row["duration"];
+	$user_id = $row["user_id"];
 
 	$hashrate = ($row["acceptedshares"] * 4294967296) / $row["duration"];
 	$hashratenum = $hashrate;
 	$hashrate = prettyHashrate($hashrate);
 
-	print "ws002: $blockhash $height $username $acceptedshares $networkdifficulty $duration $hashrate \n\n";
+	$nickname = get_nickname($link,$user_id);
+
+	print "ws002: $blockhash $height $username $acceptedshares $networkdifficulty $duration $hashrate $nickname \n\n";
 	exit;
 }
 
