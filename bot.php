@@ -16,6 +16,27 @@ if (isset($_GET["lastblockirc"])) {
 	exit;
 }
 
+if (isset($_GET["lastblockdatairc"])) {
+	$link = pg_pconnect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");
+	$sql = "select username,blockhash,shares.time,height,acceptedshares,network_difficulty,date_part('epoch', shares.time)::integer-date_part('epoch', roundstart)::integer as duration from shares left join users on user_id=users.id left join stats_blocks on shares.id=stats_blocks.orig_id where shares.server=7 and stats_blocks.server=7 and upstream_result=true and confirmations > 0 order by shares.id desc limit 1;";
+	$result = pg_exec($link, $sql);
+	$numrows = pg_numrows($result);
+	$row = pg_fetch_array($result, 0);
+	$username = $row["username"];
+	$height = $row["height"];
+	$blockhash = $row["blockhash"];
+	$acceptedshares = $row["acceptedshares"];
+	$networkdifficulty = $row["network_difficulty"];
+	$duration = $row["duration"];
+
+	$hashrate = ($row["acceptedshares"] * 4294967296) / $row["duration"];
+	$hashratenum = $hashrate;
+	$hashrate = prettyHashrate($hashrate);
+
+	print "ws002: $blockhash $height $username $acceptedshares $networkdifficulty $duration $hashrate \n\n";
+	exit;
+}
+
 if (isset($_GET["poolhashrate"])) {
 	$cppsrbjson = file_get_contents("/var/lib/eligius/$serverid/cppsrb.json");
 	$cppsrbjsondec = json_decode($cppsrbjson,true);
