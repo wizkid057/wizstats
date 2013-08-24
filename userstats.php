@@ -155,35 +155,7 @@ if ($smppsec) {
 }
 
 
-$nickname = "";
-$query_hash = "userstats.php Nickname ".hash("sha256", "userstats.php nickname for $givenuser with id $user_id");
-
-if($nickname = apc_fetch($query_hash)) {
-} else {
-	$sql = "select * from $psqlschema.stats_mystats where server=$serverid and user_id=$user_id order by time desc limit 1";
-	$result = pg_exec($link, $sql);
-	$row = pg_fetch_array($result, 0);
-	if (isset($row["signed_options"])) {
-		$msg = $row["signed_options"];
-		$msghead = "My ".$poolname." - ";
-                $msgvars = substr($msg,strlen($msghead)+26,10000);
-                $msgvars = str_replace(" ","&",$msgvars);
-                parse_str($msgvars, $msgvars_array);
-
-		if (isset($msgvars_array["Nickname"])) {
-			$nickname = htmlspecialchars($msgvars_array["Nickname"]);
-		} else {
-			$nickname = "No nickname";
-		}
-	} else {
-		$nickname = "No nickname";
-	}
-	apc_add($query_hash, $nickname, 3600);
-}
-
-if ($nickname == "No nickname") { 
-	$nickname = ""; 
-}
+$nickname = get_nickname($link,$user_id);
 
 if ($nickname != "") {
 	print "<H2><I>$nickname</I> <small> - $givenuser</small></H2>";
