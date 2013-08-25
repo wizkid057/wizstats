@@ -439,7 +439,11 @@ if ($everpaid > 0) {
 					$type = $forcetype;
 				}
 				if ($paidblock != "latest") {
-					$type = "<A HREF=\"http://blockchain.info/search?search=".substr($paidblock,0,64)."\">$type</A>";
+					if ($type == "G") {
+						$type = "<A HREF=\"../blockinfo.php/".substr($paidblock,0,64)."\">$type</A>";
+					} else {
+						$type = "<A HREF=\"http://blockchain.info/search?search=".substr($paidblock,0,64)."\">$type</A>";
+					}
 				}
 
 				if ($forcetype != "O") {

@@ -130,7 +130,7 @@ function block_table_row($row,$isodd) {
 	$blocks_row .= "<TD style=\"text-align: right;\">$ht</TD>";
 
 	$nicehash = "...".substr($row["blockhash"],46,18);
-	$blocks_row .= "<TD style=\"font-family:monospace;\"><A HREF=\"http://blockchain.info/block/".$row["blockhash"]."\">".$nicehash."</A></TD>";
+	$blocks_row .= "<TD style=\"font-family:monospace;\"><A HREF=\"blockinfo.php/".$row["blockhash"]."\">".$nicehash."</A></TD>";
 	$blocks_row .= "</TR>";
 
 	return $blocks_row;

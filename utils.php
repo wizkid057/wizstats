@@ -212,6 +212,28 @@ function verifymessage($bcaddr, $signature, $msg) {
 }
 
 
+function get_user_id_from_address($link, $addr) {
+
+	$query_hash = "util.php user_id of $addr";
+
+	if ($user_id = apc_fetch($query_hash)) {
+		return $user_id;
+	} else {
+		$bits =  hex2bits(\Bitcoin::addressToHash160($addr));
+		$sql = "select id from public.users where keyhash='$bits' order by id asc limit 1";
+		$result = pg_exec($link, $sql);
+		$numrows = pg_numrows($result);
+		if ($numrows > 0) {
+			$row = pg_fetch_array($result, 0);
+			apc_add($query_hash, $row["id"], 86400);
+			return $row["id"];
+		}
+		apc_add($query_hash, 0, 86400);
+		return 0;
+	}
+}
+
+
 function get_nickname($link, $user_id) {
 
 	$nickname = "";
