@@ -57,7 +57,8 @@ print "<TR><TD><B>Previous Block hash:</B></TD><TD>{$block["previousblockhash"]}
 print "<TR><TD><B>Merkle root:</B></TD><TD>{$block["merkleroot"]}</TD></TR>";
 print "<TR><TD><B>Difficulty:</B></TD><TD>{$block["difficulty"]}</TD></TR>";
 print "<TR><TD><B>Bits:</B></TD><TD>{$block["bits"]}</TD></TR>";
-print "<TR><TD><B>Nonce:</B></TD><TD>{$block["nonce"]}</TD></TR>";
+$nonce = sprintf("%8x",$block["nonce"]);
+print "<TR><TD><B>Nonce:</B></TD><TD>$nonce</TD></TR>";
 print "<TR><TD><B>Version:</B></TD><TD>{$block["version"]}</TD></TR>";
 $t = date("Y-m-d H:i:s",$block["time"]);
 print "<TR><TD><B>Time:</B></TD><TD>$t</TD></TR>";
@@ -108,7 +109,7 @@ for($i=0;$i<$cbouts;$i++) {
 		$nickname = "Eligius Offline Wallet";
 		$dolink = 0;
 	}
-	if ($addr == "1GBT3CRvTCadJGUEKrsbv1AdvLqcjscaUb") {
+	if (($addr == "1GBT3CRvTCadJGUEKrsbv1AdvLqcjscaUb") || ($addr == "1FAi1SafERPBXBkq4g8WrhNZ1hR9BRUiSU")) {
 		$failsafe = 1;
 		$nickname = "Eligius CPPSRB Failsafe Notification";
 		$dolink = 0;
