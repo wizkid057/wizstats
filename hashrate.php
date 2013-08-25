@@ -32,10 +32,13 @@ function get_hashrate_stats(&$link, $givenuser, $user_id)
 	# instant hashrates from CPPSRB
 	$cppsrbjson = file_get_contents("/var/lib/eligius/$serverid/cppsrb.json");
 	$cppsrbjsondec = json_decode($cppsrbjson,true);
-	$mycppsrb = $cppsrbjsondec[$givenuser];
+	if (isset($cppsrbjsondec[$givenuser])) {
+		$mycppsrb = $cppsrbjsondec[$givenuser];
+		$my_shares = $mycppsrb["shares"];
+	}
+
 	$globalccpsrb = $cppsrbjsondec[""];
 	$cppsrbloaded = 1;
-	$my_shares = $mycppsrb["shares"];
 
 	# build up return value, an array of maps containing structured information about the hash rate over each interval
 	$return_value = array();
@@ -43,8 +46,13 @@ function get_hashrate_stats(&$link, $givenuser, $user_id)
 	add_interval_stats($return_value, 10800, "3 hours", floatval($u16avghash), intval($u16shares));
 	add_interval_stats($return_value, 1350, "22.5 minutes", floatval($u2avghash), intval($u2shares));
 
-	for ($i = 256; $i > 127; $i = $i / 2)
-		add_interval_stats($return_value, $i, "$i seconds", ($my_shares[$i] * 4294967296) / $i, round($my_shares[$i]));
+	for ($i = 256; $i > 127; $i = $i / 2) {
+		if (isset($my_shares)) {
+			add_interval_stats($return_value, $i, "$i seconds", ($my_shares[$i] * 4294967296) / $i, round($my_shares[$i]));
+		} else {
+			add_interval_stats($return_value, $i, "$i seconds", 0, 0);
+		}
+	}
 
 	return $return_value;
 }

@@ -21,7 +21,7 @@ require_once 'blocks_functions.php';
 
 if (!isset($_SERVER['PATH_INFO']) && !isset($argv[1])) { exit(); }
 
-if (($_SERVER['PATH_INFO'] == "/livedata.json") || ($argv[1] == "l")) {
+if (($_SERVER['PATH_INFO'] == "/livedata.json") || ((isset($argv[1])) && ($argv[1] == "l"))) {
 
 	header("Content-type: application/json");
 

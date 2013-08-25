@@ -93,7 +93,7 @@ if ($mybal) {
 	} else {
 		$lec = $ec;
 	}
-	$everpaid = $mybal["everpaid"];
+	if (isset($mybal["everpaid"])) { $everpaid = $mybal["everpaid"]; } else { $everpaid = 0; }
 	$balupdate = $mybal["last_balance_update"];
 } else {
 	# fall back to sql
@@ -114,9 +114,9 @@ if ($mybal) {
 
 $balanacesjsonSM = file_get_contents("/var/lib/eligius/$serverid/smpps_lastblock.json");
 $balanacesjsondecSM = json_decode($balanacesjsonSM,true);
-$mybalSM = $balanacesjsondecSM[$givenuser];
+if (isset($balanacesjsondecSM[$givenuser])) { $mybalSM = $balanacesjsondecSM[$givenuser]; }
 
-if ($mybalSM) {
+if (isset($mybalSM)) {
 	# SMPPS credit needed to be halved for the pool to be statistically viable
 	$smppsec = $mybalSM["credit"]; 
 	$smppshalf = $mybalSM["credit"]/2;
@@ -152,8 +152,12 @@ if ($smppsec) {
 	$smppsL2 = "<TD style=\"text-align: right; font-size: 70%;\">$snice</TD>";
 	$smppsL3 = "<TD style=\"text-align: right; font-size: 70%;\">0.00000000 BTC</TD>";
 	$smppsL4 = "<TD style=\"text-align: right; font-size: 70%;\">$snice</TD>";
+} else {
+	$smppsL1 = "";
+	$smppsL2 = "";
+	$smppsL3 = "";
+	$smppsL4 = "";
 }
-
 
 $nickname = get_nickname($link,$user_id);
 
@@ -389,7 +393,7 @@ if ($everpaid > 0) {
 		while(($maxlook) && ($maxtable) && ($thisep > 0)) {
 			$paidblock = $lastblock;
 			$forcetype = "";
-			if ($blockjsondec[""]["roundend"] > 0) {
+			if ((isset($blockjsondec[""]["roundend"])) && ($blockjsondec[""]["roundend"] > 0)) {
 				$paydate = date("Y-m-d H:i",$blockjsondec[""]["roundend"]);
 				$paydateshort = date("Y-m-d",$blockjsondec[""]["roundend"]);
 			} else {
@@ -407,7 +411,8 @@ if ($everpaid > 0) {
 			$lastblock = $blockjsondec[""]["mylastblk"];
 			if (!isset($blockjsondec[""]["mylastblk"])) { $maxlook = 1; }
 			$oldblockjsondec = $blockjsondec;
-			$blockjsondec = json_decode(file_get_contents("/var/lib/eligius/$serverid/blocks/".($lastblock).".json"),true); $myblockdata = $blockjsondec[$givenuser];
+			$blockjsondec = json_decode(file_get_contents("/var/lib/eligius/$serverid/blocks/".($lastblock).".json"),true); 
+			if (isset($blockjsondec[$givenuser])) { $myblockdata = $blockjsondec[$givenuser]; } else { unset($myblockdata); }
 			if (isset($myblockdata["everpaid"])) {
 				$thisep = $myblockdata["everpaid"];
 			} else {
