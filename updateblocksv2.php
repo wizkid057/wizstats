@@ -18,6 +18,8 @@
 
 require_once 'includes.php';
 
+if( isLocked() ) die( "Already running.\n" ); 
+
 $link = pg_Connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost", PGSQL_CONNECT_FORCE_NEW );
 $link2 = pg_Connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost", PGSQL_CONNECT_FORCE_NEW );
 
@@ -121,6 +123,7 @@ for($ri = 0; $ri < $numrows; $ri++) {
 		}
 		# count block shares exactly using vardiff for POT targetmask...
 		$sql = "select sum(pow(2,targetmask-32)) as blockshares from shares where server=$serverid and our_result=true and id > $orig_id2 and id <= $orig_id;";
+		print "SQL C: $sql\n";
 		$result2 = pg_exec($link2, $sql);
 		$row2 = pg_fetch_array($result2, 0); # does NOT include rejects....
 		$sharecount = $row2["blockshares"];
@@ -189,5 +192,7 @@ for($ri = 0; $ri < $numrows; $ri++) {
 # Clean up potentially duplicate blocks, keeping the oldest
 $sql = "delete from $psqlschema.stats_blocks using $psqlschema.stats_blocks sb2 where $psqlschema.stats_blocks.blockhash = sb2.blockhash AND $psqlschema.stats_blocks.id < sb2.id;";
 $result = pg_exec($link, $sql);
+
+unlink( LOCK_FILE ); 
 
 ?>
