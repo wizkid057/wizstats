@@ -24,6 +24,7 @@
 
 require_once 'includes.php';
 
+if( isLocked() ) die( "Already running.\n" );
 
 $link = pg_connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost", PGSQL_CONNECT_FORCE_NEW );
 $link2 = pg_connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost", PGSQL_CONNECT_FORCE_NEW );
@@ -142,5 +143,6 @@ if (strlen($insertvalues) > 0) {
 	print "Nothing to do.\n";
 }
 
+unlink( LOCK_FILE );
 
 ?>
