@@ -66,6 +66,8 @@ if (!isset($_SERVER['PATH_INFO'])) {
 $givenuser = substr($_SERVER['PATH_INFO'],1,strlen($_SERVER['PATH_INFO'])-1);
 $bits =  hex2bits(\Bitcoin::addressToHash160($givenuser));
 
+$link = pg_pconnect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");
+
 $sql = "select id from public.users where keyhash='$bits' order by id asc limit 1";
 $result = pg_exec($link, $sql);
 $numrows = pg_numrows($result);
