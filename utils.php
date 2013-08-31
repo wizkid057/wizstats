@@ -275,7 +275,7 @@ function get_nickname($link, $user_id) {
 }
 
 
-define( 'LOCK_FILE', "/tmp/".basename( $argv[0], ".php" ).".lock" );
+define( 'LOCK_FILE', "/tmp/".basename( isset($argv[0])?$argv[0]:$_SERVER["SCRIPT_NAME"], ".php" ).".lock" );
 
 function isLocked()
 {
