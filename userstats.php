@@ -126,29 +126,39 @@ if($balanacesjsondecSM = apc_fetch('balance_smpps')) {
 }
 if (isset($balanacesjsondecSM[$givenuser])) { $mybalSM = $balanacesjsondecSM[$givenuser]; }
 
+if (isset($mybalSM)) {
+	# SMPPS credit needed to be halved for the pool to be statistically viable
+	$smppsec = $mybalSM["credit"]; 
+	$smppshalf = $mybalSM["credit"]/2;
+	$smppsec -= $smppshalf;
+} else {
+	$smppsec = 0;
+}
 
-$cbal = $bal - $lbal;
-$cec = $ec - $lec;
+$unpaid_balance = $lbal;
+$shelved_shares = $lec;
+$shelved_shares_estimate = $ec;
 
-$xbal = $bal - $cbal;
-$xec = $ec - $cec;
+$estimated_balance = $bal;
+$estimated_change = $estimated_balance - $unpaid_balance;
 
-$totreward = $everpaid + $xbal;
-$estreward = $everpaid + $bal;
-$xreward = $totreward / ($xec + $totreward);
-$reward = $estreward / ($ec + $estreward);
-$creward = $reward - $xreward;
+$total_rewarded = $everpaid + $unpaid_balance;
+$maximum_reward = $everpaid + $estimated_balance + $shelved_shares_estimate + $smppsec;
 
-if ($cbal > 0) { $cbalt = "+".prettySatoshis($cbal); }
-else { $cbalt = prettySatoshis($cbal); }
-if ($creward > 0) { $creward = "+".prettyProportion($creward); }
-else { $creward = prettyProportion($creward); }
+$unpaid_balance_print = prettySatoshis($unpaid_balance);
+$estimated_change_print = "+".prettySatoshis($estimated_change); # can/should never be negative...
+$estimated_balance_print = prettySatoshis($estimated_balance);
 
-$xbal = prettySatoshis($xbal);
-$xreward = prettyProportion($xreward);
+$percent_pps = $total_rewarded/($total_rewarded + $shelved_shares + $smppsec);
+$percent_pps_estimate = ($estimated_balance+$everpaid)/$maximum_reward;
+$percent_pps_estimated_change = $percent_pps_estimate - $percent_pps;
+
+$percent_pps_print = prettyProportion($percent_pps);
+$percent_pps_estimate_print = prettyProportion($percent_pps_estimate);
+$percent_pps_estimate_change_print = ($percent_pps_estimated_change>0?"+":"").prettyProportion($percent_pps_estimated_change);
+
 $savedbal = $bal;
 $bal = prettySatoshis($bal);
-$reward = prettyProportion($reward);
 
 $titleprepend = "($bal) $givenuser - ";
 print_stats_top();
@@ -165,9 +175,9 @@ if ($nickname != "") {
 print "<div id=\"userstatsmain\">";
 print "<TABLE class=\"userstatsbalance\">";
 print "<THEAD><TR><TH></TH><TH>Unpaid Balance</TH><TH><A HREF=\"http://eligius.st/wiki/index.php/Capped_PPS_with_Recent_Backpay\">Shares Rewarded</A></TH></TR></THEAD>";
-print "<TR class=\"userstatsodd\"><TD>As of last block: </TD><TD style=\"text-align: right;\">$xbal</TD><TD style=\"text-align: right; font-size: 80%;\">$xreward</TD></TR>";
-print "<TR class=\"userstatseven\"><TD>Estimated Change: </TD><TD style=\"text-align: right;\">$cbalt</TD><TD style=\"text-align: right; font-size: 80%;\">$creward</TD></TR>";
-print "<TR class=\"userstatsodd\"><TD>Estimated Total: </TD><TD style=\"text-align: right;\">$bal</TD><TD style=\"text-align: right; font-size: 80%;\">$reward</TD></TR>";
+print "<TR class=\"userstatsodd\"><TD>As of last block: </TD><TD style=\"text-align: right;\">$unpaid_balance_print</TD><TD style=\"text-align: right; font-size: 80%;\">$percent_pps_print</TD></TR>";
+print "<TR class=\"userstatseven\"><TD>Estimated Change: </TD><TD style=\"text-align: right;\">$estimated_change_print</TD><TD style=\"text-align: right; font-size: 80%;\">$percent_pps_estimate_change_print</TD></TR>";
+print "<TR class=\"userstatsodd\"><TD>Estimated Total: </TD><TD style=\"text-align: right;\">$estimated_balance_print</TD><TD style=\"text-align: right; font-size: 80%;\">$percent_pps_estimate_print</TD></TR>";
 print "</TABLE>";
 
 $query_hash = hash("sha256", "userstats.php hashrate table for $givenuser with id $user_id");
