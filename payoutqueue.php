@@ -12,7 +12,7 @@ print "<H2>Payout Queue</H2><BR>";
 	} else {
 	 $payout = file("/var/lib/eligius/7/payout_queue.txt", FILE_IGNORE_NEW_LINES); 
 	 // Store Cache for 10 minutes
-	 apc_add('payout', $payout, 600);
+	 apc_store('payout', $payout, 600);
 	}
 	// Try Cache First
 	if($balance = apc_fetch('balance')) {
@@ -20,7 +20,7 @@ print "<H2>Payout Queue</H2><BR>";
 	 $balance = file_get_contents("/var/lib/eligius/7/balances.json");
 	 $balance = json_decode($balance, true);
 	 // Store Cache for 10 minutes
-	 apc_add('balance', $balance, 600);
+	 apc_store('balance', $balance, 600);
 	}
 
 	$qt = "<TABLE BORDER=1 id=\"blocklisttable\" CLASS=\"blocklist\">";
