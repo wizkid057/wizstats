@@ -165,7 +165,7 @@ print_stats_top();
 
 $nickname = get_nickname($link,$user_id);
 
-if ($nickname != "") {
+if (($nickname != "") && ($nickname != $givenuser)) {
 	print "<H2><I>$nickname</I> <small> - $givenuser</small></H2>";
 } else {
 	print "<h2>$givenuser</h2>";

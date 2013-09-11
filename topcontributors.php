@@ -71,7 +71,7 @@ if ($cacheddata != "") {
 			$nickname = get_nickname($link,$user_id);
 	                $address =  \Bitcoin::hash160ToAddress(bits2hex($row['keyhash']));
 
-			if ($nickname != "") {
+			if (($nickname != "") && ($nickname != $address)) {
 				$address = "<A HREF=\"userstats.php/$address\">$nickname<BR><FONT SIZE=\"-3\">($address)</FONT></A>";
 			} else {
 				$address = "<A HREF=\"userstats.php/$address\">$address</A>";
