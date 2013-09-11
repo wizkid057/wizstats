@@ -50,7 +50,7 @@ for($ri = 0; $ri < $numrows; $ri++) {
 	if (isset($getblock["error"])) {
 		$e = $getblock["error"];
 		if ($e["message"] == "Block not found") {
-			print "ORPHAN $blockhash\n";
+			print "ORPHAN $blockhash {$row["id"]} {$row["orig_id"]}\n";
 			$confs = 0;
 		}
 	} else {
