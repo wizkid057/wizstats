@@ -84,6 +84,16 @@ function rawSatoshiToBTC($s) {
 }
 
 /**
+ * Format a fraction in the currently preferred way.
+ * @param float $a proportion
+ * @return string formatted proportion
+ */
+function prettyProportion($a) {
+	// TODO: Tonal permill
+	return sprintf("%.1f%%", $a * 100);
+}
+
+/**
  * Get the preffered BlockExplorer-like URI.
  */
 function getBE() {
