@@ -18,18 +18,18 @@ if (!isset($getblock["result"])) {
 	$getblock = my_curl_request($bitcoinrpcurl, $getblockjson);
 	if (!isset($getblock["result"])) {
 		$getblock["result"] = "Error";
-		apc_add($query_hash, $getblock, 300);
+		apc_store($query_hash, $getblock, 300);
 	} else {
 		$blockhashesc = pg_escape_string($link, $blockhash);
 		$sql = "select blockhash from $psqlschema.stats_blocks where server=$serverid and blockhash='$blockhashesc' limit 1;";
 		$result = pg_exec($link, $sql);
 		$numrows = pg_numrows($result);
 		if ($numrows == 1) {
-			apc_add($query_hash, $getblock, 864000);
+			apc_store($query_hash, $getblock, 864000);
 		} else {
 			# not Eligius block...
 			$getblock["result"] = "NonEligius";
-			apc_add($query_hash, $getblock, 300);
+			apc_store($query_hash, $getblock, 300);
 		}
 	}
 }
@@ -76,7 +76,7 @@ $query_hash = "blockinfo.php cbtx " . hash("sha256", "blockinfo.php $gettxnjson"
 $gettxn = apc_fetch($query_hash);
 if (!isset($gettxn["result"])) {
 	$gettxn = my_curl_request($bitcoinrpcurl, $gettxnjson);
-	apc_add($query_hash, $gettxn, 864000);
+	apc_store($query_hash, $gettxn, 864000);
 }
 
 
@@ -112,6 +112,10 @@ for($i=0;$i<$cbouts;$i++) {
 	if (($addr == "1GBT3CRvTCadJGUEKrsbv1AdvLqcjscaUb") || ($addr == "1FAi1SafERPBXBkq4g8WrhNZ1hR9BRUiSU")) {
 		$failsafe = 1;
 		$nickname = "Eligius CPPSRB Failsafe Notification";
+		$dolink = 0;
+	}
+	if ($addr == "1Change2aFDAsXM7mwdG3Yf5k7X1wvv8Qc") {
+		$nickname = "Eligius Payout Change Aggregation";
 		$dolink = 0;
 	}
 
