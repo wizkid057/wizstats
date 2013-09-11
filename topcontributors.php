@@ -25,9 +25,10 @@ if (!isset($link)) { $link = pg_pconnect("dbname=$psqldb user=$psqluser password
 if (!isset($subcall)) {
 	$titleprepend = "Contributors - ";
 	print_stats_top();
-	$cachehash = "topcontributors.php v2 subcall $minilimit";
-} else {
+	$minilimit = "";
 	$cachehash = "topcontributors.php v2 full call";
+} else {
+	$cachehash = "topcontributors.php v2 subcall $minilimit";
 }
 
 $cachehash = hash("sha256", $cachehash);
