@@ -146,19 +146,6 @@ $ec = prettySatoshis($ec-$smppsec);
 $titleprepend = "($bal) $givenuser - ";
 print_stats_top();
 
-if ($smppsec) {
-	$snice = prettySatoshis($smppsec);
-	$smppsL1 = "<TH>Old <A HREF=\"http://eligius.st/wiki/index.php/Shared_Maximum_PPS\">SMPPS</A> Extra Credit</TH>";
-	$smppsL2 = "<TD style=\"text-align: right; font-size: 70%;\">$snice</TD>";
-	$smppsL3 = "<TD style=\"text-align: right; font-size: 70%;\">0.00000000 BTC</TD>";
-	$smppsL4 = "<TD style=\"text-align: right; font-size: 70%;\">$snice</TD>";
-} else {
-	$smppsL1 = "";
-	$smppsL2 = "";
-	$smppsL3 = "";
-	$smppsL4 = "";
-}
-
 $nickname = get_nickname($link,$user_id);
 
 if ($nickname != "") {
@@ -170,10 +157,10 @@ if ($nickname != "") {
 
 print "<div id=\"userstatsmain\">";
 print "<TABLE class=\"userstatsbalance\">";
-print "<THEAD><TR><TH></TH><TH>Unpaid Balance</TH><TH>Shelved Shares (<A HREF=\"http://eligius.st/wiki/index.php/Capped_PPS_with_Recent_Backpay\">CPPSRB</A>)</TH>$smppsL1</TR></THEAD>";
-print "<TR class=\"userstatsodd\"><TD>As of last block: </TD><TD style=\"text-align: right;\">$xbal</TD><TD style=\"text-align: right; font-size: 80%;\">$xec</TD>$smppsL2</TR>";
-print "<TR class=\"userstatseven\"><TD>Estimated Change: </TD><TD style=\"text-align: right;\">$cbalt</TD><TD style=\"text-align: right; font-size: 80%;\">$cect</TD>$smppsL3</TR>";
-print "<TR class=\"userstatsodd\"><TD>Estimated Total: </TD><TD style=\"text-align: right;\">$bal</TD><TD style=\"text-align: right; font-size: 80%;\">$ec</TD>$smppsL4</TR>";
+print "<THEAD><TR><TH></TH><TH>Unpaid Balance</TH><TH><A HREF=\"http://eligius.st/wiki/index.php/Capped_PPS_with_Recent_Backpay\">Shelved Shares</A></TH></TR></THEAD>";
+print "<TR class=\"userstatsodd\"><TD>As of last block: </TD><TD style=\"text-align: right;\">$xbal</TD><TD style=\"text-align: right; font-size: 80%;\">$xec</TD></TR>";
+print "<TR class=\"userstatseven\"><TD>Estimated Change: </TD><TD style=\"text-align: right;\">$cbalt</TD><TD style=\"text-align: right; font-size: 80%;\">$cect</TD></TR>";
+print "<TR class=\"userstatsodd\"><TD>Estimated Total: </TD><TD style=\"text-align: right;\">$bal</TD><TD style=\"text-align: right; font-size: 80%;\">$ec</TD></TR>";
 print "</TABLE>";
 
 $query_hash = hash("sha256", "userstats.php hashrate table for $givenuser with id $user_id");
