@@ -67,7 +67,16 @@ if ($cmd == "getacceptedcount") {
 if ($cmd == "getuseroptions") {
 	# dump full My Eligius options
 	$link = pg_pconnect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");
-	$sql = "select (r).*,username from (select (select t from $psqlschema.stats_mystats t where t.user_id=u.id order by time desc limit 1) as r from users u offset 0) s left join users on (r).user_id=users.id where (r).user_id is not null and (r).server=$serverid order by id desc;";
+
+	if ((isset($_GET["startdate"])) && (strlen($_GET["startdate"]) > 0)) {
+		$startdate = pg_escape_string($link, $_GET["startdate"]);
+		if (($_GET["startdate"] != $startdate) || (strtotime($startdate) < 1368483761)) { ws_api_error("$cmd: Invalid start date"); }
+	} else {
+		$startdate = "2013-01-01 00:00:00";
+	}
+
+
+	$sql = "select (r).*,username from (select (select t from $psqlschema.stats_mystats t where t.user_id=u.id and time >= '$startdate' order by time desc limit 1) as r from users u offset 0) s left join users on (r).user_id=users.id where (r).user_id is not null and (r).server=$serverid order by id desc;";
 	$result = pg_exec($link, $sql);
 	$numrows = pg_numrows($result);
 	$output = array("count" => $numrows);
