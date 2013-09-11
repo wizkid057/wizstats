@@ -93,7 +93,7 @@ if ($nouser == 1) {
 	<BR>
 
 	<FORM METHOD="GET">Mining Address: <INPUT TYPE="text" name="u" size=40 maxlength=512><BR>
-	<input type="checkbox" name="storecookie" CHECKED> Store mining address in browser cookie?<BR>
+	<input type="checkbox" name="storecookie" CHECKED> Store mining address in browser cookie? (as of now broken unless checked)<BR>
 	<input type="submit" value="Proceed!">
 	</FORM>
 
@@ -186,9 +186,9 @@ if ($cmd) {
 			print "Invalid minimum difficulty! (Valid values are powers of two: 1,2,4,8,16,32,etc) ";
 		}
 
-		if ((isset($msgvars_array["Minimum_Payout_BTC"])) && ($msgvars_array["Minimum_Payout_BTC"] < 0.01)) {
+		if ((isset($msgvars_array["Minimum_Payout_BTC"])) && ($msgvars_array["Minimum_Payout_BTC"] < 0.01048576)) {
 			$validate = 0;
-			print "Invalid minimum payout. (Must be 0.01 or greater)";
+			print "Invalid minimum payout. (Must be 10 TBC (0.01048576 BTC) or greater)";
 		}
 
 
@@ -304,7 +304,7 @@ if ($cmd) {
 		<FORM name="optionsform" onsubmit="return false;">
 		<TABLE BORDER=0>
 		<TR><TD><B>Nickname</B>:</TD><TD><INPUT TYPE="TEXT" name="Nickname" size=32 maxlength=32 value="<?php echo htmlspecialchars($msgvars_array["Nickname"]); ?>" onChange="updateOptionsMessage()" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange()"> (Default: <?php echo $u; ?>)</TD></TR>
-		<TR><TD><B>Minimum Payout</B>:</TD><TD><INPUT TYPE="TEXT" name="Minimum_Payout_BTC" size=12 value="<?php echo  htmlspecialchars($msgvars_array["Minimum_Payout_BTC"]); ?>" maxlength=32 onChange="updateOptionsMessage()" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange()"> BTC (Default: 0.16777216, Minimum: 0.01)</TD></TR>
+		<TR><TD><B>Minimum Payout</B>:</TD><TD><INPUT TYPE="TEXT" name="Minimum_Payout_BTC" size=12 value="<?php echo  htmlspecialchars($msgvars_array["Minimum_Payout_BTC"]); ?>" maxlength=32 onChange="updateOptionsMessage()" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange()"> BTC (Default: 0.16777216, Minimum: 0.01048576 [10 TBC])</TD></TR>
 		<TR><TD><B>Minimum Work Difficulty</B>:</TD><TD><INPUT TYPE="TEXT" name="Minimum_Work_Diff" size=12 value="<?php echo htmlspecialchars($msgvars_array["Minimum_Work_Diff"]); ?>" maxlength=32 onChange="updateOptionsMessage()" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange()"> (Default: 1; Must be power of 2 >= 1)</TD></TR>
 		<TR><TD><B>Optional Donation %s</B>:</TD><TD></TD></TR>
 		<TR><TD style="text-align:right;"><SMALL>Pool Management:</SMALL></TD><TD><INPUT TYPE="TEXT" name="Donate_Pool" size=6 value="<?php echo htmlspecialchars($msgvars_array["Donate_Pool"]); ?>" maxlength=32 onChange="updateOptionsMessage()" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange()">% (Default: 0.00%)</TD></TR>
