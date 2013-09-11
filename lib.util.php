@@ -90,7 +90,7 @@ function rawSatoshiToBTC($s) {
  */
 function prettyProportion($a) {
 	// TODO: Tonal permill
-	return sprintf("%.1f%%", $a * 100);
+	return sprintf("%.2f%%", $a * 100);
 }
 
 /**
