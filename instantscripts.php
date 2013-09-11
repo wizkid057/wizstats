@@ -24,7 +24,7 @@ if (($_SERVER['PATH_INFO'] == "/livedata-main.js") || ($_SERVER['PATH_INFO'] == 
 	if ($_SERVER['PATH_INFO'] == "/livedata-main.js") { $main = 1; } else { $main = 0; }
 
 	header("Content-type: application/javascript");
-	header("Cache-Control: no-cache, must-revalidate");
+	header("Cache-Control: max-age=60");
 
 	include("instant_livedata.php");
 
