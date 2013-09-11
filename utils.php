@@ -146,6 +146,10 @@ if ( substr($gzData, 0, 3) == "\x1f\x8b\x08" ) {
 
 function get_stats_cache($link, $type, $hash) {
 
+	#$var = apc_fetch("wizstats_cache_".$type."_".$hash);
+	#if ($var != FALSE) { return $var; }
+	#return "";
+
 	$sql = "select * from ".$GLOBALS["psqlschema"].".stats_cache where type_id=$type and query_hash='$hash' and expire_time > NOW() limit 1;";
 	$result = pg_exec($link, $sql);
 	$numrows = pg_numrows($result);
@@ -158,6 +162,8 @@ function get_stats_cache($link, $type, $hash) {
 }
 
 function set_stats_cache($link, $type, $hash, $data, $expireseconds) {
+
+	#apc_store("wizstats_cache_".$type."_".$hash,$data, $expireseconds);
 
 	# clean cache
 	$sql = "delete from ".$GLOBALS["psqlschema"].".stats_cache where expire_time < NOW();";
@@ -225,10 +231,10 @@ function get_user_id_from_address($link, $addr) {
 		$numrows = pg_numrows($result);
 		if ($numrows > 0) {
 			$row = pg_fetch_array($result, 0);
-			apc_add($query_hash, $row["id"], 86400);
+			apc_store($query_hash, $row["id"], 86400);
 			return $row["id"];
 		}
-		apc_add($query_hash, 0, 86400);
+		apc_store($query_hash, 0, 86400);
 		return 0;
 	}
 }
@@ -237,7 +243,7 @@ function get_user_id_from_address($link, $addr) {
 function get_nickname($link, $user_id) {
 
 	$nickname = "";
-	$query_hash = "userstats.php Nickname ".hash("sha256", "userstats.php nickname for id $user_id");
+	$query_hash = "wizstats_nickname ".hash("sha256", "userstats.php nickname for id $user_id");
 
 	if($nickname = apc_fetch($query_hash)) {
 	} else {
@@ -261,7 +267,7 @@ function get_nickname($link, $user_id) {
 			} else {
 				$nickname = "No nickname";
 			}
-			apc_add($query_hash, $nickname, 3600);
+			apc_store($query_hash, $nickname, 3600);
 		} else {
 			$nickname = "No nickname";
 		}
@@ -272,6 +278,32 @@ function get_nickname($link, $user_id) {
 	}
 
 	return $nickname;
+}
+
+function get_options($link, $user_id) {
+
+	$query_hash = "wizstats_options ".hash("sha256", "userstats.php options for id $user_id");
+
+	if($options = apc_fetch($query_hash)) {
+	} else {
+		$sql = "select * from {$GLOBALS["psqlschema"]}.stats_mystats where server={$GLOBALS["serverid"]} and user_id=$user_id order by time desc limit 1";
+		$result = pg_exec($link, $sql);
+		$numrows = pg_numrows($result);
+		if ($numrows) {
+			$row = pg_fetch_array($result, 0);
+			$options = array();
+			if (isset($row["signed_options"])) {
+				$msg = $row["signed_options"];
+				$msghead = "My ".($GLOBALS["poolname"])." - ";
+		                $msgvars = substr($msg,strlen($msghead)+26,10000);
+		                $msgvars = str_replace(" ","&",$msgvars);
+		                parse_str($msgvars, $options);
+			}
+			apc_store($query_hash, $options, 3600);
+		}
+	}
+
+	return $options;
 }
 
 

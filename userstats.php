@@ -67,8 +67,13 @@ if (isset($_GET["cmd"])) {
 
 $cppsrbloaded = 0;
 
-$balanacesjson = file_get_contents("/var/lib/eligius/$serverid/balances.json");
-$balanacesjsondec = json_decode($balanacesjson,true);
+if($balanacesjsondec = apc_fetch('balance')) {
+} else {
+	$balance = file_get_contents("/var/lib/eligius/$serverid/balances.json");
+	$balanacesjsondec = json_decode($balance, true);
+	// Store Cache for 10 minutes
+	apc_store('balance', $balanacesjsondec, 600);
+}
 $mybal = $balanacesjsondec[$givenuser];
 
 if ($mybal) {
@@ -112,8 +117,13 @@ if ($mybal) {
 	}
 }
 
-$balanacesjsonSM = file_get_contents("/var/lib/eligius/$serverid/smpps_lastblock.json");
-$balanacesjsondecSM = json_decode($balanacesjsonSM,true);
+if($balanacesjsondecSM = apc_fetch('balance_smpps')) {
+} else {
+	$balanacesjsonSM = file_get_contents("/var/lib/eligius/$serverid/smpps_lastblock.json");
+	$balanacesjsondecSM = json_decode($balanacesjsonSM,true);
+	// Store Cache forever (10 days)
+	apc_store('balance_smpps', $balanacesjsondecSM, 864000);
+}
 if (isset($balanacesjsondecSM[$givenuser])) { $mybalSM = $balanacesjsondecSM[$givenuser]; }
 
 if (isset($mybalSM)) {
@@ -280,19 +290,19 @@ if ($rejecttable != "") {
 print "<BR><BR>";
 
 
-if (isset($_GET["timemachine"])) {
-	$secondsback = 5184000;
-} else {
+#if (isset($_GET["timemachine"])) {
+#	$secondsback = 5184000;
+#} else {
 	$secondsback = 604800;
-}
+#}
 
 print "<div id=\"ugraphdiv2\" style=\"width:750px; height:375px;\"></div>";
 print "<INPUT TYPE=\"BUTTON\" onClick=\"showmax();\" VALUE=\"Toggle Graphing of Maximum Reward\"><BR>";
 print "<div id=\"ugraphdiv3\" style=\"width:750px; height:375px;\"></div>";
 
-if (!isset($_GET["timemachine"])) {
-	print "<A HREF=\"?timemachine=1\">(Click for up to 60 days of hashrate/balance data)</A><BR>";
-}
+#if (!isset($_GET["timemachine"])) {
+#	print "<A HREF=\"?timemachine=1\">(Click for up to 60 days of hashrate/balance data)</A><BR>";
+#}
 
 # script for dygraphs
 print "<script type=\"text/javascript\">
@@ -371,26 +381,30 @@ print "<div id=\"userstatsright\">";
 
 print "<B>Latest Payouts</B>";
 
-if ($everpaid > 0) {
-
+if (($everpaid > 0) && (0) ) {
+#if (($everpaid > 0) && (1) ) {
 	$query_hash = hash("sha256", "userstats.php latest payouts for $givenuser with id $user_id and latest everpaid of $everpaid");
 	$latestpayouts = get_stats_cache($link, 12, $query_hash);
 	if ($latestpayouts != "") {
 		print $latestpayouts;
 	} else {
 		# walk the blocklist back a ways to check for payouts
-		$blockjsondec = json_decode(file_get_contents("/var/lib/eligius/$serverid/blocks/latest.json"),true);
+		if ($blockjsondec = apc_fetch("wizstats_jsoncache_".hash("sha256", "/var/lib/eligius/$serverid/blocks/latest.json"))) {
+		} else {
+			$blockjsondec = json_decode(file_get_contents("/var/lib/eligius/$serverid/blocks/latest.json"),true);
+			apc_store("wizstats_jsoncache_".hash("sha256", "/var/lib/eligius/$serverid/blocks/latest.json"), $blockjsondec, 600);
+		}
 		$myblockdata = $blockjsondec[$givenuser];
 		$lastep = $everpaid;
 		$lastblock = substr(readlink("/var/lib/eligius/$serverid/blocks/latest.json"),0,-5);
 		if (strlen($lastblock) < 64) { $lastblock = "latest"; }
 		$thisep = $lastep;
 
-		$maxlook = 5000;
+		$maxlook = 64; # needs work...
 		$maxtable = 8;
 		$xdata = "";
 		$oev = "even";
-		while(($maxlook) && ($maxtable) && ($thisep > 0)) {
+		while(($maxlook) && ($maxtable) && ($thisep > 0))  {
 			$paidblock = $lastblock;
 			$forcetype = "";
 			if ((isset($blockjsondec[""]["roundend"])) && ($blockjsondec[""]["roundend"] > 0)) {
@@ -411,7 +425,13 @@ if ($everpaid > 0) {
 			$lastblock = $blockjsondec[""]["mylastblk"];
 			if (!isset($blockjsondec[""]["mylastblk"])) { $maxlook = 1; }
 			$oldblockjsondec = $blockjsondec;
-			$blockjsondec = json_decode(file_get_contents("/var/lib/eligius/$serverid/blocks/".($lastblock).".json"),true); 
+
+
+			if ($blockjsondec = apc_fetch("wizstats_jsoncache_".hash("sha256", "/var/lib/eligius/$serverid/blocks/".($lastblock).".json"))) {
+			} else {
+				$blockjsondec = json_decode(file_get_contents("/var/lib/eligius/$serverid/blocks/".($lastblock).".json"),true);
+				apc_store("wizstats_jsoncache_".hash("sha256", "/var/lib/eligius/$serverid/blocks/".($lastblock).".json"), $blockjsondec, 864000);
+			}
 			if (isset($blockjsondec[$givenuser])) { $myblockdata = $blockjsondec[$givenuser]; } else { unset($myblockdata); }
 			if (isset($myblockdata["everpaid"])) {
 				$thisep = $myblockdata["everpaid"];
@@ -459,14 +479,14 @@ if ($everpaid > 0) {
 		if ($xdata != "") {
 			$pdata = "<table id=\"paymentlist\"><THEAD><TR><TH>Date (<SPAN title=\"G = Payout from coinbase/generation; S = Payout from normal send/sendmany\" style=\"border-bottom: 1px dashed #888888\">Type</SPAN>)</TH><TH>Amount</TH></TR></THEAD>$xdata</table>";
 		} else {
-			$pdata = "<BR>No data available.<BR>";
+			$pdata = "<BR>No recent data available.<BR>";
 		}
 		print $pdata;
 		# cache this data for 24 hours. if the user is paid, the hash will change and invalidate this forcing a rebuild. genius!
 		set_stats_cache($link, 12, $query_hash, $pdata, 3600*24);
 	}
 } else {
-	print "<BR>No data available.<BR>";
+	print "<BR>No data available. (module temporarily disabled)<BR>";
 }
 
 print "All time total payout: ".prettySatoshis($everpaid);
@@ -476,12 +496,28 @@ print "<BR><BR>";
 if ($savedbal) {
 
 	print "<B>Estimated Position in Payout Queue</B><BR>";
-	$payoutqueue = file_get_contents("/var/lib/eligius/$serverid/payout_queue.txt");
+	if ($payoutqueue = apc_fetch('wizstats_payoutqueuetxt')) {
+	} else {
+		$payoutqueue = file_get_contents("/var/lib/eligius/$serverid/payout_queue.txt");
+		apc_store('wizstats_payoutqueuetxt', $payoutqueue, 600);
+	}
 	print "<span style=\"font-size: 0.8em\">";
 	if ((strpos($payoutqueue,$givenuser) == false) && (substr($payoutqueue,0,strlen($givenuser)) != $givenuser)) {
-		$diff = 16777216 - $savedbal;
+
+		$options = get_options($link, $user_id);
+		if (isset($options["Minimum_Payout_BTC"])) {
+			$minpay = $options["Minimum_Payout_BTC"]*100000000;
+		} else {
+			$minpay = 16777216;
+		}
+		if ($minpay < 1048576) { $minpay = 1048576; }
+		if ($minpay > 2147483648) { $minpay = 2147483648; }
+
+		$diff = $minpay - $savedbal;
+
+
 		if ($diff < 0) { $diff = 0; }
-		print "Approximately ".prettySatoshis($diff)." remaining to enter payout queue.";
+		print "Approximately ".prettySatoshis($diff)." remaining to enter <A HREF=\"http://eligius.st/~wizkid057/newstats/payoutqueue.php#$givenuser\">payout queue</a>.";
 
 		if (($u16avghash == 0) && (isset($balupdate))) {
 			$timetoqueue = (3600*24*7) - (time() - $balupdate);
@@ -502,6 +538,7 @@ if ($savedbal) {
 			$netdiff = round($netdiff,2);
 			print " Maintaining your 3 hour hashrate average, this will take at least another ".prettyDuration($stime). " at current network difficulty of $netdiff.";
 		}
+		if ($minpay != 16777216) { print "<BR><BR>Note: Your minimum payout was customized to ".prettySatoshis($minpay)." under 'My $poolname'."; }
 
 	} else {
 		# add up balances and see where we end up.
