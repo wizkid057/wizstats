@@ -519,7 +519,16 @@ if ($savedbal) {
 			if ((isset($lec)) && ($lec > 0)) {
 				print ", and the pool does not pay towards any of your shelved shares,";
 			}
-			print " then you will enter the payout queue, due to inactivity, in approximately ".prettyDuration($timetoqueue).".";
+
+			if ($savedbal >= 131072) {
+				if ($savedbal >= 1048576) {
+					print " then you will enter the payout queue, due to inactivity, in approximately ".prettyDuration($timetoqueue).".";
+				} else {
+					print " then you will be eligible for a payout of your balance (which is less than the automatic payout threshhold of ".prettySatoshis(1048576).") in a manual payout no sooner than ".prettyDuration($timetoqueue)." from now.";
+				}
+			} else {
+				print " then your less than ".prettySatoshis(131072)." balance will remain unpaid and donated to the pool in approximately ".prettyDuration((3600*24*60) - (time() - $balupdate)).".  If you are concerned about this small balance you should mine until your balance is greater than ".prettySatoshis(131072).".";
+			}
 		}
 
 		if ($u16avghash > 0) {
