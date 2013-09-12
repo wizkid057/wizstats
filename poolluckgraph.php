@@ -18,10 +18,9 @@
 error_reporting(E_ALL ^ E_NOTICE);
 require_once 'includes.php';
 
-
 $link = pg_pconnect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");
 
-$sql = "select *,date_part('epoch', time)::integer-date_part('epoch', roundstart)::integer as duration from $psqlschema.stats_blocks where server=$serverid and confirmations > 0 and height > 210000 and time > NOW()-'60 days'::interval order by time asc;";
+$sql = "select *,date_part('epoch', time)::integer-date_part('epoch', roundstart)::integer as duration from $psqlschema.stats_blocks where server=$serverid and confirmations > 0 and height > 210000 order by time asc;";
 $query_hash = hash("sha256", $sql.(isset($_GET["btc"])?"BTC":"PERCENTPPS"));
 $cacheddata = get_stats_cache($link, 30, $query_hash);
 if ($cacheddata != "") {

@@ -92,7 +92,7 @@ For example, <A HREF="http://eligius.st/~wizkid057/newstats/userstats.php/1EXfBq
 	}
   );
 </script>
-<SMALL>(These graphs shows the estimated earnings, as a percentage of maximum PPS, of a hypothetical 1GH miner who started mining at <?php echo $poolname; ?> approximately 60 days ago.)</SMALL><BR>
+<SMALL>(These graphs shows the estimated earnings, as a percentage of maximum PPS, of a hypothetical 1GH miner who started mining at <?php echo $poolname; ?> at block height 210000.)</SMALL><BR>
 
 <BR><div id="line"></div>
 <H3><CENTER>Top Miners (3 hr rate) <A HREF="topcontributors.php">(Full)</A></CENTER></H3>
