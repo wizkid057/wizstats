@@ -219,8 +219,8 @@ function verifymessage($bcaddr, $signature, $msg) {
 
 function get_wherein_list_from_worker_data($worker_data) {
 	$wherein = "(";
-	foreach ($worker_data as &$worker) {
-		$wherein .= $worker[0].",";
+	foreach ($worker_data as $id => &$worker) {
+		$wherein .= $id.",";
 	}
 	return substr($wherein,0,-1).")";
 }
@@ -241,9 +241,9 @@ function get_worker_data_from_user_id($link, $user_id) {
 			if (strlen($row["workername"]) > 0) {
 				$wname = $row["workername"];
 			} else {
-				$wname = "MAIN";
+				$wname = "default";
 			}
-			array_push($worker_data, array( $row["id"], $wname )  );
+			$worker_data[$row["id"]] = $wname;
 		}
 		return $worker_data;
 	}
