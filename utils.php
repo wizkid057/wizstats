@@ -217,6 +217,14 @@ function verifymessage($bcaddr, $signature, $msg) {
 
 }
 
+function get_wherein_list_from_worker_data($worker_data) {
+	$wherein = "(";
+	foreach ($worker_data as &$worker) {
+		$wherein .= $worker[0].",";
+	}
+	return substr($wherein,0,-1).")";
+}
+
 
 function get_worker_data_from_user_id($link, $user_id) {
 	# assume $user_id is the first user_id in the database 
