@@ -139,9 +139,8 @@
 
 	if ($cmd == "hashgraph") {
 
-
-
-		$sql = "select gtime,COALESCE(hashrate,0) as hashrate from (select * from generate_series(to_timestamp(((date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1)-'$sstart seconds'::interval)::integer / 675) * 675)-43200), to_timestamp((date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1)-'$start seconds'::interval)::integer / 675) * 675), '$ressec seconds') as gtime) as gentime left join (select * from $psqlschema.stats_shareagg where server=$serverid and user_id=$user_id) as dstats on (dstats.time = gentime.gtime);";
+		$wherein = get_wherein_list_from_worker_data($worker_data);
+		$sql = "select *,date_part('epoch',time) as ctime from wizkid057.stats_shareagg where server=$serverid and user_id in $wherein and time > NOW()-'$sstart seconds'::interval-'43200 seconds'::interval order by time desc;";
 
 		$query_hash = hash("sha256", $sql);
 		$cacheddata = get_stats_cache($link, 2, $query_hash);
@@ -151,53 +150,98 @@
 			exit;
 		}
 
-
-
 		$result = pg_exec($link, $sql);
 		$numrows = pg_numrows($result);
 
-		$an = 0;
-		$an2 = 0;
-		$lav = 0;
+		$data = array();
+		$firstctime = pow(2,32);
+		$lastctime = 0;
+		$workercount = 0;
+		$activeworkers = array();
+		for($ri=0;$ri<$numrows;$ri++) {
+			# make associative array for data based on time and userid
+			$row = pg_fetch_array($result, $ri);
+			$data[$row["ctime"]][$row["user_id"]] = $row;
+			if ($row["ctime"] < $firstctime) { $firstctime = $row["ctime"]; }
+			if ($row["ctime"] > $lastctime) { $lastctime = $row["ctime"]; }
 
-		for($i=0;$i<64;$i++) { $ta[$i] = 0; $ta2[$i] = 0; }
-		for($i=0;$i<128;$i++) { $lagavg3[$i] = 0; $lagavg12[$i] = 0; }
-
-		$tdata =  "date,".$ressec." seconds,3 hour,12 hour\n";
-		print $tdata;
-
-		for($ri = 0; $ri < $numrows+32; $ri++) {
-			if ($ri < $numrows) {
-				$row = pg_fetch_array($result, $ri);
-				$ta[$an] = $row["hashrate"]; $an++; if ($an == 16) { $an = 0; } $av = 0; for($i=0;$i<16;$i++) { $av += $ta[$i]; } if ($ri > 16) {	$av = $av / 16; } else { $av = ""; }
-				$ta2[$an2] = $row["hashrate"]; $an2++; if ($an2 == 64) { $an2 = 0; } $av2 = 0; for($i=0;$i<64;$i++) { $av2 += $ta2[$i]; } if ($ri > 64) {	$av2 = $av2 / 64; } else { $av2 = ""; }
-				list($datex) = explode("+", $row["gtime"]);
-				$lagavg3[$lav] = round($av/1000000,2);
-				$lagavg12[$lav] = round($av2/1000000,2);
-			} else {
-				unset($row);
-				$lagavg3[$lav] = "";
-				$lagavg12[$lav] = "";
-			}
-			if ($ri > 64) {
-				if (isset($row)) {
-					$lagavg675[$lav] = $datex.",".round($row["hashrate"]/1000000,2);
-				}
-				if ($ri > 64+32) {
-
-					$lavx = $lav - 32; if ($lavx < 0) { $lavx+=128; }
-					$lavy = $lav - 24; if ($lavy < 0) { $lavy+=128; }
-					$lavz = $lav - 0; if ($lavz < 0) { $lavz+=128; }
-
-					$tline = $lagavg675[$lavx].",".$lagavg3[$lavy].",".$lagavg12[$lavz]."\n";
-					print $tline; $tdata .= $tline;
-				}
-			}
-			$lav++; if ($lav == 128) { $lav = 0; }
+			# count active workers in this data
+			if (count($data[$row["ctime"]]) > $workercount) { $workercount = count($data[$row["ctime"]]); }
+			$activeworkers[$row["user_id"]] = 1;
 		}
 
-		set_stats_cache($link, 2, $query_hash, $tdata, 675);
+		$gline = 0;
+		$gdata = array();
 
+		$buf = "";
+
+		$buf .= "date";
+		if ($workercount > 1) {
+			$workerlist = array();
+			$workerlistR = array();
+			$wc = 0;
+			foreach ($worker_data as $wid => $wname) {
+				if ($activeworkers[$wid] == 1) {
+					$wname = str_replace(",", ".", $wname);
+					$wname = str_replace(" ", "_", $wname);
+					$buf .=  ",$wname";
+					$workerlist[$wc] = $wid;
+					$workerlistR[$wid] = $wc;
+					$wc++;
+				}
+			}
+		}
+		$buf .=  ",".$ressec." seconds,3 hour,12 hour\n";
+
+		for($t=$firstctime;$t<=$lastctime;$t+=675) {
+			# if no data then hashrate is assumed 0
+			for($i=0;$i<$wc;$i++) { $workertemp[$i] = 0; }
+			$th = 0;
+			if (count($data[$t]) > 0) {
+				foreach ($data[$t] as $id => $row) {
+					$th += $row["hashrate"];
+					$workertemp[$workerlistR[$id]] = $row["hashrate"];
+				}
+			}
+
+			$gdata[$gline] = array($t, $th, $workertemp);
+			$gline++;
+		}
+
+
+		for($i=0;$i<$gline;$i++) {
+
+			$avg3 = ""; $avg12 = "";
+			if (($i > 16) && ($i < ($gline - 8))) {
+				$avg3 = 0;
+				for($j=0;$j<16;$j++) {
+					$avg3 += $gdata[$i-$j+8][1];
+				}
+				$avg3 = $avg3 / 16;
+			}
+			if (($i > 64) && ($i < ($gline - 32))) {
+				$avg12 = 0;
+				for($j=0;$j<64;$j++) {
+					$avg12 += $gdata[$i-$j+32][1];
+				}
+				$avg12 = $avg12 / 64;
+			}
+
+			if ($i > 64) {
+				if ($avg3 != "") { $avg3 = round($avg3/1000000,3); }
+				if ($avg12 != "") { $avg12 = round($avg12/1000000,3); }
+				$buf .=  date("Y-m-d H:i:s",$gdata[$i][0]);
+				if ($wc > 1) {
+					for($j=0;$j<$wc;$j++) { $buf .=  ",".round($gdata[$i][2][$j]/1000000,3); }
+				}
+				$buf .=  ",".round($gdata[$i][1]/1000000,3).",".$avg3.",".$avg12;
+				$buf .=  "\n";
+			}
+
+		}
+
+		print $buf;
+		set_stats_cache($link, 2, $query_hash, $buf, 675);
 		exit;
 	}
 
