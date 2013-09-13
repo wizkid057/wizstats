@@ -176,6 +176,7 @@
 		$buf = "";
 
 		$buf .= "date";
+		$wc = 1;
 		if ($workercount > 1) {
 			$workerlist = array();
 			$workerlistR = array();
@@ -190,14 +191,18 @@
 					$wc++;
 				}
 			}
+		} else {
+			$workerlist[0] = $user_id;
+			$workerlistR[$user_id] = 0;
 		}
-		$buf .=  ",".$ressec." seconds,3 hour,12 hour\n";
 
+		$buf .=  ",".$ressec." seconds,3 hour,12 hour\n";
+		$workertemp = array();
 		for($t=$firstctime;$t<=$lastctime;$t+=675) {
 			# if no data then hashrate is assumed 0
 			for($i=0;$i<$wc;$i++) { $workertemp[$i] = 0; }
 			$th = 0;
-			if (count($data[$t]) > 0) {
+			if ( (isset($data[$t])) && (count($data[$t]) > 0) ) {
 				foreach ($data[$t] as $id => $row) {
 					$th += $row["hashrate"];
 					$workertemp[$workerlistR[$id]] = $row["hashrate"];
