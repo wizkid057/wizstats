@@ -284,11 +284,11 @@ if ($rejecttable != "") {
 print "<BR><BR>";
 
 
-#if (isset($_GET["timemachine"])) {
-#	$secondsback = 5184000;
-#} else {
+if (isset($_GET["timemachine"])) {
+	$secondsback = 5184000;
+} else {
 	$secondsback = 604800;
-#}
+}
 
 print "<div id=\"ugraphdiv2\" style=\"width:750px; height:375px;\"></div>";
 print "<INPUT TYPE=\"BUTTON\" onClick=\"showmax();\" VALUE=\"Toggle Graphing of Maximum Reward\"><BR>";
