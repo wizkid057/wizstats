@@ -20,7 +20,6 @@ require_once 'includes.php';
 
 require_once 'hashrate.php';
 
-# TODO: Allow worker sub-names
 if (!isset($_SERVER['PATH_INFO'])) {
 	print_stats_top();
 	print "<BR><FONT COLOR=\"RED\"><B>Error:</B> No username specified in URL path  Please try again.</FONT><BR>";
@@ -52,6 +51,8 @@ if (!$user_id) {
 	print_stats_bottom();
 	exit;
 }
+
+$worker_data = get_worker_data_from_user_id($link, $user_id);
 
 if (isset($_GET["cmd"])) {
 	include("userstats_subcmd.php");
@@ -297,8 +298,10 @@ print "<script type=\"text/javascript\">
 	var blockUpdateB = 0;
 
 	g2 = new Dygraph(document.getElementById(\"ugraphdiv2\"),\"$givenuser?cmd=hashgraph&start=0&back=$secondsback&res=1\",{ 
-		strokeWidth: 2.25,
-		'675 seconds': { fillGraph: true, strokeWidth: 1.5 },
+		strokeWidth: 1.5,
+		fillGraph: true,
+		'3 hour': { fillGraph: false, strokeWidth: 2.25 },
+		'12 hour': { fillGraph: false, strokeWidth: 2.25 },
 		labelsDivStyles: { border: '1px solid black' },
 		title: 'Hashrate Graph ($givenuser)',
 		xlabel: 'Date',
