@@ -44,22 +44,14 @@ if (pg_connection_status($link) != PGSQL_CONNECTION_OK) {
 
 
 $givenuser = substr($_SERVER['PATH_INFO'],1,strlen($_SERVER['PATH_INFO'])-1);
-$bits =  hex2bits(\Bitcoin::addressToHash160($givenuser));
+$user_id = get_user_id_from_address($link, $givenuser);
 
-$sql = "select id from public.users where keyhash='$bits' order by id asc limit 1";
-$result = pg_exec($link, $sql);
-$numrows = pg_numrows($result);
-
-if (!$numrows) {
+if (!$user_id) {
 	print_stats_top();
 	print "<BR><FONT COLOR=\"RED\"><B>Error:</B> Username <I>$givenuser</I> not found in database.  Please try again later., as the stats server is probably just overloaded. If this issue persists for several hours, please report it to the pool operator.</FONT><BR>";
 	print_stats_bottom();
 	exit;
 }
-
-$row = pg_fetch_array($result, 0);
-$user_id = $row["id"];
-
 
 if (isset($_GET["cmd"])) {
 	include("userstats_subcmd.php");

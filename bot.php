@@ -67,17 +67,11 @@ $givenuser = substr($_SERVER['PATH_INFO'],1,strlen($_SERVER['PATH_INFO'])-1);
 $bits =  hex2bits(\Bitcoin::addressToHash160($givenuser));
 
 $link = pg_pconnect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");
-
-$sql = "select id from public.users where keyhash='$bits' order by id asc limit 1";
-$result = pg_exec($link, $sql);
-$numrows = pg_numrows($result);
-if (!$numrows) {
+$user_id = get_user_id_from_address($link, $givenuser);
+if (!$user_id) {
         print "Error: Username $givenuser not found in database.  Please try again later.";
         exit;
 }
-
-$row = pg_fetch_array($result, 0);
-$user_id = $row["id"];
 
 
 $cppsrbjson = file_get_contents("/var/lib/eligius/$serverid/cppsrb.json");

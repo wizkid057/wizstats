@@ -120,6 +120,7 @@ if ($ucount > 0) {
 
 foreach($lastdata as $key => $val) {
 	print "Totally new miner!?!?: $key\n";
+	# This is the only spot where keyhash is used directly... keep it in line with get_user_id_from_address
 	$sql = "select id from public.users where keyhash='$key' order by id asc limit 1;";
 	$result = pg_exec($link, $sql);
 	$row = pg_fetch_array($result, 0);

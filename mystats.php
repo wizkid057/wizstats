@@ -57,19 +57,12 @@ if (((!isset($_COOKIE["u"])) && (!isset($_GET["u"]))) || ( (isset($_GET["u"])) &
 } else {
 	$u = "";
 	if (isset($_GET["u"])) { $u = $_GET["u"]; } else { if (isset($_COOKIE["u"])) { $u = $_COOKIE["u"]; } }
-	$bits =  hex2bits(\Bitcoin::addressToHash160($u));
 
-	$sql = "select id from public.users where keyhash='$bits' order by id asc limit 1";
-	$result = pg_exec($link, $sql);
-	$numrows = pg_numrows($result);
+	$user_id = get_user_id_from_address($link, $u);
 
-	if (!$numrows) {
+	if (!$user_id) {
 		$nouser = 1;
 		$reason = "$u was not found in database.<BR>";
-	}
-	else {
-		$row = pg_fetch_array($result, 0);
-		$user_id = $row["id"];
 	}
 }
 
