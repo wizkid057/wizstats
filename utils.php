@@ -218,6 +218,33 @@ function verifymessage($bcaddr, $signature, $msg) {
 }
 
 
+function get_worker_data_from_user_id($link, $user_id) {
+	# assume $user_id is the first user_id in the database 
+	# set a reasonable limit on worker count
+
+	$sql = "select * from public.users where keyhash=(select keyhash from public.users where id=$user_id) order by id asc limit 128";
+	$result = pg_exec($link, $sql);
+	$numrows = pg_numrows($result);
+	if ($numrows > 0) {
+		# should always be at least 1...
+		$worker_data = array();
+		for($ri=0;$ri<$numrows;$ri++) {
+			$row = pg_fetch_array($result, $ri);
+			if (strlen($row["workername"]) > 0) {
+				$wname = $row["workername"];
+			} else {
+				$wname = "MAIN";
+			}
+			array_push($worker_data, array( $row["id"], $wname )  );
+		}
+		return $worker_data;
+	}
+	else {
+		return NULL;
+	}
+
+}
+
 function get_user_id_from_address($link, $addr) {
 
 	$query_hash = "util.php user_id of $addr";
