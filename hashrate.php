@@ -17,14 +17,17 @@ function get_hashrate_stats(&$link, $givenuser, $user_id)
 {
 	global $psqlschema, $serverid;
 
+	$worker_data = get_worker_data_from_user_id($link, $user_id);
+	$wherein = get_wherein_list_from_worker_data($worker_data);
+
 	# 3 hour hashrate
-	$sql = "select (sum(accepted_shares)*pow(2,32))/10800 as avghash,sum(accepted_shares) as share_total from $psqlschema.stats_shareagg where server=$serverid and user_id=$user_id and time > to_timestamp((date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1)-'3 hours'::interval)::integer / 675::integer) * 675::integer)";
+	$sql = "select (sum(accepted_shares)*pow(2,32))/10800 as avghash,sum(accepted_shares) as share_total from $psqlschema.stats_shareagg where server=$serverid and user_id in $wherein and time > to_timestamp((date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1)-'3 hours'::interval)::integer / 675::integer) * 675::integer)";
 	$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
 	$u16avghash = isset($row["avghash"])?$row["avghash"]:0;
 	$u16shares = isset($row["share_total"])?$row["share_total"]:0;
 
 	# 22.5 minute hashrate
-	$sql = "select (sum(accepted_shares)*pow(2,32))/1350 as avghash,sum(accepted_shares) as share_total from $psqlschema.stats_shareagg where server=$serverid and user_id=$user_id and time > to_timestamp((date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1))::integer / 675::integer)::integer * 675::integer)-'1350 seconds'::interval";
+	$sql = "select (sum(accepted_shares)*pow(2,32))/1350 as avghash,sum(accepted_shares) as share_total from $psqlschema.stats_shareagg where server=$serverid and user_id in $wherein and time > to_timestamp((date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1))::integer / 675::integer)::integer * 675::integer)-'1350 seconds'::interval";
 	$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
 	$u2avghash = isset($row["avghash"])?$row["avghash"]:0;
 	$u2shares = isset($row["share_total"])?$row["share_total"]:0;
