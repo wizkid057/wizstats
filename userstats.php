@@ -211,66 +211,59 @@ if ($hashratetable != "") {
 }
 
 
-if (0==1) {
+if (isset($_GET["wizdebug"])) {
 # Reject data
-$ulockid = $user_id + 20000007;
-$sql = "select reason,count(*) as reject_count from public.shares where server=$serverid and user_id=$user_id and our_result!=true and time > NOW()-'1 hour'::interval group by reason order by reject_count;";
+$wherein = get_wherein_list_from_worker_data($worker_data);
+$sql = "select reason,count(*) as reject_count from public.shares where server=$serverid and user_id in $wherein and our_result!=true and time > NOW()-'675 seconds'::interval group by reason order by reject_count;";
 $query_hash = hash("sha256", $sql);
 $rejecttable = get_stats_cache($link, 10, $query_hash);
 if ($rejecttable != "") {
 	print $rejecttable;
 } else {
 
-	$lsql = "select pg_try_advisory_lock($ulockid) as l";
-	$result = pg_exec($link, $lsql); $row = pg_fetch_array($result, 0);
-	$lock = $row["l"];
-	if ($lock == "f") {
-
-		$result = pg_exec($link, $sql);
-		$numrows = pg_numrows($result);
-		$pdata = "<TABLE class=\"userstatsrejects\" id=\"rejectdata\">";
-		$pdata .= "<THEAD><TR><TH STYLE=\"font-size: 70%;\" id=\"expandarea\"></TH><TH><SPAN title=\"Rejected share counts here are absolute counts and are not weighted.\" style=\"border-bottom: 1px dashed #888888\">Rejected Shares</span></TH></TR></THEAD>";
-		if ($numrows) {
-
-			$t = 0;
-			$rejectdetails = "";
-			$toggles = "";
-			$oev = "odd";
-			for($ri = 0; $ri < $numrows; $ri++) {
-				$row = pg_fetch_array($result, $ri);
-				$count = $row['reject_count'];
-				$t += $count;
-				$reason = prettyInvalidReason($row['reason']);
-				$rejectdetails .= "<TR class=\"userstats$oev\" id=\"rejectitem$ri\"><TD><FONT style=\"border-bottom: 1px dashed #999;\">$reason</FONT></TD><TD class=\"rtnumbers\">$count</TD></TR>";
-				$toggles .= "\$('#rejectitem$ri').toggle();\n";
-				$oev = $oev=="even"?$oev="odd":$oev="even";
-			}
-			$pdata .= "<TR class=\"userstatseven\"><TD>1-hour Total</TD><TD class=\"rtnumbers\">$t</TD></TR>";
-			$pdata .= $rejectdetails;
-			$pdata .= "</TABLE>";
-			$pdata .= "<script language=\"javascript\">\n<!--\n";
-			$pdata .= "\$(document).ready(function() {
-					\$('#expandarea').click(function(){
-						$toggles
-						if (!\$('#rejectitem0').is(':hidden')) {
-							\$('#expandarea').text('(Collapse Details)');
-						} else {
-							\$('#expandarea').text('(Expand Details)');
-						}
-						return false;
-					});
-					\$('#expandarea').css('cursor', 'pointer').click();;
-				});\n";
-			$pdata .= "\n--></script>\n";
-		} else {
-			$pdata .= "<TR class=\"userstatseven\"><TD>1-hour Total</TD><TD class=\"rtnumbers\">0</TD></TR>";
-			$pdata .= "</TABLE>";
+	$result = pg_exec($link, $sql);
+	$numrows = pg_numrows($result);
+	$pdata = "<TABLE class=\"userstatsrejects\" id=\"rejectdata\">";
+	$pdata .= "<THEAD><TR><TH STYLE=\"font-size: 70%;\" id=\"expandarea\"></TH><TH><SPAN title=\"Rejected share counts here are absolute counts and are not weighted.\" style=\"border-bottom: 1px dashed #888888\">Rejected Shares</span></TH></TR></THEAD>";
+	if ($numrows) {
+		$t = 0;
+		$rejectdetails = "";
+		$toggles = "";
+		$oev = "odd";
+		for($ri = 0; $ri < $numrows; $ri++) {
+			$row = pg_fetch_array($result, $ri);
+			$count = $row['reject_count'];
+			$t += $count;
+			$reason = prettyInvalidReason($row['reason']);
+			$rejectdetails .= "<TR class=\"userstats$oev\" id=\"rejectitem$ri\"><TD><FONT style=\"border-bottom: 1px dashed #999;\">$reason</FONT></TD><TD class=\"rtnumbers\">$count</TD></TR>";
+			$toggles .= "\$('#rejectitem$ri').toggle();\n";
+			$oev = $oev=="even"?$oev="odd":$oev="even";
 		}
-		print $pdata;
-		set_stats_cache($link, 10, $query_hash, $pdata, 300);
-		$sql = "select pg_advisory_unlock($ulockid) as l";
-		$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
+		$pdata .= "<TR class=\"userstatseven\"><TD>675-second Total</TD><TD class=\"rtnumbers\">$t</TD></TR>";
+		$pdata .= $rejectdetails;
+		$pdata .= "</TABLE>";
+		$pdata .= "<script language=\"javascript\">\n<!--\n";
+		$pdata .= "\$(document).ready(function() {
+				\$('#expandarea').click(function(){
+					$toggles
+					if (!\$('#rejectitem0').is(':hidden')) {
+						\$('#expandarea').text('(Collapse Details)');
+					} else {
+						\$('#expandarea').text('(Expand Details)');
+					}
+					return false;
+				});
+				\$('#expandarea').css('cursor', 'pointer').click();;
+			});\n";
+		$pdata .= "\n--></script>\n";
+	} else {
+		$pdata .= "<TR class=\"userstatseven\"><TD>1-hour Total</TD><TD class=\"rtnumbers\">0</TD></TR>";
+		$pdata .= "</TABLE>";
 	}
+	print $pdata;
+	set_stats_cache($link, 10, $query_hash, $pdata, 300);
+	$sql = "select pg_advisory_unlock($ulockid) as l";
+	$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
 }
 
 }
@@ -300,8 +293,9 @@ print "<script type=\"text/javascript\">
 	g2 = new Dygraph(document.getElementById(\"ugraphdiv2\"),\"$givenuser?cmd=hashgraph&start=0&back=$secondsback&res=1\",{ 
 		strokeWidth: 1.5,
 		fillGraph: true,
-		'3 hour': { fillGraph: false, strokeWidth: 2.25 },
-		'12 hour': { fillGraph: false, strokeWidth: 2.25 },
+		'675 second': { color: '#408000' },
+		'3 hour': { fillGraph: false, strokeWidth: 2.25, color: '#400080' },
+		'12 hour': { fillGraph: false, strokeWidth: 2.25, color: '#008080' },
 		labelsDivStyles: { border: '1px solid black' },
 		title: 'Hashrate Graph ($givenuser)',
 		xlabel: 'Date',
