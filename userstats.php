@@ -183,7 +183,7 @@ if ($hashratetable != "") {
 	$hashrate_info = get_hashrate_stats($link, $givenuser, $user_id);
 
 	$pdata = "<TABLE class=\"userstatshashrate\">";
-	$pdata .= "<THEAD><TR><TH WIDTH=\"34%\"></TH><TH WIDTH=\"33%\">Hashrate Average</TH><TH WIDTH=\"33%\"><span title=\"Weighted shares are the number of shares accepted by the pool multiplied by the difficulty of the work that was given.  This number is essentially the equivilent difficulty 1 shares submitted to the pool.\" style=\"border-bottom: 1px dashed #888888\">Weighted Shares</span></TH></TR></THEAD>";
+	$pdata .= "<THEAD><TR><TH WIDTH=\"34%\"></TH><TH WIDTH=\"33%\">Hashrate Average</TH><TH WIDTH=\"33%\"><span title=\"Weighted shares are the number of shares accepted by the pool multiplied by the difficulty of the work that was given.  This number is essentially the equivalent difficulty 1 shares submitted to the pool.\" style=\"border-bottom: 1px dashed #888888\">Weighted Shares</span></TH></TR></THEAD>";
 
 	$oev = "even";
 
