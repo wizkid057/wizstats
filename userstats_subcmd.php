@@ -232,31 +232,40 @@
 				$avg12 = $avg12 / 64;
 			}
 
-			if ($i > 64) {
-				if ($avg3 != "") { $avg3 = round($avg3/1000000,3); }
-				if ($avg12 != "") { $avg12 = round($avg12/1000000,3); }
-				$buf .=  date("Y-m-d H:i:s",$gdata[$i][0]);
-				if ($wc > 1) {
-					for($j=0;$j<$wc;$j++) { 
-						if ($gdata[$i][2][$j]) {
-							$buf .=  ",".round($gdata[$i][2][$j]/1000000,3); 
+			if ($avg3 != "") { $avg3 = round($avg3/1000000,3); }
+			if ($avg12 != "") { $avg12 = round($avg12/1000000,3); }
+			$buf .=  date("Y-m-d H:i:s",$gdata[$i][0]);
+			$lastlinedate = $gdata[$i][0];
+			if ($wc > 1) {
+				for($j=0;$j<$wc;$j++) { 
+					if ($gdata[$i][2][$j]) {
+						$buf .=  ",".round($gdata[$i][2][$j]/1000000,3); 
+					} else {
+						if ($gdata[$i-1][2][$j] > 0) {
+							$buf .= ",0";
 						} else {
-							if ($gdata[$i-1][2][$j] > 0) {
+							if (($i<($gline-2)) && ($gdata[$i+1][2][$j] > 0)) {
 								$buf .= ",0";
 							} else {
-								if (($i<($gline-2)) && ($gdata[$i+1][2][$j] > 0)) {
-									$buf .= ",0";
-								} else {
-									$buf .= ",";
-								}
+								$buf .= ",";
 							}
 						}
 					}
 				}
-				$buf .=  ",".round($gdata[$i][1]/1000000,3).",".$avg3.",".$avg12;
-				$buf .=  "\n";
 			}
+			$buf .=  ",".round($gdata[$i][1]/1000000,3).",".$avg3.",".$avg12;
+			$buf .=  "\n";
 
+		}
+
+		if ($lastlinedate < (time()-(675*2))) {
+			$buf .= date("Y-m-d H:i:s",time());
+			if ($wc > 1) {
+				for($j=0;$j<$wc;$j++) { 
+					$buf .= ",";
+				}
+			}
+			$buf .= ",,,\n";
 		}
 
 		print $buf;
