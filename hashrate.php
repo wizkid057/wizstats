@@ -4,7 +4,7 @@ require_once 'includes.php';
 
 function add_interval_stats(&$set, $interval, $interval_name, $hashrate, $shares)
 {
-	$set[$interval] = array("interval" => $interval, "interval_name" => $interval_name, "hashrate" => $hashrate, "shares" => $shares);
+	$set["values"][$interval] = array("interval" => $interval, "interval_name" => $interval_name, "hashrate" => $hashrate, "shares" => $shares);
 
 	if (!array_key_exists("intervals", $set))
 		$set["intervals"] = array();
@@ -45,6 +45,8 @@ function get_hashrate_stats(&$link, $givenuser, $user_id)
 
 	# build up return value, an array of maps containing structured information about the hash rate over each interval
 	$return_value = array();
+
+	$return_value["values"] = array();
 
 	add_interval_stats($return_value, 10800, "3 hours", floatval($u16avghash), intval($u16shares));
 	add_interval_stats($return_value, 1350, "22.5 minutes", floatval($u2avghash), intval($u2shares));
