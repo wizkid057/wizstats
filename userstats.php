@@ -121,7 +121,7 @@ if (isset($balanacesjsondecSM[$givenuser])) { $mybalSM = $balanacesjsondecSM[$gi
 
 if (isset($mybalSM)) {
 	# SMPPS credit needed to be halved for the pool to be statistically viable
-	$smppsec = $mybalSM["credit"];
+	$smppsec = $mybalSM["credit"]; 
 	$smppshalf = $mybalSM["credit"]/2;
 	$smppsec -= $smppshalf;
 } else {
@@ -189,7 +189,7 @@ if ($hashratetable != "") {
 
 	foreach ($hashrate_info["intervals"] as $interval)
 	{
-		$hashrate_info_for_interval = $hashrate_info["values"][$interval];
+		$hashrate_info_for_interval = $hashrate_info[$interval];
 
 		$interval_name = $hashrate_info_for_interval["interval_name"];
 		$hashrate = $hashrate_info_for_interval["hashrate"];
@@ -204,7 +204,7 @@ if ($hashratetable != "") {
 
 	print $pdata;
 
-	$u16avghash = $hashrate_info["values"][10800]["hashrate"];
+	$u16avghash = $hashrate_info[10800]["hashrate"];
 
 	set_stats_cache($link, 11, $query_hash, $pdata, 30);
 	set_stats_cache($link, 111, $query_hash, $u16avghash, 30);
@@ -290,7 +290,7 @@ print "<script type=\"text/javascript\">
 	var blockUpdateA = 0;
 	var blockUpdateB = 0;
 
-	g2 = new Dygraph(document.getElementById(\"ugraphdiv2\"),\"$givenuser?cmd=hashgraph&start=0&back=$secondsback&res=1\",{
+	g2 = new Dygraph(document.getElementById(\"ugraphdiv2\"),\"$givenuser?cmd=hashgraph&start=0&back=$secondsback&res=1\",{ 
 		strokeWidth: 1.5,
 		fillGraph: true,
 		'675 second': { color: '#408000' },
@@ -320,7 +320,7 @@ print "<script type=\"text/javascript\">
 	var mrindex = 0;
 	var mrhidden = 1;
 	g3 = new Dygraph(
-	document.getElementById(\"ugraphdiv3\"),\"$givenuser?cmd=balancegraph&start=0&back=$secondsback&res=1\",{
+	document.getElementById(\"ugraphdiv3\"),\"$givenuser?cmd=balancegraph&start=0&back=$secondsback&res=1\",{ 
 		strokeWidth: 2.25,
 		fillGraph: true,
 		labelsDivStyles: { border: '1px solid black' },
@@ -397,8 +397,8 @@ if (($everpaid > 0) && (0) ) {
 				# get time from manual send creation time
 				$paydatectime = filectime("/var/lib/eligius/$serverid/blocks/".($lastblock).".json");
 				if ($paydatectime > 0) {
-					$paydate = date("Y-m-d H:i",$paydatectime);
-					$paydateshort = date("Y-m-d",$paydatectime);
+					$paydate = date("Y-m-d H:i",$paydatectime); 
+					$paydateshort = date("Y-m-d",$paydatectime); 
 					$forcetype = "S";
 				} else {
 					$paydate = "Unknown";
