@@ -40,7 +40,7 @@
 			and stats_balances.user_id=$user_id 
 			and stats_balances.time > to_timestamp((date_part('epoch', NOW()-'$sstart seconds'::interval)::integer / 675) * 675) 
 			and stats_balances.time < to_timestamp((date_part('epoch', NOW()-'$start seconds'::interval)::integer / 675) * 675) 
-			order by stats_balances.time asc limit 1) order by id desc limit 1) order by id desc limit 1;";
+			order by stats_balances.time asc limit 1) order by id desc limit 1) order by time desc limit 1;";
 
 		$query_hash = hash("sha256", $sql);
 		$cacheddata = get_stats_cache($link, 3, $query_hash);
