@@ -77,7 +77,7 @@ if ($cacheddata != "") {
 				$address = "<A HREF=\"userstats.php/$address\">$address</A>";
 			}
 		} else {
-			$address = "(Unknown user)";
+			$address = "(Unknown users)";
 		}
 
 		if ($oe == 1) { $oclass = "class=\"odd\""; $oe = 0; } else { $oclass = "class=\"notodd\""; $oe = 1; }
