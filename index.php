@@ -106,7 +106,12 @@ For example, <A HREF="http://eligius.st/~wizkid057/newstats/userstats.php/1EXfBq
 ?>
 <BR><BR>
 Current network difficulty: <?php echo $netdiff; ?><BR>
-Current maximum PPS at this difficulty: <?php printf("%.12f",currentPPSsatoshi($netdiff)/100000000); ?> BTC<BR>
+Current maximum PPS at this difficulty: <?php 
+$xpps = sprintf("%.12f",currentPPSsatoshi($netdiff)/100000000);
+$pps = substr($xpps,0,10);
+$subpps = substr($xpps,10,4);
+print "$pps<small>$subpps</small>";
+?> BTC<BR>
 Average time to find a block at <?php echo $phash; ?> at this difficulty: <?php echo prettyDuration($netdiff/($sharesperunit*20)); ?><BR>
 Average pool blocks per day at <?php echo $phash; ?> at this difficulty: <?php echo printf("%.2f",86400/($netdiff/($sharesperunit*20))); ?><BR>
 
