@@ -94,6 +94,7 @@ print "<h2>Payouts in Coinbase Transaction</h2>";
 print "<TABLE BORDER=1>";
 
 $failsafe = 0;
+$total = 0;
 
 for($i=0;$i<$cbouts;$i++) {
 
@@ -134,11 +135,26 @@ for($i=0;$i<$cbouts;$i++) {
 		$address = "<A HREF=\"../userstats.php/$addr\">$addr</A>";
 	}
 	print "<TR HEIGHT=\"38\" $oclass><TD>$address</TD><TD>$pammt</TD></TR>";
-
+	$total += $ammt*100000000;
 
 }
 
 print "</TABLE>";
+
+if ($block["height"] >= 261279) {
+	# TODO: Make compliant with reward halving
+	$fees = $total - 2500000000; 
+	$rf = 0;
+	if ($fees > 500000000) { 
+		$fees = 500000000; 
+		$rf = 1;
+	}
+	print "<BR>Block transactions fees put towards share log: ".prettySatoshis($fees)."<BR>";
+	if ($rf == 1) {
+		print "Note: Block had an unusually large amount of transaction fees.  Some fees may have been held from immediate payout pending investigation into their origin.<BR>";
+	}
+}
+
 
 
 if ($failsafe) {
