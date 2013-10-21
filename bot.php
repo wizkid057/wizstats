@@ -51,7 +51,7 @@ if (isset($_GET["poolhashrate"])) {
 		print "128 second: " . prettyHashrate(($my_shares[128] * 4294967296)/128) . " - ";
 		print "256 second: " . prettyHashrate(($my_shares[256] * 4294967296)/256);
 	} else {
-		print (($my_shares[256] * 4294967296)/256);
+		print sprintf("%F",(($my_shares[256] * 4294967296)/256));
 	}
 	exit;
 }
