@@ -293,3 +293,12 @@ border: 1px solid black;
 #ugraphdiv2 .dygraph-legend { width: 680px !important; left: 60px !important; }
 #ugraphdiv3 .dygraph-legend { left: 60px !important; }
 
+@font-face {
+    font-family: LuxiTonal;
+    src: url('LuxiTonal.ttf');
+}
+
+.tfix {
+    font-family: LuxiTonal;
+}
+

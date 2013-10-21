@@ -31,7 +31,7 @@ function satoshiToBTC($satoshi) {
  * @return string specified amount in TBC
  */
 function satoshiToTBC($satoshi) {
-	static $tonalDigits = array('9' => '', 'a' => '', 'b' => '', 'c' => '', 'd' => '', 'e' => '', 'f' => '', 'A' => '', 'B' => '', 'C' => '', 'D' => '', 'E' => '', 'F' => '');
+	$tonalDigits = array('9' => '&#59865;', 'a' => '&#59866;', 'b' => '&#59867;', 'c' => '&#59868;', 'd' => '&#59869;', 'e' => '&#59870;', 'f' => '&#59871;');
 	$hex = base_convert(bcdiv($satoshi, 1), 10, 16);
 	$xbc = preg_replace("/(?=.{4}$)(.*?)0*$/", ".\$1", "0000$hex");
 	$xbc = rtrim(preg_replace("/^0+([^.]+\.)/", "\$1", $xbc), '.');
