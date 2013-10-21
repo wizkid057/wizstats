@@ -257,7 +257,7 @@ if ($rejecttable != "") {
 			});\n";
 		$pdata .= "\n--></script>\n";
 	} else {
-		$pdata .= "<TR class=\"userstatseven\"><TD>1-hour Total</TD><TD class=\"rtnumbers\">0</TD></TR>";
+		$pdata .= "<TR class=\"userstatseven\"><TD>675-second Total</TD><TD class=\"rtnumbers\">0</TD></TR>";
 		$pdata .= "</TABLE>";
 	}
 	print $pdata;
@@ -276,6 +276,85 @@ if (isset($_GET["timemachine"])) {
 	$secondsback = 604800;
 }
 
+
+if (count($worker_data) > 1) {
+
+	$query_hash = hash("sha256", "$user_id $givenuser - worker-data");
+	$workerdatatable = get_stats_cache($link, 187, $query_hash);
+	if ($workerdatatable != "") {
+		print $workerdatatable;
+	} else {
+		$wherein = get_wherein_list_from_worker_data($worker_data);
+
+		# get 3 hour rates
+		$sql = "select user_id,(sum(accepted_shares)*pow(2,32))/10800 as avghash,sum(accepted_shares) as share_total, sum(rejected_shares) as reject_total from $psqlschema.stats_shareagg where server=$serverid and user_id in $wherein and time > to_timestamp((date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1)-'3 hours'::interval)::integer / 675::integer) * 675::integer) group by user_id";
+		$result = pg_exec($link, $sql);
+		$numrows = pg_numrows($result);
+		$wstat = array();
+		for ($i=0;$i<$numrows;$i++) {
+			$row = pg_fetch_array($result, $i);
+			$wid = $row["user_id"];
+			if (!isset($wstat[$wid])) { $wstat[$wid] = array(); }
+			if (!isset($wstat[$wid][0])) { $wstat[$wid][0] = array(); }
+			$wstat[$wid][0][0] = $row["avghash"];
+			$wstat[$wid][0][1] = $row["share_total"];
+			$wstat[$wid][0][2] = $row["reject_total"];
+		}
+
+		$sql = "select user_id,(sum(accepted_shares)*pow(2,32))/1350 as avghash,sum(accepted_shares) as share_total, sum(rejected_shares) as reject_total from $psqlschema.stats_shareagg where server=$serverid and user_id in $wherein and time > to_timestamp((date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1)-'1350 seconds'::interval)::integer / 675::integer) * 675::integer) group by user_id";
+		$result = pg_exec($link, $sql);
+		$numrows = pg_numrows($result);
+		for ($i=0;$i<$numrows;$i++) {
+			$row = pg_fetch_array($result, $i);
+			$wid = $row["user_id"];
+			if (!isset($wstat[$wid])) { $wstat[$wid] = array(); }
+			if (!isset($wstat[$wid][1])) { $wstat[$wid][1] = array(); }
+			$wstat[$wid][1][0] = $row["avghash"];
+			$wstat[$wid][1][1] = $row["share_total"];
+			$wstat[$wid][1][2] = $row["reject_total"];
+		}
+
+		$idleworkers = 0;
+		asort($worker_data,SORT_FLAG_CASE|SORT_NATURAL);
+		$table = "";
+		$oev = "odd";
+		$toggles = 0;
+		foreach ($worker_data as $wid => $wname) {
+			if (isset($wstat[$wid])) {
+				$wname = str_replace(",", ".", $wname);
+				$wname = str_replace(" ", "_", $wname);
+				$wname = htmlspecialchars($wname);
+				$table .= "<TR class=\"userstats$oev\"><TD>$wname</TD><TD></TD><TD></TD></TR>\n";
+				if (isset($wstat[$wid][0])) {
+					$toggles++;
+					$table .= "<TR class=\"userstats$oev\" style=\"text-align: right;\"><TD><I>3 Hours</I></TD><TD>".prettyHashrate($wstat[$wid][0][0])."</TD><TD>{$wstat[$wid][0][1]} ({$wstat[$wid][0][2]})</TD></TR>";
+				}
+				if (isset($wstat[$wid][1])) {
+					$toggles++;
+					$table .= "<TR class=\"userstats$oev\" style=\"text-align: right;\"><TD><I>22.5 Minutes</I></TD><TD>".prettyHashrate($wstat[$wid][1][0])."</TD><TD>{$wstat[$wid][1][1]} ({$wstat[$wid][1][2]})</TD></TR>";
+				}
+				$oev = $oev=="even"?$oev="odd":$oev="even";
+			} else {
+				$idleworkers++;
+			}
+		}
+		$pdata = "";
+		if ($table != "") {
+
+			$pdata = "<INPUT TYPE=\"BUTTON\" onClick=\"\$('#workeritems').toggle();\" VALUE=\"Toggle Display of Worker Details\"><BR><BR>";
+			$pdata .= "<TABLE id=\"workeritems\" class=\"userstatsworkers\"><THEAD><TH  style=\"text-align: left;\">Worker Name</TH><TH  style=\"text-align: right;\">Hashrate</TH><TH  style=\"text-align: right;\">Accepted (Rejected) Weighted Shares</TH></THEAD>$table</TABLE>";
+
+			$pdata .= "<script language=\"javascript\">\n<!--\n";
+			$pdata .= "\$(document).ready(\$('#workeritems').toggle());\n";
+			$pdata .= "\n--></script>\n";
+			print $pdata;
+		}
+		# save cache
+		set_stats_cache($link, 187, $query_hash, $pdata, 90);
+	}
+
+}
+
 print "<div id=\"ugraphdiv2\" style=\"width:750px; height:375px;\"></div>";
 print "<INPUT TYPE=\"BUTTON\" onClick=\"showmax();\" VALUE=\"Toggle Graphing of Maximum Reward\"><BR>";
 print "<div id=\"ugraphdiv3\" style=\"width:750px; height:375px;\"></div>";
@@ -283,6 +362,8 @@ print "<div id=\"ugraphdiv3\" style=\"width:750px; height:375px;\"></div>";
 #if (!isset($_GET["timemachine"])) {
 #	print "<A HREF=\"?timemachine=1\">(Click for up to 60 days of hashrate/balance data)</A><BR>";
 #}
+
+
 
 # script for dygraphs
 print "<script type=\"text/javascript\">
