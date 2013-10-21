@@ -46,7 +46,10 @@ if ($cmd == "getacceptedcount") {
 		if (($_GET["enddate"] != $enddate) || (strtotime($enddate) < 1368483761)) { ws_api_error("$cmd: Invalid end date"); }
 	}
 
-	$sql = "select sum(accepted_shares) as count,sum(rejected_shares) as rcount,max(time) as ltime,min(time) as ftime from $psqlschema.stats_shareagg where server=$serverid and user_id=$user_id and time >= '$startdate' ".(isset($enddate)?" and time <= '$enddate'":"").";";
+	$worker_data = get_worker_data_from_user_id($link, $user_id);
+	$wherein = get_wherein_list_from_worker_data($worker_data);
+
+	$sql = "select sum(accepted_shares) as count,sum(rejected_shares) as rcount,max(time) as ltime,min(time) as ftime from $psqlschema.stats_shareagg where server=$serverid and user_id in $wherein and time >= '$startdate' ".(isset($enddate)?" and time <= '$enddate'":"").";";
 	$result = pg_exec($link, $sql);
 	$numrows = pg_numrows($result);
 	if (!$numrows) {
