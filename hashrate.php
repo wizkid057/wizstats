@@ -20,6 +20,12 @@ function get_hashrate_stats(&$link, $givenuser, $user_id)
 	$worker_data = get_worker_data_from_user_id($link, $user_id);
 	$wherein = get_wherein_list_from_worker_data($worker_data);
 
+	# 12 hour hashrate
+	$sql = "select (sum(accepted_shares)*pow(2,32))/43200 as avghash,sum(accepted_shares) as share_total from $psqlschema.stats_shareagg where server=$serverid and user_id in $wherein and time > to_timestamp((date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1)-'12 hours'::interval)::integer / 675::integer) * 675::integer)";
+	$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
+	$u12avghash = isset($row["avghash"])?$row["avghash"]:0;
+	$u12shares = isset($row["share_total"])?$row["share_total"]:0;
+
 	# 3 hour hashrate
 	$sql = "select (sum(accepted_shares)*pow(2,32))/10800 as avghash,sum(accepted_shares) as share_total from $psqlschema.stats_shareagg where server=$serverid and user_id in $wherein and time > to_timestamp((date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1)-'3 hours'::interval)::integer / 675::integer) * 675::integer)";
 	$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
@@ -46,6 +52,7 @@ function get_hashrate_stats(&$link, $givenuser, $user_id)
 	# build up return value, an array of maps containing structured information about the hash rate over each interval
 	$return_value = array();
 
+	add_interval_stats($return_value, 43200, "12 hours", floatval($u12avghash), intval($u12shares));
 	add_interval_stats($return_value, 10800, "3 hours", floatval($u16avghash), intval($u16shares));
 	add_interval_stats($return_value, 1350, "22.5 minutes", floatval($u2avghash), intval($u2shares));
 
