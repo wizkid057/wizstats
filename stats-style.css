@@ -238,6 +238,21 @@ white-space: nowrap;
 
 }
 
+table.userstatsworkers {
+margin-bottom:5px;
+padding:2px;
+border-left:1px solid #cccccc;
+border-top:1px solid #cccccc;
+border-bottom:1px solid #000000;
+border-right:1px solid #000000;
+font-size: 80%;
+width: 748px;
+display: inline-block;
+vertical-align:top;
+white-space: nowrap;
+
+}
+
 
 table.userstatsbalance thead {
 text-align: right;

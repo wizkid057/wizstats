@@ -315,14 +315,15 @@ if (count($worker_data) > 1) {
 		}
 
 		$idleworkers = 0;
+		$idlelist = "";
 		asort($worker_data,SORT_FLAG_CASE|SORT_NATURAL);
 		$table = "";
 		$oev = "odd";
 		$toggles = 0;
 		foreach ($worker_data as $wid => $wname) {
+			$wname = str_replace(",", ".", $wname);
+			$wname = str_replace(" ", "_", $wname);
 			if (isset($wstat[$wid])) {
-				$wname = str_replace(",", ".", $wname);
-				$wname = str_replace(" ", "_", $wname);
 				$wname = htmlspecialchars($wname);
 				$table .= "<TR class=\"userstats$oev\"><TD>$wname</TD><TD></TD><TD></TD></TR>\n";
 				if (isset($wstat[$wid][0])) {
@@ -336,19 +337,25 @@ if (count($worker_data) > 1) {
 				$oev = $oev=="even"?$oev="odd":$oev="even";
 			} else {
 				$idleworkers++;
+				$idlelist .= " $wname,";
 			}
 		}
 		$pdata = "";
 		if ($table != "") {
 
-			$pdata = "<INPUT TYPE=\"BUTTON\" onClick=\"\$('#workeritems').toggle();\" VALUE=\"Toggle Display of Worker Details\"><BR><BR>";
-			$pdata .= "<TABLE id=\"workeritems\" class=\"userstatsworkers\"><THEAD><TH  style=\"text-align: left;\">Worker Name</TH><TH  style=\"text-align: right;\">Hashrate</TH><TH  style=\"text-align: right;\">Accepted (Rejected) Weighted Shares</TH></THEAD>$table</TABLE>";
-
+			$pdata .= "<INPUT TYPE=\"BUTTON\" onClick=\"\$('#workeritems').toggle();\" VALUE=\"Toggle Display of Worker Details\"><BR><BR>";
+			$pdata .= "<TABLE id=\"workeritems\" class=\"userstatsworkers\"><THEAD><TH  style=\"text-align: left;\">Worker Name</TH><TH  style=\"text-align: right;\">Hashrate</TH><TH  style=\"text-align: right;\">Accepted (Rejected) Weighted Shares</TH></THEAD>$table";
+			if ($idleworkers) {
+				$idlelist = substr($idlelist,1,strlen($idlelist)-2).".";
+				$pdata .= "<TR BGCOLOR=\"#CCCCCC\"><TD COLSPAN=\"3\" style=\"white-space: normal; word-wrap:break-word;\"><B>Note</B>: There ".($idleworkers==1?"is":"are")." $idleworkers idle or no longer used worker".($idleworkers==1?"":"s")." that ".($idleworkers==1?"is":"are")." not shown in the table:<BR>$idlelist</TD></TR>";
+			}
+			$pdata .= "</TABLE>";
 			$pdata .= "<script language=\"javascript\">\n<!--\n";
 			$pdata .= "\$(document).ready(\$('#workeritems').toggle());\n";
 			$pdata .= "\n--></script>\n";
-			print $pdata;
 		}
+
+		print $pdata;
 		# save cache
 		set_stats_cache($link, 187, $query_hash, $pdata, 90);
 	}
