@@ -39,8 +39,12 @@ function get_hashrate_stats(&$link, $givenuser, $user_id)
 	$u2shares = isset($row["share_total"])?$row["share_total"]:0;
 
 	# instant hashrates from CPPSRB
-	$cppsrbjson = file_get_contents("/var/lib/eligius/$serverid/cppsrb.json");
-	$cppsrbjsondec = json_decode($cppsrbjson,true);
+	if($cppsrbjsondec = apc_fetch('cppsrb_json')) {
+	} else {
+	        $cppsrbjson = file_get_contents("/var/lib/eligius/$serverid/cppsrb.json");
+	        $cppsrbjsondec = json_decode($cppsrbjson, true);
+	        apc_store('cppsrb_json', $cppsrbjsondec, 60);
+	}
 	if (isset($cppsrbjsondec[$givenuser])) {
 		$mycppsrb = $cppsrbjsondec[$givenuser];
 		$my_shares = $mycppsrb["shares"];

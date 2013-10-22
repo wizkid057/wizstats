@@ -41,8 +41,12 @@ if (isset($_GET["lastblockdatairc"])) {
 }
 
 if (isset($_GET["poolhashrate"])) {
-	$cppsrbjson = file_get_contents("/var/lib/eligius/$serverid/cppsrb.json");
-	$cppsrbjsondec = json_decode($cppsrbjson,true);
+	if($cppsrbjsondec = apc_fetch('cppsrb_json')) {
+	} else {
+		$cppsrbjson = file_get_contents("/var/lib/eligius/$serverid/cppsrb.json");
+		$cppsrbjsondec = json_decode($cppsrbjson, true);
+		apc_store('cppsrb_json', $cppsrbjsondec, 60);
+	}
 	$globalcppsrb = $cppsrbjsondec[''];
 	$my_shares = $globalcppsrb["shares"];
 	if (!isset($_GET["numeric"])) {
@@ -74,8 +78,12 @@ if (!$user_id) {
 }
 
 
-$cppsrbjson = file_get_contents("/var/lib/eligius/$serverid/cppsrb.json");
-$cppsrbjsondec = json_decode($cppsrbjson,true);
+if($cppsrbjsondec = apc_fetch('cppsrb_json')) {
+} else {
+	$cppsrbjson = file_get_contents("/var/lib/eligius/$serverid/cppsrb.json");
+	$cppsrbjsondec = json_decode($cppsrbjson, true);
+	apc_store('cppsrb_json', $cppsrbjsondec, 60);
+}
 $mycppsrb = $cppsrbjsondec[$givenuser];
 
 $globalccpsrb = $cppsrbjsondec[""];
