@@ -286,32 +286,42 @@ if (count($worker_data) > 1) {
 	} else {
 		$wherein = get_wherein_list_from_worker_data($worker_data);
 
-		# get 3 hour rates
-		$sql = "select user_id,(sum(accepted_shares)*pow(2,32))/10800 as avghash,sum(accepted_shares) as share_total, sum(rejected_shares) as reject_total from $psqlschema.stats_shareagg where server=$serverid and user_id in $wherein and time > to_timestamp((date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1)-'3 hours'::interval)::integer / 675::integer) * 675::integer) group by user_id";
+		# get hashrates
+		$sql = "select (date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1)-'12 hours'::interval)::integer / 675::integer) * 675::integer as oldest_time";
+		$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
+		$oldest_time = $row["oldest_time"];
+		$t3 = $oldest_time + (9*3600);
+		$t225 = $oldest_time + (12*3600) - (22.5*60);
+
+		$sql = "select user_id,date_part('epoch', time) as ctime,accepted_shares, rejected_shares from $psqlschema.stats_shareagg where server=$serverid and user_id in $wherein and time > to_timestamp($oldest_time) order by time desc";
 		$result = pg_exec($link, $sql);
 		$numrows = pg_numrows($result);
 		$wstat = array();
 		for ($i=0;$i<$numrows;$i++) {
 			$row = pg_fetch_array($result, $i);
 			$wid = $row["user_id"];
-			if (!isset($wstat[$wid])) { $wstat[$wid] = array(); }
-			if (!isset($wstat[$wid][0])) { $wstat[$wid][0] = array(); }
-			$wstat[$wid][0][0] = $row["avghash"];
-			$wstat[$wid][0][1] = $row["share_total"];
-			$wstat[$wid][0][2] = $row["reject_total"];
-		}
+			$t = $row["ctime"];
+			$as = $row["accepted_shares"];
+			$rs = $row["rejected_shares"];
+			if (!isset($wstat[$wid])) { 
+				$wstat[$wid] = array(); 
+				for($x=0;$x<3;$x++) {
+					$wstat[$wid][$x] = array();
+					$wstat[$wid][$x][1] = 0;
+					$wstat[$wid][$x][2] = 0;
+				}
+			}
 
-		$sql = "select user_id,(sum(accepted_shares)*pow(2,32))/1350 as avghash,sum(accepted_shares) as share_total, sum(rejected_shares) as reject_total from $psqlschema.stats_shareagg where server=$serverid and user_id in $wherein and time > to_timestamp((date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1)-'1350 seconds'::interval)::integer / 675::integer) * 675::integer) group by user_id";
-		$result = pg_exec($link, $sql);
-		$numrows = pg_numrows($result);
-		for ($i=0;$i<$numrows;$i++) {
-			$row = pg_fetch_array($result, $i);
-			$wid = $row["user_id"];
-			if (!isset($wstat[$wid])) { $wstat[$wid] = array(); }
-			if (!isset($wstat[$wid][1])) { $wstat[$wid][1] = array(); }
-			$wstat[$wid][1][0] = $row["avghash"];
-			$wstat[$wid][1][1] = $row["share_total"];
-			$wstat[$wid][1][2] = $row["reject_total"];
+			$wstat[$wid][0][1] += $as;
+			$wstat[$wid][0][2] += $rs;
+			if ($t > $t3) {
+				$wstat[$wid][1][1] += $as;
+				$wstat[$wid][1][2] += $rs;
+				if ($t > $t225) {
+					$wstat[$wid][2][1] += $as;
+					$wstat[$wid][2][2] += $rs; 
+				}
+			}
 		}
 
 		$idleworkers = 0;
@@ -319,20 +329,20 @@ if (count($worker_data) > 1) {
 		asort($worker_data,SORT_FLAG_CASE|SORT_NATURAL);
 		$table = "";
 		$oev = "odd";
-		$toggles = 0;
 		foreach ($worker_data as $wid => $wname) {
 			$wname = str_replace(",", ".", $wname);
 			$wname = str_replace(" ", "_", $wname);
 			if (isset($wstat[$wid])) {
 				$wname = htmlspecialchars($wname);
-				$table .= "<TR class=\"userstats$oev\"><TD>$wname</TD><TD></TD><TD></TD></TR>\n";
+				$table .= "<TR class=\"userstats$oev\"><TD><b>$wname</b></TD><TD></TD><TD></TD></TR>\n";
 				if (isset($wstat[$wid][0])) {
-					$toggles++;
-					$table .= "<TR class=\"userstats$oev\" style=\"text-align: right;\"><TD><I>3 Hours</I></TD><TD>".prettyHashrate($wstat[$wid][0][0])."</TD><TD>{$wstat[$wid][0][1]} ({$wstat[$wid][0][2]})</TD></TR>";
-				}
-				if (isset($wstat[$wid][1])) {
-					$toggles++;
-					$table .= "<TR class=\"userstats$oev\" style=\"text-align: right;\"><TD><I>22.5 Minutes</I></TD><TD>".prettyHashrate($wstat[$wid][1][0])."</TD><TD>{$wstat[$wid][1][1]} ({$wstat[$wid][1][2]})</TD></TR>";
+					$table .= "<TR class=\"userstats$oev\" style=\"text-align: right;\"><TD><I>12 Hours</I></TD><TD>".prettyHashrate(($wstat[$wid][0][1]*4294967296)/43200)."</TD><TD>{$wstat[$wid][0][1]} ({$wstat[$wid][0][2]})</TD></TR>";
+					if ((isset($wstat[$wid][1])) && ($wstat[$wid][1][1])) {
+						$table .= "<TR class=\"userstats$oev\" style=\"text-align: right;\"><TD><I>3 Hours</I></TD><TD>".prettyHashrate(($wstat[$wid][1][1]*4294967296)/10800)."</TD><TD>{$wstat[$wid][1][1]} ({$wstat[$wid][1][2]})</TD></TR>";
+						if ((isset($wstat[$wid][2])) && ($wstat[$wid][2][1])) {
+							$table .= "<TR class=\"userstats$oev\" style=\"text-align: right;\"><TD><I>22.5 Minutes</I></TD><TD>".prettyHashrate(($wstat[$wid][2][1]*4294967296)/1350)."</TD><TD>{$wstat[$wid][2][1]} ({$wstat[$wid][2][2]})</TD></TR>";
+						}
+					}
 				}
 				$oev = $oev=="even"?$oev="odd":$oev="even";
 			} else {
