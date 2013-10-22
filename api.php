@@ -1,6 +1,7 @@
 <?php
 
 require_once 'includes.php';
+require_once 'hashrate.php';
 
 if (isset($_GET["format"])) {
 	$format = strtolower($_GET["format"]);
@@ -103,15 +104,45 @@ if ($cmd == "getuseroptions") {
 	}
 	$data["output"] = $output;
 	echo ws_api_encode($data);
-
 	exit;
 
 }
 
+if ($cmd == "gethashrate") {
+	if ((isset($_GET["address"])) && (ctype_alnum($_GET["address"])) ) {
+		$givenuser =  $_GET["address"]);
+	} else {
+		ws_api_error("$cmd: No valid address specified");
+	}
 
+	$link = pg_pconnect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");
+	if (pg_connection_status($link) != PGSQL_CONNECTION_OK) {
+		ws_api_error("Unable to establish a connection to the stats database.  Please try again later. If this issue persists, please report it to the pool operator.");
+	}
+	$user_id = get_user_id_from_address($link, $givenuser);
+	if (!$user_id) {
+		ws_api_error("Address $givenuser not found in database.  Please try again later. If this issue persists, please report it to the pool operator.");
+	}
+
+	// Can probably use some cache here
+	$cache_key = hash("sha256", "api.php hashrate json for $givenuser");
+	$json = get_stats_cache($link, 200, $cache_key);
+	if ($json == "") {
+		$hashrate_info = get_hashrate_stats($link, $givenuser, $user_id);
+		$output = array();
+		$output["values"] = array();
+		$output["intervals"] = $hashrate_info["intervals"];
+		foreach ($hashrate_info["intervals"] as $interval) {
+			$output["values"][$interval] = $hashrate_info[$interval];
+		}
+		$json = json_encode($output);
+		set_stats_cache($link, 200, $cache_key, $json, 30);
+	}
+	$data["output"] = $json;
+	echo ws_api_encode($data);
+}
 
 ws_api_error("Command not found");
-
 
 function ws_api_encode($data) {
 	if ($GLOBALS["format"] == "json") {
@@ -122,7 +153,6 @@ function ws_api_encode($data) {
 	}
 
 }
-
 
 function ws_api_error($msg) {
 
