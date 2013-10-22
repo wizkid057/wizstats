@@ -77,8 +77,7 @@
 			$tempid = $row["orig_id"];
 
 			# check cache for latest speed boost data
-			$livedataspeedup = get_stats_cache($link, 105, "livedata.json - share count from $tempid");
-			if ($livedataspeedup == "") {
+			if (!($livedataspeedup = apc_fetch("livedata.json - share count from $tempid"))) {
 				# no boost for this block yet, lets make it!
 				$sql = "select sum(our_result::integer * pow(2,targetmask-32)) as instcount, max(id) as latest_id from shares where server=$serverid and our_result=true and id > $tempid";
 				$sqlcheck = "select count(*) as check from pg_stat_activity where current_query='$sql'";
@@ -104,7 +103,7 @@
 					$roundshares = $row["instcount"];
 					$maxid = $row["latest_id"];
 					if (($roundshares > 0) && ($maxid > $tempid)) {
-						set_stats_cache($link, 105, "livedata.json - share count from $tempid", "$roundshares:$maxid", 86400*7);
+						apc_store("livedata.json - share count from $tempid", "$roundshares:$maxid", 86400*7);
 					}
 				}
 			} else {
