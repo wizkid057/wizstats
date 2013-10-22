@@ -20,23 +20,41 @@ function get_hashrate_stats(&$link, $givenuser, $user_id)
 	$worker_data = get_worker_data_from_user_id($link, $user_id);
 	$wherein = get_wherein_list_from_worker_data($worker_data);
 
-	# 12 hour hashrate
-	$sql = "select (sum(accepted_shares)*pow(2,32))/43200 as avghash,sum(accepted_shares) as share_total from $psqlschema.stats_shareagg where server=$serverid and user_id in $wherein and time > to_timestamp((date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1)-'12 hours'::interval)::integer / 675::integer) * 675::integer)";
-	$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
-	$u12avghash = isset($row["avghash"])?$row["avghash"]:0;
-	$u12shares = isset($row["share_total"])?$row["share_total"]:0;
+	$u12avghash = 0;
+	$u12shares = 0;
+	$u16avghash = 0;
+	$u16shares = 0;
+	$u2avghash = 0;
+	$u2shares = 0;
 
-	# 3 hour hashrate
-	$sql = "select (sum(accepted_shares)*pow(2,32))/10800 as avghash,sum(accepted_shares) as share_total from $psqlschema.stats_shareagg where server=$serverid and user_id in $wherein and time > to_timestamp((date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1)-'3 hours'::interval)::integer / 675::integer) * 675::integer)";
+	# get current latest aggregated data time
+	$sql = "select ((date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1)-'12 hours'::interval)::integer / 675::integer)*675::integer) as oldest_time";
 	$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
-	$u16avghash = isset($row["avghash"])?$row["avghash"]:0;
-	$u16shares = isset($row["share_total"])?$row["share_total"]:0;
+	$oldest_time = $row["oldest_time"];
 
-	# 22.5 minute hashrate
-	$sql = "select (sum(accepted_shares)*pow(2,32))/1350 as avghash,sum(accepted_shares) as share_total from $psqlschema.stats_shareagg where server=$serverid and user_id in $wherein and time > to_timestamp((date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1))::integer / 675::integer)::integer * 675::integer)-'1350 seconds'::interval";
-	$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
-	$u2avghash = isset($row["avghash"])?$row["avghash"]:0;
-	$u2shares = isset($row["share_total"])?$row["share_total"]:0;
+	# get list of data points for last 12 hours
+	$sql = "select accepted_shares,date_part('epoch', time) as ctime from $psqlschema.stats_shareagg where server=$serverid and user_id in $wherein and time > to_timestamp($oldest_time) order by time desc";
+	$result = pg_exec($link, $sql);
+	$numrows = pg_numrows($result);
+	if ($numrows) {
+		$t3 = $oldest_time + (9*3600);
+		$t225 = $oldest_time + (12*3600) - (22.5*60);
+		for($i=0;$i<$numrows;$i++) {
+			$row = pg_fetch_array($result, $i);
+			$as = $row["accepted_shares"];
+			$t = $row["ctime"];
+			$u12shares+=$as;
+			if ($t > $t3) {
+				$u16shares+=$as;
+				if ($t > $t225) {
+					$u2shares+=$as;
+				}
+			}
+		}
+		$u12avghash = ($u12shares/(12*3600))*4294967296;
+		$u16avghash = ($u16shares/(3*3600))*4294967296;
+		$u2avghash = ($u2shares/(22.5*60))*4294967296;
+	}
 
 	# instant hashrates from CPPSRB
 	if($cppsrbjsondec = apc_fetch('cppsrb_json')) {
