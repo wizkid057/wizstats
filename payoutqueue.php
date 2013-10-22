@@ -10,14 +10,14 @@ print "<H2>Payout Queue</H2><BR>";
 	// Try Cache First
 	if($payout = apc_fetch('payout')) {
 	} else {
-	 $payout = file("/var/lib/eligius/7/payout_queue.txt", FILE_IGNORE_NEW_LINES); 
+	 $payout = file("/var/lib/eligius/$serverid/payout_queue.txt", FILE_IGNORE_NEW_LINES); 
 	 // Store Cache for 10 minutes
 	 apc_store('payout', $payout, 600);
 	}
 	// Try Cache First
 	if($balance = apc_fetch('balance')) {
 	} else {
-	 $balance = file_get_contents("/var/lib/eligius/7/balances.json");
+	 $balance = file_get_contents("/var/lib/eligius/$serverid/balances.json");
 	 $balance = json_decode($balance, true);
 	 // Store Cache for 10 minutes
 	 apc_store('balance', $balance, 600);
