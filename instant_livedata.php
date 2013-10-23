@@ -72,14 +72,16 @@
 			$netdiff = $row["network_difficulty"];
 
 			# Get the share id of the last valid block we've found
-			$sql = "select orig_id from stats_blocks where server=$serverid and confirmations > 0 order by time desc limit 1;";
+			$sql = "select orig_id,time from stats_blocks where server=$serverid and confirmations > 0 order by time desc limit 1;";
 			$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
 			$tempid = $row["orig_id"];
+			$temptime = $row["time"];
 
 			# check cache for latest speed boost data
 			if (!($livedataspeedup = apc_fetch("livedata.json - share count from $tempid"))) {
 				# no boost for this block yet, lets make it!
-				$sql = "select sum(our_result::integer * pow(2,targetmask-32)) as instcount, max(id) as latest_id from shares where server=$serverid and our_result=true and id > $tempid";
+				# this is kind of a kludge, bit should be close enough for the instastats...
+				$sql = "select (select sum(accepted_shares) as instcount from stats_shareagg where time > '$temptime') as instcount, (select id from shares where server=$serverid order by id desc limit 1) as latest_id;";
 				$sqlcheck = "select count(*) as check from pg_stat_activity where current_query='$sql'";
 				$result = pg_exec($link, $sqlcheck); $row = pg_fetch_array($result, 0);
 				$runningqueries = $row["check"];
@@ -90,11 +92,11 @@
 					while($done > 0) {
 						$done--;
 						sleep(1);
-						$livedataspeedup = get_stats_cache($link, 105, "livedata.json - share count from $tempid");
-					if ($livedataspeedup != "") {
-							# woot, fruits of the other query's labor!
-							list($roundshares, $maxid) = explode(":", $livedataspeedup);
-							$done = 0; $fetch = 0;
+						$livedataspeedup = apc_fetch("livedata.json - share count from $tempid");
+						if ($livedataspeedup != "") {
+								# woot, fruits of the other query's labor!
+								list($roundshares, $maxid) = explode(":", $livedataspeedup);
+								$done = 0; $fetch = 0;
 						}
 					}
 				}
@@ -113,12 +115,13 @@
 					print "{\"error\":\"$maxid < $tempid ... $livedataspeedup\"}\n";
 					exit();
 				}
+				# this should still be pretty fast after caching
 				$sql = "select sum(our_result::integer * pow(2,targetmask-32)) as instcount, max(id) as latest_id from shares where server=$serverid and our_result=true and id > $maxid";
 				$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
 				$roundshares += $row["instcount"];
 				$maxid = $row["latest_id"];
 				if (($roundshares > 0) && ($maxid > $tempid)) {
-					update_stats_cache($link, 105, "livedata.json - share count from $tempid", "$roundshares:$maxid", 86400*7);
+					apc_store("livedata.json - share count from $tempid", "$roundshares:$maxid", 86400*7);
 				}
 			}
 
