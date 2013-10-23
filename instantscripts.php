@@ -19,9 +19,10 @@ require_once "includes.php";
 
 if (!isset($_SERVER['PATH_INFO'])) { exit(); }
 
-if (($_SERVER['PATH_INFO'] == "/livedata-main.js") || ($_SERVER['PATH_INFO'] == "/livedata.js")) {
+if (($_SERVER['PATH_INFO'] == "/livedata-main.js") || ($_SERVER['PATH_INFO'] == "/livedata.js") || ($_SERVER['PATH_INFO'] == "/livedata-short.js")  ) {
 
 	if ($_SERVER['PATH_INFO'] == "/livedata-main.js") { $main = 1; } else { $main = 0; }
+	if ($_SERVER['PATH_INFO'] == "/livedata-short.js") { $short = 1; } else { $short = 0; }
 
 	header("Content-type: application/javascript");
 	header("Cache-Control: max-age=60");
@@ -50,7 +51,9 @@ if (($_SERVER['PATH_INFO'] == "/livedata-main.js") || ($_SERVER['PATH_INFO'] == 
 	var dom_sharecounter;
 	var countSharesDelay;
 	var countSharesDelayNext = 41;
-
+"; 
+if (!$short) {
+        print "
 	function updateRoundDuration()
 	{
 		prettyRoundDuration = secondsToHms(intRoundDuration);
@@ -106,7 +109,7 @@ if (($_SERVER['PATH_INFO'] == "/livedata-main.js") || ($_SERVER['PATH_INFO'] == 
 	function checkNewInfo()
 	{
 ";
-
+}
 
 if ($main) {
 print "		if (latestBlockHeight != intCurrentBlockHeight) {
