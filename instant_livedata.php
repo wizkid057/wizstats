@@ -72,7 +72,7 @@
 			$netdiff = $row["network_difficulty"];
 
 			# Get the share id of the last valid block we've found
-			$sql = "select * from (select orig_id,time from stats_blocks where server=$serverid and confirmations > 0 order by time desc limit 1) as a, (select time as satime from stats_shareagg where server=$serverid order by time desc limit 1) as b;";
+			$sql = "select * from (select orig_id,time from stats_blocks where server=$serverid and confirmations > 0 order by time desc limit 1) as a, (select time+'675 seconds'::interval as satime from stats_shareagg where server=$serverid order by time desc limit 1) as b;";
 			$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
 			$tempid = $row["orig_id"];
 			$temptime = $row["time"];
@@ -82,7 +82,8 @@
 			if ((!($livedataspeedup = apc_fetch("livedata.json - share count from $tempid"))) || ($nocache)){
 				# no boost for this block yet, lets make it!
 				# this is kind of a kludge, bit should be close enough for the instastats...
-				$sql = "select (select sum(pow(2,targetmask-32)) from shares where server=$serverid and our_result=true and time > '$temptime' and time < to_timestamp(((date_part('epoch', '$temptime'::timestamp without time zone)::integer / 675) * 675)+675))+(select coalesce(sum(accepted_shares),0) from stats_shareagg where time >= to_timestamp(((date_part('epoch', '$temptime'::timestamp without time zone)::integer / 675) * 675)+675) and server=$serverid)+(select sum(pow(2,targetmask-32)) from shares where server=$serverid and our_result=true and time > '$temptime2') as instcount, (select id from shares where server=$serverid order by id desc limit 1) as latest_id;";
+				$sql = "select (select sum(pow(2,targetmask-32)) from shares where server=$serverid and our_result=true and time > '$temptime' and time < to_timestamp(((date_part('epoch', '$temptime'::timestamp without time zone)::integer / 675) * 675)+675))+(select coalesce(sum(accepted_shares),0) from stats_shareagg where time >= to_timestamp(((date_part('epoch', '$temptime'::timestamp without time zone)::integer / 675) * 675)+675) and server=$serverid)+(select coalesce(sum(pow(2,targetmask-32)),0) from shares where server=$serverid and our_result=true and time > '$temptime2' and time > to_timestamp(((date_part('epoch', '$temptime'::timestamp without time zone)::integer / 675) * 675)+675)) as instcount, (select id from shares where server=$serverid order by id desc limit 1) as latest_id;";
+				if ($nocache) { print $sql; }
 				$sqlescape = pg_escape_string($link, $sql);
 				$sqlcheck = "select count(*) as check from pg_stat_activity where current_query='$sqlescape'";
 				$result = pg_exec($link, $sqlcheck); $row = pg_fetch_array($result, 0);
