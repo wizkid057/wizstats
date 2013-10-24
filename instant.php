@@ -25,6 +25,8 @@ if (($_SERVER['PATH_INFO'] == "/livedata.json") || ((isset($argv[1])) && ($argv[
 
 	header("Content-type: application/json");
 
+	if (isset($argv[2])) { $nocache = 1; } else { $nocache = 0; }
+
 	include("instant_livedata.php");
 
 	$tline = "{\"sharesperunit\":$sharesperunit,\"roundsharecount\":$roundshares,\"lastblockheight\":$blockheight,\"lastconfirms\":$latestconfirms,\"roundduration\":$roundduration,\"hashratepretty\":\"$phash\",\"network_difficulty\":$netdiff}";

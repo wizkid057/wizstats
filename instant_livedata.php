@@ -24,7 +24,7 @@
 	if (!isset($link)) { $link = pg_pconnect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost"); }
 
 	$livedata = get_stats_cache($link, 5, "livedata.json");
-	if ($livedata != "") {
+	if (($livedata != "") && (!$nocache)) {
 		# we can parse it faster maybe?!
 
 		$instantjsondec = json_decode($livedata,true);
@@ -72,17 +72,19 @@
 			$netdiff = $row["network_difficulty"];
 
 			# Get the share id of the last valid block we've found
-			$sql = "select orig_id,time from stats_blocks where server=$serverid and confirmations > 0 order by time desc limit 1;";
+			$sql = "select * from (select orig_id,time from stats_blocks where server=$serverid and confirmations > 0 order by time desc limit 1) as a, (select time as satime from stats_shareagg where server=$serverid order by time desc limit 1) as b;";
 			$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
 			$tempid = $row["orig_id"];
 			$temptime = $row["time"];
+			$temptime2 = $row["satime"];
 
 			# check cache for latest speed boost data
-			if (!($livedataspeedup = apc_fetch("livedata.json - share count from $tempid"))) {
+			if ((!($livedataspeedup = apc_fetch("livedata.json - share count from $tempid"))) || ($nocache)){
 				# no boost for this block yet, lets make it!
 				# this is kind of a kludge, bit should be close enough for the instastats...
-				$sql = "select (select sum(accepted_shares) as instcount from stats_shareagg where time > '$temptime') as instcount, (select id from shares where server=$serverid order by id desc limit 1) as latest_id;";
-				$sqlcheck = "select count(*) as check from pg_stat_activity where current_query='$sql'";
+				$sql = "select (select sum(pow(2,targetmask-32)) from shares where server=$serverid and our_result=true and time > '$temptime' and time < to_timestamp(((date_part('epoch', '$temptime'::timestamp without time zone)::integer / 675) * 675)+675))+(select coalesce(sum(accepted_shares),0) from stats_shareagg where time >= to_timestamp(((date_part('epoch', '$temptime'::timestamp without time zone)::integer / 675) * 675)+675) and server=$serverid)+(select sum(pow(2,targetmask-32)) from shares where server=$serverid and our_result=true and time > '$temptime2') as instcount, (select id from shares where server=$serverid order by id desc limit 1) as latest_id;";
+				$sqlescape = pg_escape_string($link, $sql);
+				$sqlcheck = "select count(*) as check from pg_stat_activity where current_query='$sqlescape'";
 				$result = pg_exec($link, $sqlcheck); $row = pg_fetch_array($result, 0);
 				$runningqueries = $row["check"];
 				$fetch = 1;
@@ -116,7 +118,7 @@
 					exit();
 				}
 				# this should still be pretty fast after caching
-				$sql = "select sum(our_result::integer * pow(2,targetmask-32)) as instcount, max(id) as latest_id from shares where server=$serverid and our_result=true and id > $maxid";
+				$sql = "select sum(pow(2,targetmask-32)) as instcount, max(id) as latest_id from shares where server=$serverid and our_result=true and id > $maxid";
 				$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
 				$roundshares += $row["instcount"];
 				$maxid = $row["latest_id"];
