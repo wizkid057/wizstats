@@ -49,6 +49,9 @@ if (isset($_GET["poolhashrate"])) {
 	}
 	$globalcppsrb = $cppsrbjsondec[''];
 	$my_shares = $globalcppsrb["shares"];
+	if (isset($_GET["scriptformat"])) {
+		print sprintf("eligiusHashrate256 = %F;",(($my_shares[256] * 4294967296)/256));
+	} else
 	if (!isset($_GET["numeric"])) {
 		print "Insta-hashrate for $poolname - ";
 		print "64 second: " . prettyHashrate(($my_shares[64] * 4294967296)/64) . " - ";
