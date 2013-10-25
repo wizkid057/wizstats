@@ -17,6 +17,7 @@ if (isset($_GET["poolhashrate"])) {
         
         $my_shares = $globalcppsrb["shares"];
         
-        print sprintf( "%s ( { \"poolhashrate\" :\"%F\" } )", $_GET['callback'], $my_shares[256]*4294967296/256 );
+        print sprintf( "%s ( { \"poolhashrate\" : \"%F\" } )", $_GET['callback'], $my_shares[256]*4294967296/256 );
         
 }
+?>
