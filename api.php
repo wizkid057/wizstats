@@ -21,6 +21,16 @@ require_once 'includes.php';
 
 if (isset($_GET["format"])) {
 	$format = strtolower($_GET["format"]);
+	if ($format == "jsonp") {
+		if (isset($_GET['callback'])) {
+			$callback = 1;
+		} else {
+			$callback = 0;
+		}
+		$format = "json";
+	} else {
+		$callback = 0;
+	}
 	if (($format != "json") && ($format != "text")) {
 		$format = "json";
 		header("Content-type: application/json");
@@ -30,9 +40,14 @@ if (isset($_GET["format"])) {
 	$format = "json";
 }
 
-if ($format == "json") { header("Content-type: application/json"); }
+if ($format == "json") {
+	if ($callback) {
+		header("Content-type: application/javascript");
+	} else {
+		header("Content-type: application/json");
+	}
+}
 if ($format == "text") { header("Content-type: text/plain"); }
-
 
 if (isset($_GET["cmd"])) {
 	$cmd = strtolower($_GET["cmd"]);
@@ -173,7 +188,12 @@ ws_api_error("Command not found");
 
 function ws_api_encode($data) {
 	if ($GLOBALS["format"] == "json") {
-		return json_encode($data);
+		if ($GLOBALS["callback"]) {
+			$cb = preg_replace("/[^A-Za-z0-9_]/", '', $_GET['callback']); # why do people have to be so ruthless?!
+			return sprintf("%s ( %s )",$cb,json_encode($data));
+		} else {
+			return json_encode($data);
+		}
 	}
 	if ($GLOBALS["format"] == "text") {
 		print_r($data);
