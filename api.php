@@ -1,10 +1,26 @@
 <?php
+#    wizstats - bitcoin pool web statistics - 1StatsgBq3C8PbF1SJw487MEUHhZahyvR
+#    Copyright (C) 2013  Jason Hughes <wizkid057@gmail.com>
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
 
 require_once 'includes.php';
 
 if (isset($_GET["format"])) {
 	$format = strtolower($_GET["format"]);
-	#if (($format != "json") && ($format != "text") && ($format != "html")) {
 	if (($format != "json") && ($format != "text")) {
 		$format = "json";
 		header("Content-type: application/json");
@@ -16,7 +32,6 @@ if (isset($_GET["format"])) {
 
 if ($format == "json") { header("Content-type: application/json"); }
 if ($format == "text") { header("Content-type: text/plain"); }
-#if ($format == "html") { header("Content-type: text/html"); }
 
 
 if (isset($_GET["cmd"])) {
