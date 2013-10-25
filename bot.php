@@ -34,7 +34,13 @@ if (isset($_GET["lastblockdatairc"])) {
 	$hashratenum = $hashrate;
 	$hashrate = prettyHashrate($hashrate);
 
-	$nickname = get_nickname($link,$user_id);
+	list($username,$workername) = explode("_", $username, 2);
+
+	$nickname = get_nickname($link,get_user_id_from_address($link,$username));
+
+	if (strlen($workername) > 0) {
+		$nickname .= " Worker: $workername";
+	}
 
 	print "ws002: $blockhash $height $username $acceptedshares $networkdifficulty $duration $hashrate $nickname \n\n";
 	exit;
