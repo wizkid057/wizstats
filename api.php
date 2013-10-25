@@ -108,7 +108,50 @@ if ($cmd == "getuseroptions") {
 
 }
 
+if ($cmd == "gethashrate") {
+	if ((isset($_GET["full"])) && ($_GET["full"] == 1)) {
+		$full = 1;
+	} else {
+		$full = 0;
+	}
 
+	if (isset($_GET["username"])) {
+		$givenuser = $_GET["username"];
+		$bits =  hex2bits(\Bitcoin::addressToHash160($givenuser));
+
+		$link = pg_pconnect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");
+		$user_id = get_user_id_from_address($link, $givenuser);
+		if (!$user_id) {
+			ws_api_error("$cmd: Username $givenuser not found in database.");
+		}
+	} else {
+		$givenuser = "entirepool";
+	}
+
+	if($cppsrbjsondec = apc_fetch('cppsrb_json')) {
+	} else {
+	        $cppsrbjson = file_get_contents("/var/lib/eligius/$serverid/cppsrb.json");
+	        $cppsrbjsondec = json_decode($cppsrbjson, true);
+	        apc_store('cppsrb_json', $cppsrbjsondec, 60);
+	}
+
+	if ($givenuser != "entirepool") {
+		$mycppsrb = $cppsrbjsondec[$givenuser];
+	} else {
+		$mycppsrb = $cppsrbjsondec[""];
+	}
+
+	$my_shares = $mycppsrb["shares"];
+
+	$output = array();
+	$output["username"] = $givenuser;
+	$output["256"] = array("numeric" => sprintf("%.0F",($my_shares[256] * 4294967296)/256), "pretty" => prettyHashrate(($my_shares[256] * 4294967296)/256), "share_count" => sprintf("%u",$my_shares[256]));
+	$output["128"] = array("numeric" => sprintf("%.0F",($my_shares[128] * 4294967296)/128), "pretty" => prettyHashrate(($my_shares[128] * 4294967296)/128), "share_count" => sprintf("%u",$my_shares[128]));
+	$output["64"] = array("numeric" => sprintf("%.0F",($my_shares[64] * 4294967296)/64), "pretty" => prettyHashrate(($my_shares[64] * 4294967296)/64), "share_count" => sprintf("%u",$my_shares[64]));
+	$data["output"] = $output;
+	echo ws_api_encode($data);
+	exit;
+}
 
 ws_api_error("Command not found");
 
