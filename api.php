@@ -175,9 +175,9 @@ if ($cmd == "gethashrate") {
 
 	$output = array();
 	$output["username"] = $givenuser;
-	$output["256"] = array("numeric" => sprintf("%.0F",($my_shares[256] * 4294967296)/256), "pretty" => prettyHashrate(($my_shares[256] * 4294967296)/256), "share_count" => sprintf("%u",$my_shares[256]));
-	$output["128"] = array("numeric" => sprintf("%.0F",($my_shares[128] * 4294967296)/128), "pretty" => prettyHashrate(($my_shares[128] * 4294967296)/128), "share_count" => sprintf("%u",$my_shares[128]));
-	$output["64"] = array("numeric" => sprintf("%.0F",($my_shares[64] * 4294967296)/64), "pretty" => prettyHashrate(($my_shares[64] * 4294967296)/64), "share_count" => sprintf("%u",$my_shares[64]));
+	$output["av256"] = array("numeric" => sprintf("%.0F",($my_shares[256] * 4294967296)/256), "pretty" => prettyHashrate(($my_shares[256] * 4294967296)/256), "share_count" => sprintf("%u",$my_shares[256]));
+	$output["av128"] = array("numeric" => sprintf("%.0F",($my_shares[128] * 4294967296)/128), "pretty" => prettyHashrate(($my_shares[128] * 4294967296)/128), "share_count" => sprintf("%u",$my_shares[128]));
+	$output["av64"] = array("numeric" => sprintf("%.0F",($my_shares[64] * 4294967296)/64), "pretty" => prettyHashrate(($my_shares[64] * 4294967296)/64), "share_count" => sprintf("%u",$my_shares[64]));
 	$data["output"] = $output;
 	echo ws_api_encode($data);
 	exit;
