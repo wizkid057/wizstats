@@ -106,6 +106,8 @@ function block_table_row($row,$isodd) {
 	$blocks_row .= "<TD style=\"text-align: right;\">".number_format(round($row["network_difficulty"],0))."</TD>";
 	$blocks_row .= "<TD style=\"text-align: right;\">".$luck."</TD>";
 
+	$hashratenum = sprintf("%.0f",$hashratenum);
+
 	$blocks_row .= "<TD style=\"text-align: right; font-size: 0.9em;\" sorttable_customkey=\"".$hashratenum."\" >".$hashrate."</TD>";
 
 
