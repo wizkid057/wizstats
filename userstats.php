@@ -462,101 +462,30 @@ print "<div id=\"userstatsright\">";
 
 print "<B>Latest Payouts</B>";
 
-if (($everpaid > 0) && (0) ) {
-#if (($everpaid > 0) && (1) ) {
-	$query_hash = hash("sha256", "userstats.php latest payouts for $givenuser with id $user_id and latest everpaid of $everpaid");
+if ($everpaid > 0) {
+
+	$query_hash = hash("sha256", "userstats.php latest payouts for $givenuser with id $user_id and latest everpaid of $everpaid v2");
 	$latestpayouts = get_stats_cache($link, 12, $query_hash);
 	if ($latestpayouts != "") {
 		print $latestpayouts;
 	} else {
-		# walk the blocklist back a ways to check for payouts
-		if ($blockjsondec = apc_fetch("wizstats_jsoncache_".hash("sha256", "/var/lib/eligius/$serverid/blocks/latest.json"))) {
-		} else {
-			$blockjsondec = json_decode(file_get_contents("/var/lib/eligius/$serverid/blocks/latest.json"),true);
-			apc_store("wizstats_jsoncache_".hash("sha256", "/var/lib/eligius/$serverid/blocks/latest.json"), $blockjsondec, 600);
-		}
-		$myblockdata = $blockjsondec[$givenuser];
-		$lastep = $everpaid;
-		$lastblock = substr(readlink("/var/lib/eligius/$serverid/blocks/latest.json"),0,-5);
-		if (strlen($lastblock) < 64) { $lastblock = "latest"; }
-		$thisep = $lastep;
 
-		$maxlook = 64; # needs work...
-		$maxtable = 8;
+		$sql = "select stats_transactions.time as time, stats_payouts.amount as amount, stats_transactions.hash as txhash, stats_transactions.coinbase as coinbase, stats_blocks.blockhash as blockhash from $psqlschema.stats_payouts left join $psqlschema.stats_transactions on stats_transactions.id=transaction_id left join $psqlschema.stats_blocks on block_id=stats_blocks.id where stats_payouts.user_id=$user_id order by time desc limit 10;";
+		$result = pg_exec($link, $sql);
+		$numrows = pg_numrows($result);
 		$xdata = "";
-		$oev = "even";
-		while(($maxlook) && ($maxtable) && ($thisep > 0))  {
-			$paidblock = $lastblock;
-			$forcetype = "";
-			if ((isset($blockjsondec[""]["roundend"])) && ($blockjsondec[""]["roundend"] > 0)) {
-				$paydate = date("Y-m-d H:i",$blockjsondec[""]["roundend"]);
-				$paydateshort = date("Y-m-d",$blockjsondec[""]["roundend"]);
+
+		for($i=0;$i<$numrows;$i++) {
+			$row = pg_fetch_array($result, $i);
+			if ($row["coinbase"] == "t") {
+				$tid = "<A HREF=\"../blockinfo.php/{$row["blockhash"]}\">G</A>";
 			} else {
-				# get time from manual send creation time
-				$paydatectime = filectime("/var/lib/eligius/$serverid/blocks/".($lastblock).".json");
-				if ($paydatectime > 0) {
-					$paydate = date("Y-m-d H:i",$paydatectime); 
-					$paydateshort = date("Y-m-d",$paydatectime); 
-					$forcetype = "S";
-				} else {
-					$paydate = "Unknown";
-				}
+				$tid = "<A HREF=\"http://blockchain.info/search?search={$row["txhash"]}\">S</A>";
 			}
 
-			$lastblock = $blockjsondec[""]["mylastblk"];
-			if (!isset($blockjsondec[""]["mylastblk"])) { $maxlook = 1; }
-			$oldblockjsondec = $blockjsondec;
-
-
-			if ($blockjsondec = apc_fetch("wizstats_jsoncache_".hash("sha256", "/var/lib/eligius/$serverid/blocks/".($lastblock).".json"))) {
-			} else {
-				$blockjsondec = json_decode(file_get_contents("/var/lib/eligius/$serverid/blocks/".($lastblock).".json"),true);
-				apc_store("wizstats_jsoncache_".hash("sha256", "/var/lib/eligius/$serverid/blocks/".($lastblock).".json"), $blockjsondec, 864000);
-			}
-			if (isset($blockjsondec[$givenuser])) { $myblockdata = $blockjsondec[$givenuser]; } else { unset($myblockdata); }
-			if (isset($myblockdata["everpaid"])) {
-				$thisep = $myblockdata["everpaid"];
-			} else {
-				if (isset($blockjsondec[$givenuser])) {
-					$thisep = 0;
-				} else {
-					if (isset($oldblockjsondec[$givenuser])) {
-						# this user was either fully paid and old, then started mining again, or, they just started and the last block was their first payout ever.
-						$thisep = 0;
-						$forcetype = "O";
-					}
-				}
-			}
-			$maxlook--;
-			if ($thisep < $lastep) {
-				$paid = $lastep - $thisep;
-				$paid = prettySatoshis($paid);
-				if (strpos($paidblock,'_send') != false) {
-					$type = "S";
-				} else {
-					$type = "G";
-				}
-				if ($forcetype != "") {
-					$type = $forcetype;
-				}
-				if ($paidblock != "latest") {
-					if ($type == "G") {
-						$type = "<A HREF=\"../blockinfo.php/".substr($paidblock,0,64)."\">$type</A>";
-					} else {
-						$type = "<A HREF=\"http://blockchain.info/search?search=".substr($paidblock,0,64)."\">$type</A>";
-					}
-				}
-
-				if ($forcetype != "O") {
-					$xdata .= "<TR class=\"userstats$oev\"><TD title=\"$paidblock\">$paydate ($type)</TD><TD class=\"rtnumbers\">$paid</TD></TR>";
-				} else {
-					$xdata .= "<TR class=\"userstats$oev\"><TD>$paydateshort <small>and prior</small></TD><TD class=\"rtnumbers\">$paid</TD></TR>";
-				}
-				$oev = $oev=="even"?$oev="odd":$oev="even";
-				$lastep = $thisep;
-				$maxtable--;
-			}
+			$xdata .= "<TR><TD>{$row["time"]} ($tid)</TD><TD>".prettySatoshis($row["amount"])."</TD></TR>";
 		}
+
 		if ($xdata != "") {
 			$pdata = "<table id=\"paymentlist\"><THEAD><TR><TH>Date (<SPAN title=\"G = Payout from coinbase/generation; S = Payout from normal send/sendmany\" style=\"border-bottom: 1px dashed #888888\">Type</SPAN>)</TH><TH>Amount</TH></TR></THEAD>$xdata</table>";
 		} else {
@@ -564,10 +493,10 @@ if (($everpaid > 0) && (0) ) {
 		}
 		print $pdata;
 		# cache this data for 24 hours. if the user is paid, the hash will change and invalidate this forcing a rebuild. genius!
-		set_stats_cache($link, 12, $query_hash, $pdata, 3600*24);
+		set_stats_cache($link, 12, $query_hash, $pdata, 3600*24); # can cache forever since we have everpaid in our hash
 	}
 } else {
-	print "<BR>No data available. (module temporarily disabled)<BR>";
+	print "<BR>No data available.<BR>";
 }
 
 print "All time total payout: ".prettySatoshis($everpaid);

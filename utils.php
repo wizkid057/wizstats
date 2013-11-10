@@ -376,3 +376,16 @@ function isLocked()
 	file_put_contents( LOCK_FILE, getmypid() . "\n" );
 	return false;
 }
+
+function getblock_rpc($blockhash) {
+	$json = "{\"method\":\"getblock\", \"id\":\"1\", \"params\":[\"$blockhash\"]}";
+	$response = my_curl_request($GLOBALS["bitcoinrpcurl"], $json);
+	return $response;
+}
+
+function getrawtransaction_rpc($hash) {
+	$json = "{\"method\":\"getrawtransaction\", \"id\":\"1\", \"params\":[\"$hash\",1]}";
+	$response = my_curl_request($GLOBALS["bitcoinrpcurl"], $json);
+	return $response;
+}
+
