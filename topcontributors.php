@@ -38,6 +38,8 @@ if ($cacheddata != "") {
 	print $cacheddata;
 } else {
 
+	if (!isset($link2)) { $link2 = pg_pconnect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost"); }
+
 	# get total pool hashrate
 	$sql = "select (sum(accepted_shares)*pow(2,32))/10800 as avghash from $psqlschema.stats_shareagg where server=$serverid and time > to_timestamp((date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1))::integer / 675::integer)::integer * 675::integer)-'3 hours'::interval";
 	$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
@@ -68,8 +70,8 @@ if ($cacheddata != "") {
 
 
 		if (isset($row['keyhash'])) {
-			$nickname = get_nickname($link,$user_id);
 	                $address =  \Bitcoin::hash160ToAddress(bits2hex($row['keyhash']));
+			$nickname = get_nickname($link2,get_user_id_from_address($link2,$address));
 
 			if (($nickname != "") && ($nickname != $address)) {
 				$address = "<A HREF=\"userstats.php/$address\">$nickname<BR><FONT SIZE=\"-3\">($address)</FONT></A>";
