@@ -337,6 +337,7 @@ if (count($worker_data) > 1) {
 				$table .= "<TR class=\"userstats$oev\"><TD><b>$wname</b></TD><TD></TD><TD></TD></TR>\n";
 				if (isset($wstat[$wid][0])) {
 					$table .= "<TR class=\"userstats$oev\" style=\"text-align: right;\"><TD><I>12 Hours</I></TD><TD>".prettyHashrate(($wstat[$wid][0][1]*4294967296)/43200)."</TD><TD>{$wstat[$wid][0][1]} ({$wstat[$wid][0][2]})</TD></TR>";
+					$twelve_hour_hashrate = prettyHashrate(($wstat[$wid][0][1]*4294967296)/43200); # I honestly have no idea how you are calling this stuff so I'm just going to grab this variable from here.
 					if ((isset($wstat[$wid][1])) && ($wstat[$wid][1][1])) {
 						$table .= "<TR class=\"userstats$oev\" style=\"text-align: right;\"><TD><I>3 Hours</I></TD><TD>".prettyHashrate(($wstat[$wid][1][1]*4294967296)/10800)."</TD><TD>{$wstat[$wid][1][1]} ({$wstat[$wid][1][2]})</TD></TR>";
 						if ((isset($wstat[$wid][2])) && ($wstat[$wid][2][1])) {
@@ -595,6 +596,15 @@ if ($savedbal) {
 	}
 	print "</span>";
 }
+
+$current_reward = 25; #CHANGE THIS IN 2017!
+$magic_number = 1000000000 * $current_reward * 86400 / 2^32; #hashes from gigahash * reward * seconds in 24 hours / 2^32
+$coins_per_day = $magic_number * $twelve_hour_hashrate / $netdiff;
+
+print "<B>Estimated Payout Per Day</B>";
+print "$coins_per_day BTC/day"
+
+
 
 print "</div>";
 
