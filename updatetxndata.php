@@ -1,3 +1,4 @@
+#!/usr/bin/php
 <?php
 #    wizstats - bitcoin pool web statistics - 1StatsgBq3C8PbF1SJw487MEUHhZahyvR
 #    Copyright (C) 2013  Jason Hughes <wizkid057@gmail.com>
