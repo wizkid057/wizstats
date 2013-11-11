@@ -493,7 +493,7 @@ if ($everpaid > 0) {
 		}
 		print $pdata;
 		# cache this data for 24 hours. if the user is paid, the hash will change and invalidate this forcing a rebuild. genius!
-		set_stats_cache($link, 12, $query_hash, $pdata, 3600*24); # can cache forever since we have everpaid in our hash
+		set_stats_cache($link, 12, $query_hash, $pdata, 600); # just cache for 10 minutes so that updates dont cause caching of invalid data
 	}
 } else {
 	print "<BR>No data available.<BR>";
