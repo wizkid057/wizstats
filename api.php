@@ -19,6 +19,8 @@
 
 require_once 'includes.php';
 
+require_once 'lib.userstat.php';
+
 if (isset($_GET["format"])) {
 	$format = strtolower($_GET["format"]);
 	if ($format == "jsonp") {
@@ -179,6 +181,26 @@ if ($cmd == "gethashrate") {
 	$output["av128"] = array("numeric" => sprintf("%.0F",($my_shares[128] * 4294967296)/128), "pretty" => prettyHashrate(($my_shares[128] * 4294967296)/128), "share_count" => sprintf("%u",$my_shares[128]));
 	$output["av64"] = array("numeric" => sprintf("%.0F",($my_shares[64] * 4294967296)/64), "pretty" => prettyHashrate(($my_shares[64] * 4294967296)/64), "share_count" => sprintf("%u",$my_shares[64]));
 	$data["output"] = $output;
+	echo ws_api_encode($data);
+	exit;
+}
+
+if ($cmd == "getuserstat") {
+
+	$link = pg_pconnect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");
+	if (isset($_GET["username"])) {
+		$givenuser = $_GET["username"];
+		$bits =  hex2bits(\Bitcoin::addressToHash160($givenuser));
+		$user_id = get_user_id_from_address($link, $givenuser);
+		if (!$user_id) {
+			ws_api_error("$cmd: Username $givenuser not found in database.");
+		}
+	} else {
+		ws_api_error("$cmd: No valid user id specified");
+	}
+
+	$data["output"] = \wizstats\userstat\getBalanceForUser($link, $user_id, $givenuser);
+
 	echo ws_api_encode($data);
 	exit;
 }

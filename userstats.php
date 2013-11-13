@@ -60,100 +60,37 @@ if (isset($_GET["cmd"])) {
 
 $cppsrbloaded = 0;
 
-if($balanacesjsondec = apc_fetch('balance')) {
-} else {
-	$balance = file_get_contents("/var/lib/eligius/$serverid/balances.json");
-	$balanacesjsondec = json_decode($balance, true);
-	// Store Cache for 10 minutes
-	apc_store('balance', $balanacesjsondec, 600);
-}
-$mybal = $balanacesjsondec[$givenuser];
+$balanacesjsondec = \wizstats\userstat\getAllBalances();
 
-if ($mybal) {
-	if (isset($mybal["balance"])) {
-		$bal = $mybal["balance"];
-	} else {
-		$bal = 0;
-	}
-	if (isset($mybal["credit"])) {
-		$ec = $mybal["credit"];
-	} else {
-		$ec = 0;
-	}
-	$datadate = $mybal["newest"];
-	if (isset($mybal["included_balance_estimate"])) {
-		$lbal = $bal - $mybal["included_balance_estimate"];
-	} else {
-		$lbal = $bal;
-	}
-	if (isset($mybal["included_credit_estimate"])) {
-		$lec = $ec - $mybal["included_credit_estimate"];
-	} else {
-		$lec = $ec;
-	}
-	if (isset($mybal["everpaid"])) { $everpaid = $mybal["everpaid"]; } else { $everpaid = 0; }
-	$balupdate = $mybal["last_balance_update"];
-} else {
-	# fall back to sql
-	$sql = "select * from $psqlschema.stats_balances where server=$serverid and user_id=$user_id order by time desc limit 1";
-	$result = pg_exec($link, $sql);
-	$numrows = pg_numrows($result);
-	if (!$numrows) {
-		$bal = "N/A"; $cbe = "N/A"; $ec = "N/A"; $datadate = "N/A"; $lbal = "N/A";
-	} else {
-		$row = pg_fetch_array($result, 0);
-		$bal = $row["balance"];
-		$ec = $row["credit"];
-		$lbal = "N/A";
-		$datadate = $row["time"];
-		$everpaid = $row["everpaid"];
-	}
-}
+$mybal = \wizstats\userstat\getBalanceForUser($link, $user_id, $givenuser);
+$mybalSM = \wizstats\userstat\getBalanceForUserSM($link, $user_id, $givenuser);
 
-if($balanacesjsondecSM = apc_fetch('balance_smpps')) {
-} else {
-	$balanacesjsonSM = file_get_contents("/var/lib/eligius/$serverid/smpps_lastblock.json");
-	$balanacesjsondecSM = json_decode($balanacesjsonSM,true);
-	// Store Cache forever (10 days)
-	apc_store('balance_smpps', $balanacesjsondecSM, 864000);
-}
-if (isset($balanacesjsondecSM[$givenuser])) { $mybalSM = $balanacesjsondecSM[$givenuser]; }
+$unpaid_balance = $mybal['lbal'];
+$shelved_shares = $mybal['lec'];
+$shelved_shares_estimate = $mybal['ec'];
 
-if (isset($mybalSM)) {
-	# SMPPS credit needed to be halved for the pool to be statistically viable
-	$smppsec = $mybalSM["credit"]; 
-	$smppshalf = $mybalSM["credit"]/2;
-	$smppsec -= $smppshalf;
-} else {
-	$smppsec = 0;
-}
-
-$unpaid_balance = $lbal;
-$shelved_shares = $lec;
-$shelved_shares_estimate = $ec;
-
-$estimated_balance = $bal;
+$estimated_balance = $mybal['bal'];
 $estimated_change = $estimated_balance - $unpaid_balance;
 
-$total_rewarded = $everpaid + $unpaid_balance;
-$maximum_reward = $everpaid + $estimated_balance + $shelved_shares_estimate + $smppsec;
+$total_rewarded = $mybal['everpaid'] + $unpaid_balance;
+$maximum_reward = $mybal['everpaid'] + $estimated_balance + $shelved_shares_estimate + $mybalSM['smppsec'];
 
 $unpaid_balance_print = prettySatoshis($unpaid_balance);
 $estimated_change_print = "+".prettySatoshis($estimated_change); # can/should never be negative...
 $estimated_balance_print = prettySatoshis($estimated_balance);
 
-$percent_pps = $total_rewarded/($total_rewarded + $shelved_shares + $smppsec);
-$percent_pps_estimate = ($estimated_balance+$everpaid)/$maximum_reward;
+$percent_pps = $total_rewarded/($total_rewarded + $shelved_shares + $mybalSM['smppsec']);
+$percent_pps_estimate = ($estimated_balance+$mybal['everpaid'])/$maximum_reward;
 $percent_pps_estimated_change = $percent_pps_estimate - $percent_pps;
 
 $percent_pps_print = prettyProportion($percent_pps);
 $percent_pps_estimate_print = prettyProportion($percent_pps_estimate);
 $percent_pps_estimate_change_print = ($percent_pps_estimated_change>0?"+":"").prettyProportion($percent_pps_estimated_change);
 
-$savedbal = $bal;
-$bal = prettySatoshis($bal);
+$savedbal = $mybal['bal'];
+$prettybal = prettySatoshis($mybal['bal']);
 
-$titleprepend = "($bal) $givenuser - ";
+$titleprepend = "($prettybal) $givenuser - ";
 print_stats_top();
 
 $nickname = get_nickname($link,$user_id);
@@ -303,8 +240,8 @@ if (count($worker_data) > 1) {
 			$t = $row["ctime"];
 			$as = $row["accepted_shares"];
 			$rs = $row["rejected_shares"];
-			if (!isset($wstat[$wid])) { 
-				$wstat[$wid] = array(); 
+			if (!isset($wstat[$wid])) {
+				$wstat[$wid] = array();
 				for($x=0;$x<3;$x++) {
 					$wstat[$wid][$x] = array();
 					$wstat[$wid][$x][1] = 0;
@@ -319,7 +256,7 @@ if (count($worker_data) > 1) {
 				$wstat[$wid][1][2] += $rs;
 				if ($t > $t225) {
 					$wstat[$wid][2][1] += $as;
-					$wstat[$wid][2][2] += $rs; 
+					$wstat[$wid][2][2] += $rs;
 				}
 			}
 		}
@@ -388,7 +325,7 @@ print "<script type=\"text/javascript\">
 	var blockUpdateA = 0;
 	var blockUpdateB = 0;
 
-	g2 = new Dygraph(document.getElementById(\"ugraphdiv2\"),\"$givenuser?cmd=hashgraph&start=0&back=$secondsback&res=1\",{ 
+	g2 = new Dygraph(document.getElementById(\"ugraphdiv2\"),\"$givenuser?cmd=hashgraph&start=0&back=$secondsback&res=1\",{
 		strokeWidth: 1.5,
 		fillGraph: true,
 		'675 second': { color: '#408000' },
@@ -418,7 +355,7 @@ print "<script type=\"text/javascript\">
 	var mrindex = 0;
 	var mrhidden = 1;
 	g3 = new Dygraph(
-	document.getElementById(\"ugraphdiv3\"),\"$givenuser?cmd=balancegraph&start=0&back=$secondsback&res=1\",{ 
+	document.getElementById(\"ugraphdiv3\"),\"$givenuser?cmd=balancegraph&start=0&back=$secondsback&res=1\",{
 		strokeWidth: 2.25,
 		fillGraph: true,
 		labelsDivStyles: { border: '1px solid black' },
@@ -462,9 +399,9 @@ print "<div id=\"userstatsright\">";
 
 print "<B>Latest Payouts</B>";
 
-if ($everpaid > 0) {
+if ($mybal['everpaid'] > 0) {
 
-	$query_hash = hash("sha256", "userstats.php latest payouts for $givenuser with id $user_id and latest everpaid of $everpaid v2");
+	$query_hash = hash("sha256", "userstats.php latest payouts for $givenuser with id $user_id and latest everpaid of " . $mybal['everpaid'] . " v2");
 	$latestpayouts = get_stats_cache($link, 12, $query_hash);
 	if ($latestpayouts != "") {
 		print $latestpayouts;
@@ -499,7 +436,7 @@ if ($everpaid > 0) {
 	print "<BR>No data available.<BR>";
 }
 
-print "All time total payout: ".prettySatoshis($everpaid);
+print "All time total payout: ".prettySatoshis($mybal['everpaid']);
 print "<BR><BR>";
 
 
@@ -529,10 +466,10 @@ if ($savedbal) {
 		if ($diff < 0) { $diff = 0; }
 		print "Approximately ".prettySatoshis($diff)." remaining to enter <A HREF=\"http://eligius.st/~wizkid057/newstats/payoutqueue.php#$givenuser\">payout queue</a>.";
 
-		if (($u16avghash == 0) && (isset($balupdate))) {
-			$timetoqueue = (3600*24*7) - (time() - $balupdate);
+		if (($u16avghash == 0) && (isset($mybal['balupdate']))) {
+			$timetoqueue = (3600*24*7) - (time() - $mybal['balupdate']);
 			print " If you remain inactive";
-			if ((isset($lec)) && ($lec > 0)) {
+			if ((isset($mybal['lec'])) && ($mybal['lec'] > 0)) {
 				print ", and the pool does not pay towards any of your shelved shares,";
 			}
 
@@ -543,7 +480,7 @@ if ($savedbal) {
 					print " then you will be eligible for a payout of your balance (which is less than the automatic payout threshhold of ".prettySatoshis(1048576).") in a manual payout no sooner than ".prettyDuration($timetoqueue)." from now.";
 				}
 			} else {
-				print " then your less than ".prettySatoshis(131072)." balance will remain unpaid and donated to the pool in approximately ".prettyDuration((3600*24*60) - (time() - $balupdate)).".  If you are concerned about this small balance you should mine until your balance is greater than ".prettySatoshis(131072).".";
+				print " then your less than ".prettySatoshis(131072)." balance will remain unpaid and donated to the pool in approximately ".prettyDuration((3600*24*60) - (time() - $mybal['balupdate'])).".  If you are concerned about this small balance you should mine until your balance is greater than ".prettySatoshis(131072).".";
 			}
 		}
 
