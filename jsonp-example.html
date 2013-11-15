@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+  
+<!-- Example of fetching Eligius data from a remote server -->
+<!-- Source can be run/edited via http://jsbin.com/aPUjeCa/6/edit -->
+
+<html>
+  <head>
+    <script src="http://code.jquery.com/jquery-latest.js"></script>
+  <meta charset=utf-8 />
+  <title>Eligius JSONP Tester</title>
+    <br>
+    <div style="font-size:23px">    
+     JSONP Fetch Of Eligius Data
+    </div>    
+<style id="jsbin-css">
+
+</style>
+</head>
+<body>
+  <br><span>Hashrate: </span>
+  <span id='hashrate'>"uninitialized"</span>
+  <br><br><span>Status: </span>
+  <span id='status'>Waiting for click</span>
+  <br><br>
+  <button onclick="getData()"; style="font-size:16px;background:lightGreen">Click here to fetch padded JSON at eligius.st</button>
+  <br><br>
+  <textarea id='txtbox' rows="10" cols="50">
+  </textarea> 
+
+<script>
+var url = "http://eligius.st/~wizkid057/newstats/api.php?cmd=gethashrate&format=jsonp";
+    
+function errorHandler(e) {
+  $("#status").text( e.message );
+}
+
+function dataHandler ( jsondata, status, xhr ) {
+  $("#status"  ).text( status );
+  $("#hashrate").text( jsondata.output.av256.pretty );
+  $("#txtbox"  ).text( JSON.stringify ( jsondata ) );  
+}  
+
+function getData(){
+  $("#hashrate").text("_________");
+  $("#status"  ).text("Requesting data...");
+  // here is the actual fetch:
+  $.ajax({
+    url: url,
+    dataType: 'jsonp',
+    success: dataHandler, 
+    error: errorHandler
+  });
+}
+</script>
+</body>
+</html>
