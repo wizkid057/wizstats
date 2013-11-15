@@ -85,6 +85,9 @@ while(!$done) {
 
 	$ctime = $txdata["time"];
 
+	# turns out unconfirmed transactions dont have a timestamp...
+	if ($ctime < time()) { $ctime = time(); }
+
 	if ($createsql) {
 		# add txn to sql...
 		$sql = "insert into $psqlschema.stats_transactions (time, hash, block_id, coinbase) VALUES (to_timestamp($ctime), '$txn', ";
