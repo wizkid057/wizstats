@@ -62,6 +62,13 @@ if ($cmd == "getacceptedcount") {
 	$link = pg_pconnect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");
 	if ((isset($_GET["user_id"])) && (is_numeric($_GET["user_id"])) ) {
 		$user_id =  pg_escape_string($_GET["user_id"]);
+	} else if (isset($_GET["username"])) {
+		$givenuser = $_GET["username"];
+		$bits =  hex2bits(\Bitcoin::addressToHash160($givenuser));
+		$user_id = get_user_id_from_address($link, $givenuser);
+		if (!$user_id) {
+			ws_api_error("$cmd: Username $givenuser not found in database.");
+		}
 	} else {
 		ws_api_error("$cmd: No valid user id specified");
 	}
