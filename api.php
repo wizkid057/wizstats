@@ -18,7 +18,6 @@
 
 
 require_once 'includes.php';
-
 require_once 'lib.userstat.php';
 
 if (isset($_GET["format"])) {
@@ -77,6 +76,7 @@ if ($cmd == "getacceptedcount") {
 	if (isset($_GET["startdate"])) {
 		$startdate = pg_escape_string($link, $_GET["startdate"]);
 		if (($_GET["startdate"] != $startdate) || (strtotime($startdate) < 1368483761)) { ws_api_error("$cmd: Invalid start date"); }
+		$startdate = "'$startdate'";
 	} else {
 		$startdate = "NOW()-'3 hours'::interval";
 	}
@@ -88,7 +88,7 @@ if ($cmd == "getacceptedcount") {
 	$worker_data = get_worker_data_from_user_id($link, $user_id);
 	$wherein = get_wherein_list_from_worker_data($worker_data);
 
-	$sql = "select sum(accepted_shares) as count,sum(rejected_shares) as rcount,max(time) as ltime,min(time) as ftime from $psqlschema.stats_shareagg where server=$serverid and user_id in $wherein and time >= '$startdate' ".(isset($enddate)?" and time <= '$enddate'":"").";";
+	$sql = "select sum(accepted_shares) as count,sum(rejected_shares) as rcount,max(time) as ltime,min(time) as ftime, $startdate as startdate from $psqlschema.stats_shareagg where server=$serverid and user_id in $wherein and time >= $startdate ".(isset($enddate)?" and time <= '$enddate'":"").";";
 	$result = pg_exec($link, $sql);
 	$numrows = pg_numrows($result);
 	if (!$numrows) {
@@ -100,6 +100,7 @@ if ($cmd == "getacceptedcount") {
 	$rcount = $row["rcount"];
 	$ftime = $row["ftime"];
 	$ltime = $row["ltime"];
+	$startdate = $row["startdate"];
 	$data["output"] = array("user_id" => $user_id, "startdate" => $startdate, "enddate" => $enddate, "accepted" => $count, "rejected" => $rcount, "first_row_date" => $ftime, "last_row_date" => $ltime);
 	echo ws_api_encode($data);
 	exit;
