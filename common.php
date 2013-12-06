@@ -1,5 +1,5 @@
 <?php
-#    wizstats - bitcoin pool web statistics - 1StatsgBq3C8PbF1SJw487MEUHhZahyvR
+#    wizstats - bitcoin pool web statistics - 1StatsQytc7UEZ9sHJ9BGX2csmkj8XZr2
 #    Copyright (C) 2012  Jason Hughes <wizkid057@gmail.com>
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -91,7 +91,6 @@ print("<HTML>
 <br>
 <!--[if IE]><H4>This page works best in <A HREF=\"http://www.google.com/chrome\">Google Chrome</A>.  You will not have an optimal experience using Internet Explorer.</H4><![endif]-->
 ");
-
 }
 
 
