@@ -129,13 +129,13 @@
 			}
 
 			# get hashrate
-			if($cppsrbjsondec = apc_fetch('cppsrb_json')) {
+			if($cppsrbjsondec = apc_fetch('cppsrb_json_inst')) {
 				$hashrate256 = $cppsrbjsondec[""]["shares"][256] * 16777216;
 			} else {
-				if (filemtime("/var/lib/eligius/$serverid/cppsrb.json") > (time()-1350)) {
+				if (filemtime("/var/lib/eligius/$serverid/cppsrb.json") > (time()-600)) {
 					$cppsrbjson = file_get_contents("/var/lib/eligius/$serverid/cppsrb.json");
 					$cppsrbjsondec = json_decode($cppsrbjson, true);
-					apc_store('cppsrb_json', $cppsrbjsondec, 60);
+					apc_store('cppsrb_json_inst', $cppsrbjsondec, 60);
 					$hashrate256 = $cppsrbjsondec[""]["shares"][256] * 16777216;
 					} else {
 						$sql2 = "select (date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1))::integer / 675::integer)::integer * 675::integer as sql2res";
