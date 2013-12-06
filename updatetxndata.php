@@ -86,13 +86,29 @@ while(!$done) {
 	$ctime = $txdata["time"];
 
 	# turns out unconfirmed transactions dont have a timestamp...
-	if ($ctime < time()) { $ctime = time(); }
+	if ($ctime < 1) { $ctime = time(); }
+
+	if (!$createsql) {
+		$sql = "DELETE FROM $psqlschema.stats_payouts where transaction_id=$txid;";
+		pg_exec($link, $sql);
+		$sql = "DELETE FROM $psqlschema.stats_transactions where id=$txid;";
+		pg_exec($link, $sql);
+		$createsql = 1;
+	}
 
 	if ($createsql) {
 		# add txn to sql...
 		$sql = "insert into $psqlschema.stats_transactions (time, hash, block_id, coinbase) VALUES (to_timestamp($ctime), '$txn', ";
 		if ($coinbase) {
-			$sql .= "(select id from $psqlschema.stats_blocks where blockhash='$lastblock' limit 1), true)";
+			$sqlx = "select id from $psqlschema.stats_blocks where blockhash='$lastblock' limit 1";
+			$resultx = pg_exec($link, $sqlx);
+			$rowx = pg_fetch_array($resultx, 0);
+			if (!($rowx["id"] > 0)) {
+				print "ERROR... stats do not know about block $lastblock... ?\n";
+				exit;
+			}
+			$block_id = $rowx["id"];
+			$sql .= "$block_id, true)";
 		} else {
 			$sql .= "NULL, false)";
 		}
