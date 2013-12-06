@@ -57,7 +57,7 @@ print("<HTML>
 <div id=\"wrapper\">
 <div id=\"Eligius-Title\">
 	<H2><A HREF=\"".$GLOBALS["urlprefix"]."\">".$GLOBALS["poolname"]." Pool Statistics</A></H2><!--[if IE]><BR><![endif]-->
-	<h4>Donations to help stats development:<BR><B>1Stats</B>gBq3C8PbF1SJw487MEUHhZahyvR</h4>
+	<h4>Donations to help stats development:<BR><B>1Stats</B>Qytc7UEZ9sHJ9BGX2csmkj8XZr2</h4>
 </div>
 <div id=\"luck\">
 <TABLE class=\"lucktable\" width=\"100%\">
@@ -104,7 +104,7 @@ function print_stats_bottom() {
 <BR>
 Source code/bug submissions/feature requests: <A HREF=\"https://github.com/wizkid057/wizstats\">wizkid057/wizstats on github</A><BR>
 I'm working as quickly as I can to get these stats much more useful and presentable, but it is a time consuming process.<BR>
-Any donations will help me dedicate more time to development and would be greatly appreciated: <B><I>1Stats</I>gBq3C8PbF1SJw487MEUHhZahyvR</B><BR><BR>
+Any donations will help me dedicate more time to development and would be greatly appreciated: <B><I>1Stats</I>Qytc7UEZ9sHJ9BGX2csmkj8XZr2</B><BR><BR>
 Thanks for using the new stats!<bR>
 <I>-wizkid057</I><BR>");
 

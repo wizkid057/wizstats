@@ -110,12 +110,12 @@ for($i=0;$i<$cbouts;$i++) {
 		$nickname = "Eligius Offline Wallet";
 		$dolink = 0;
 	}
-	if (($addr == "1GBT3CRvTCadJGUEKrsbv1AdvLqcjscaUb") || ($addr == "1FAi1SafERPBXBkq4g8WrhNZ1hR9BRUiSU")) {
+	if (($addr == "1GBT3CRvTCadJGUEKrsbv1AdvLqcjscaUb") || ($addr == "1FAi1SafERPBXBkq4g8WrhNZ1hR9BRUiSU") || ($addr == "1RCodeej35kS9rGMG7HsbZmB4U8n6mg7D")) {
 		$failsafe = 1;
 		$nickname = "Eligius CPPSRB Failsafe Notification";
 		$dolink = 0;
 	}
-	if ($addr == "1Change2aFDAsXM7mwdG3Yf5k7X1wvv8Qc") {
+	if (($addr == "1Change2aFDAsXM7mwdG3Yf5k7X1wvv8Qc") || ($addr == "1ChANGeATMH8dFnj39wGTjfjudUtLspzXr")) {
 		$nickname = "Eligius Payout Change Aggregation";
 		$dolink = 0;
 	}
