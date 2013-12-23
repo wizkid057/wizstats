@@ -389,3 +389,10 @@ function getrawtransaction_rpc($hash) {
 	return $response;
 }
 
+function formatSI($size, $precision = 3)
+{
+    $base = log($size) / log(1000);
+    $suffixes = array('', 'k', 'M', 'G', 'T', 'P', 'E', 'Z');
+
+    return round(pow(1000, $base - floor($base)), $precision) . $suffixes[floor($base)];
+}
