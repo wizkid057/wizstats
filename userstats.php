@@ -500,12 +500,12 @@ if ($everpaid > 0) {
 }
 
 print "All time total payout: ".prettySatoshis($everpaid);
-print "<BR><BR>";
+print "<BR><BR><HR>";
 
 
 if ($savedbal) {
 
-	print "<B>Estimated Position in Payout Queue</B><BR>";
+	print "<BR><B>Estimated Position in Payout Queue</B><BR>";
 	if ($payoutqueue = apc_fetch('wizstats_payoutqueuetxt')) {
 	} else {
 		$payoutqueue = file_get_contents("/var/lib/eligius/$serverid/payout_queue.txt");
@@ -555,7 +555,7 @@ if ($savedbal) {
 			$shares = $diff / (2500000000/$netdiff);
 			$stime = $shares / ($u16avghash / 4294967296);
 			$netdiff = round($netdiff,2);
-			print " Maintaining your 3 hour hashrate average, this will take at least another ".prettyDuration($stime). " at current network difficulty of $netdiff.";
+			print " Maintaining your 3 hour hashrate average, this will take at least another ".prettyDuration($stime). " at current network difficulty of ".number_format($netdiff,2).".";
 		}
 		if ($minpay != 4194304) { print "<BR><BR>Note: Your minimum payout was customized to ".prettySatoshis($minpay)." under 'My $poolname'."; }
 
@@ -594,6 +594,23 @@ if ($savedbal) {
 		print $aheadtext.", putting this user's payout $delay.<BR><SMALL style=\"font-size: 70%\"><I>Note: This is constantly changing. See <A HREF=\"http://eligius.st/~wizkid057/newstats/payoutqueue.php#$givenuser\">the payout queue</A>.</I></SMALL>";
 	}
 	print "</span>";
+	print "<BR><BR><HR>";
+}
+
+
+if ($u16avghash > 0) {
+	if (!isset($netdiff)) {
+		$sql = "select id,(pow(10,((29-hex_to_int(substr(encode(solution,'hex'),145,2)))::double precision*2.4082399653118495617099111577959::double precision)+log(  (65535::double precision /  hex_to_int(substr(encode(solution,'hex'),147,6)))::double precision   )::double precision))::double precision as network_difficulty from shares where server=$serverid and our_result=true order by id desc limit 1;";
+                $result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
+                $netdiff = $row["network_difficulty"];
+	}
+	$satoshiperday = round((($u16avghash*86400) / 4294967296)*(2500000000/$netdiff),0);
+	$netdiff = round($netdiff,2);
+	print "<BR><B>Estimated Earnings</B><BR>";
+	print "<span style=\"font-size: 0.8em\">";
+	print "Your approximate maximum potential earnings at the current network difficulty of ".number_format($netdiff,2)." and maintaining your 3-hour average hash rate of ".prettyHashrate($u16avghash)." is ".prettySatoshis($satoshiperday)." per day.\n";
+	print "</span>";
+	print "<BR><BR><HR>";
 }
 
 print "</div>";
