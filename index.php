@@ -30,7 +30,7 @@ if (strlen($announce) > 0) {
 
 
 For individual stats, use http://eligius.st/~wizkid057/newstats/userstats.php/[your miner address] for individual stats.<BR>
-For example, <A HREF="http://eligius.st/~wizkid057/newstats/userstats.php/1EXfBqvLTyFbL6Dr5CG1fjxNKEPSezg7yF">http://eligius.st/~wizkid057/newstats/userstats.php/1EXfBqvLTyFbL6Dr5CG1fjxNKEPSezg7yF</A>
+For example, <A HREF="http://eligius.st/~wizkid057/newstats/userstats.php/1Jq8g5RNuPSS28hoiuh1PbgakVxNzqB4it">http://eligius.st/~wizkid057/newstats/userstats.php/1Jq8g5RNuPSS28hoiuh1PbgakVxNzqB4it</A>
 <BR><BR>
 <BR>
 <CENTER><H3>Recent Blocks</H3></CENTER>
@@ -44,19 +44,40 @@ For example, <A HREF="http://eligius.st/~wizkid057/newstats/userstats.php/1EXfBq
 <SMALL>(This table updates in near-realtime automatically in most browsers.  Share counts are converted to difficulty 1 shares.)</SMALL><BR>
 <BR>
 <div id="line"></div>
-<div id="graphdiv3" style="width:100%; height:275px;"></div>
+<div id="graphdiv3phr" style="width:100%; height:275px;"></div>
 <script type="text/javascript">
+
+      function round(num, places) {
+        var shift = Math.pow(10, places);
+        return Math.round(num * shift)/shift;
+      };
+
+      var suffixes = ['', 'kh', 'Mh', 'Gh', 'Th', 'Ph', 'Eh'];
+      function formatValue(v) {
+	v = v * 1000000000;
+        if (v < 1000) return v;
+
+        var magnitude = Math.floor(String(Math.floor(v)).length / 3) - 1;
+        if (magnitude > suffixes.length - 1)
+          magnitude = suffixes.length - 1;
+        return String(round(v / Math.pow(10, magnitude * 3), 4)) +
+          suffixes[magnitude];
+      };
+
   g2 = new Dygraph(
-    document.getElementById("graphdiv3"),
+    document.getElementById("graphdiv3phr"),
     "poolhashrategraph.php",
    	{ strokeWidth: 2.25,
 	'hashrate': {fillGraph: true },
 	labelsDivStyles: { border: '1px solid black' },
 	title: '<?php echo $poolname; ?> Hashrate Graph',
 	xlabel: 'Date',
-	ylabel: 'Gh/sec',
+	ylabel: 'Hashes/sec',
 	animatedZooms: true,
-	includeZero: true
+	includeZero: true,
+	yValueFormatter: formatValue,
+	yAxisLabelFormatter: formatValue,
+	yAxisLabelWidth: 65
 	}
   );
 </script>
