@@ -294,11 +294,12 @@ if ($cmd) {
 		</SCRIPT>
 
 		<BR><B>You must use a bitcoin client which supports standard signatures, or MtGox, for your mining address to sign options!</b><BR>
+		Community contributed instructions for using Bitcoin-qt are here: <A HREF="http://eligius.st/~capa66/utl/my_eligius/index.html">http://eligius.st/~capa66/utl/my_eligius/index.html</A><BR>
 		<BR><H3><U>Options Form</U></H3><SMALL>All fields are optional. Leaving a field blank will result in the pool default for the setting being applied.</SMALL><BR><BR>
 		<FORM name="optionsform" onsubmit="return false;">
 		<TABLE BORDER=0>
 		<TR><TD><B>Nickname</B>:</TD><TD><INPUT TYPE="TEXT" name="Nickname" size=32 maxlength=32 value="<?php echo htmlspecialchars($msgvars_array["Nickname"]); ?>" onChange="updateOptionsMessage()" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange()"> (Default: <?php echo $u; ?>)</TD></TR>
-		<TR><TD><B>Minimum Payout</B>:</TD><TD><INPUT TYPE="TEXT" name="Minimum_Payout_BTC" size=12 value="<?php echo  htmlspecialchars($msgvars_array["Minimum_Payout_BTC"]); ?>" maxlength=32 onChange="updateOptionsMessage()" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange()"> BTC (Default: 0.16777216, Minimum: 0.01048576 [10 TBC])</TD></TR>
+		<TR><TD><B>Minimum Payout</B>:</TD><TD><INPUT TYPE="TEXT" name="Minimum_Payout_BTC" size=12 value="<?php echo  htmlspecialchars($msgvars_array["Minimum_Payout_BTC"]); ?>" maxlength=32 onChange="updateOptionsMessage()" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange()"> BTC (Default: 0.04194304, Minimum: 0.01048576 [10 TBC])</TD></TR>
 		<TR><TD><B>Optional Donation %s</B>:</TD><TD></TD></TR>
 		<TR><TD style="text-align:right;"><SMALL>Pool Management:</SMALL></TD><TD><INPUT TYPE="TEXT" name="Donate_Pool" size=6 value="<?php echo htmlspecialchars($msgvars_array["Donate_Pool"]); ?>" maxlength=32 onChange="updateOptionsMessage()" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange()">% (Default: 0.00%)</TD></TR>
 		<TR><TD style="text-align:right;"><SMALL>Stats Development:</SMALL></TD><TD><INPUT TYPE="TEXT" name="Donate_Stats" size=6 value="<?php echo htmlspecialchars($msgvars_array["Donate_Stats"]); ?>" maxlength=32 onChange="updateOptionsMessage()" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange()">% (Default: 0.00%)</TD></TR>

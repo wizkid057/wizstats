@@ -518,7 +518,7 @@ if ($savedbal) {
 		if (isset($options["Minimum_Payout_BTC"])) {
 			$minpay = $options["Minimum_Payout_BTC"]*100000000;
 		} else {
-			$minpay = 16777216;
+			$minpay = 4194304;
 		}
 		if ($minpay < 1048576) { $minpay = 1048576; }
 		if ($minpay > 2147483648) { $minpay = 2147483648; }
@@ -557,7 +557,7 @@ if ($savedbal) {
 			$netdiff = round($netdiff,2);
 			print " Maintaining your 3 hour hashrate average, this will take at least another ".prettyDuration($stime). " at current network difficulty of $netdiff.";
 		}
-		if ($minpay != 16777216) { print "<BR><BR>Note: Your minimum payout was customized to ".prettySatoshis($minpay)." under 'My $poolname'."; }
+		if ($minpay != 4194304) { print "<BR><BR>Note: Your minimum payout was customized to ".prettySatoshis($minpay)." under 'My $poolname'."; }
 
 	} else {
 		# add up balances and see where we end up.
