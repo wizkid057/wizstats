@@ -96,6 +96,9 @@ function block_table_row($row,$isodd) {
 		$hashratenum = $hashrate;
 		$hashrate = prettyHashrate($hashrate);
 		$hashrate = substr($hashrate,0,-2);
+		$percentofnetwork = $hashratenum / ($row["network_difficulty"]*7158278.82667);
+		$percentofnetwork = sprintf("%.2f%% of network", $percentofnetwork*100);
+		$hashrate = "<span title=\"$percentofnetwork\">$hashrate</span>";
 	} else {
 		$blocks_row .= "<td style=\"text-align: right;\">n/a</td>";
 		$hashrate = "n/a";
@@ -103,7 +106,7 @@ function block_table_row($row,$isodd) {
 
 	$blocks_row .= "<TD style=\"text-align: right;\" sorttable_customkey=\"".$row["acceptedshares"]."\">".($row["acceptedshares"]>0?number_format($row["acceptedshares"]):"n/a")."</TD>";
 
-	$blocks_row .= "<TD style=\"text-align: right;\">".number_format(round($row["network_difficulty"],0))."</TD>";
+	$blocks_row .= "<TD style=\"text-align: right;\" sorttable_customkey=\"".($row["network_difficulty"])."\">".formatSI($row["network_difficulty"],2)."</TD>";
 	$blocks_row .= "<TD style=\"text-align: right;\">".$luck."</TD>";
 
 	$hashratenum = sprintf("%.0f",$hashratenum);
