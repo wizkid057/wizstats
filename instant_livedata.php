@@ -137,15 +137,22 @@
 					$cppsrbjsondec = json_decode($cppsrbjson, true);
 					apc_store('cppsrb_json_inst', $cppsrbjsondec, 60);
 					$hashrate256 = $cppsrbjsondec[""]["shares"][256] * 16777216;
-					} else {
-						$sql2 = "select (date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1))::integer / 675::integer)::integer * 675::integer as sql2res";
-						$result = pg_exec($link, $sql2); $row = pg_fetch_array($result, 0);
-						$sql2res = $row["sql2res"];
 
-						$sql = "select (sum(accepted_shares)*pow(2,32))/1350 as avghash,sum(accepted_shares) as share_total from $psqlschema.stats_shareagg where server=$serverid and time > to_timestamp($sql2res)-'1350 seconds'::interval";
-						$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
-						$hashrate256 = $row["avghash"];
-					}
+					# note that CPPSRB is ok
+					apc_store('cppsrb_ok', 1, 60);
+				} else {
+					$sql2 = "select (date_part('epoch', (select time from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1))::integer / 675::integer)::integer * 675::integer as sql2res";
+					$result = pg_exec($link, $sql2); $row = pg_fetch_array($result, 0);
+					$sql2res = $row["sql2res"];
+
+					$sql = "select (sum(accepted_shares)*pow(2,32))/1350 as avghash,sum(accepted_shares) as share_total from $psqlschema.stats_shareagg where server=$serverid and time > to_timestamp($sql2res)-'1350 seconds'::interval";
+					$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
+					$hashrate256 = $row["avghash"];
+
+
+					# note that cppsrb is not ok
+					apc_store('cppsrb_ok', -1, 90);
+				}
 
 			}
 

@@ -91,6 +91,11 @@ print("<HTML>
 <br>
 <!--[if IE]><H4>This page works best in <A HREF=\"http://www.google.com/chrome\">Google Chrome</A>.  You will not have an optimal experience using Internet Explorer.</H4><![endif]-->
 ");
+
+if (apc_fetch('cppsrb_ok') == -1) {
+	print "<TABLE BORDER=1><TR><TD><FONT SIZE=\"+2\" COLOR=\"RED\"><B>AUTO-NOTICE</B>: The CPPSRB reward system appears to be in fail-safe mode.</FONT></TD></TR><TR><TD><FONT COLOR=\"RED\">Some stats are likely not updating as they should right now (128/256 second hash rates, balanaces, balance graph, payout queue).  These items will correct themselves soon when CPPSRB is out of fail safe mode.  This can take several hours.  No earnings are lost as long as your shares are accepted!  Sorry for the inconvenience!</FONT></TD></TR></TABLE><BR>";
+}
+
 }
 
 
