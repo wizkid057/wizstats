@@ -56,6 +56,16 @@ print "<TR><TD><B>Height:</B></TD><TD>{$block["height"]}</TD></TR>";
 print "<TR><TD><B>Previous Block hash:</B></TD><TD>{$block["previousblockhash"]}</TD></TR>";
 print "<TR><TD><B>Merkle root:</B></TD><TD>{$block["merkleroot"]}</TD></TR>";
 print "<TR><TD><B>Difficulty:</B></TD><TD>{$block["difficulty"]}</TD></TR>";
+
+$a = hexdec($blockhash);
+$b = hexdec("00000000FFFF0000000000000000000000000000000000000000000000000000");
+$adiff = sprintf("%.4f",$b/$a);;
+$adiffp = ($adiff/$block["difficulty"])*100;
+if ($adiffp > 9000) { $adiffp = ">9000"; }
+else { $adiffp = sprintf("%.2f",$adiffp); }
+
+print "<TR><TD><B>Difficulty Achieved:</B></TD><TD>{$adiff} ($adiffp%)</TD></TR>";
+
 print "<TR><TD><B>Bits:</B></TD><TD>{$block["bits"]}</TD></TR>";
 $nonce = sprintf("%8x",$block["nonce"]);
 print "<TR><TD><B>Nonce:</B></TD><TD>$nonce</TD></TR>";
@@ -65,7 +75,7 @@ print "<TR><TD><B>Time:</B></TD><TD>$t</TD></TR>";
 
 print "<TR><TD><B>Transactions:</B></TD><TD>$txcount</TD></TR>";
 print "<TR><TD><B>Size:</B></TD><TD>{$block["size"]} bytes</TD></TR>";
-print "<TR><TD><B>Coinbase transaction id:</B></TD><TD>{$block["tx"][0]}</TD></TR>";
+print "<TR><TD><B>Coinbase transaction id:</B></TD><TD>{$block["tx"][0]}<BR><A HREF=\"http://blockchain.info/tx/{$block["tx"][0]}\" TARGET=\"_blank\">View on Blockchain.info</A> - <A HREF=\"http://blockexplorer.com/tx/{$block["tx"][0]}\" TARGET=\"_blank\">View on Blockexplorer.com</A></TD></TR>";
 
 
 $cbtxid = $block["tx"][0];
