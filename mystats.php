@@ -22,6 +22,8 @@ require_once 'includes.php';
 if (isset($_GET["storecookie"])) { setcookie("u", $_GET["u"], time()+86400*365); $u = $_GET["u"];}
 else { if (isset($_COOKIE["u"])) { setcookie("u", $_COOKIE["u"], time()+86400*365); $u = $_COOKIE["u"]; } }
 
+$u = htmlspecialchars($u);
+
 if (!isset($link)) { $link = pg_pconnect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost"); }
 
 $titleprepend = "My $poolname - ";
@@ -57,7 +59,7 @@ if (((!isset($_COOKIE["u"])) && (!isset($_GET["u"]))) || ( (isset($_GET["u"])) &
 } else {
 	$u = "";
 	if (isset($_GET["u"])) { $u = $_GET["u"]; } else { if (isset($_COOKIE["u"])) { $u = $_COOKIE["u"]; } }
-
+	$u = htmlspecialchars($u);
 	$user_id = get_user_id_from_address($link, $u);
 
 	if (!$user_id) {
