@@ -56,7 +56,7 @@ function block_table_row($row,$isodd) {
 	$blocks_row = "";
 
 	if (isset($row["acceptedshares"])) { $luck = 100 * ($row["network_difficulty"] / $row["acceptedshares"]); } else { $luck = 0; }
-	if ($luck > 9000) { $luck = ">9,000%"; } else { $luck = number_format(round($luck,1),1)."%"; }
+	if ($luck > 9000) { $luck = "<A STYLE=\"color:#3B4033;font-weight:normal;text-decoration:none;cursor:default\" HREF=\"9000.php\">&gt;9,000%</A>"; } else { $luck = number_format(round($luck,1),1)."%"; }
 
 
 	$roundstart = substr($row["roundstart"],0,19);
