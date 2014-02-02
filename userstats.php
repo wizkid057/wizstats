@@ -27,6 +27,18 @@ if (!isset($_SERVER['PATH_INFO'])) {
 	exit;
 }
 
+
+$givenuser = substr($_SERVER['PATH_INFO'],1,strlen($_SERVER['PATH_INFO'])-1);
+
+if (array_key_exists($givenuser,$specialaddrs)) {
+	print_stats_top();
+	$desc = $specialaddrs[$givenuser];
+	print "<BR><B>$givenuser</B> is a special address labeled <I>$desc</I> and has no easily compiled stats.<BR>\n";
+	print_stats_bottom();
+	exit;
+}
+
+
 $link = pg_pconnect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");
 
 if (pg_connection_status($link) != PGSQL_CONNECTION_OK) {
@@ -40,9 +52,6 @@ if (pg_connection_status($link) != PGSQL_CONNECTION_OK) {
 	}
 }
 
-
-
-$givenuser = substr($_SERVER['PATH_INFO'],1,strlen($_SERVER['PATH_INFO'])-1);
 $user_id = get_user_id_from_address($link, $givenuser);
 
 if (!$user_id) {
@@ -79,6 +88,11 @@ if ($mybal) {
 		$ec = $mybal["credit"];
 	} else {
 		$ec = 0;
+	}
+	if (isset($mybal["donated"])) {
+		$donated = $mybal["donated"];
+	} else {
+		$donated = 0;
 	}
 	$datadate = $mybal["newest"];
 	if (isset($mybal["included_balance_estimate"])) {
@@ -135,14 +149,14 @@ $shelved_shares_estimate = $ec;
 $estimated_balance = $bal;
 $estimated_change = $estimated_balance - $unpaid_balance;
 
-$total_rewarded = $everpaid + $unpaid_balance;
-$maximum_reward = $everpaid + $estimated_balance + $shelved_shares_estimate + $smppsec;
+$total_rewarded = $everpaid + $unpaid_balance + $donated;
+$maximum_reward = $everpaid + $estimated_balance + $shelved_shares_estimate + $smppsec + $donated;
 
 $unpaid_balance_print = prettySatoshis($unpaid_balance);
 $estimated_change_print = "+".prettySatoshis($estimated_change); # can/should never be negative...
 $estimated_balance_print = prettySatoshis($estimated_balance);
 
-$percent_pps = $total_rewarded/($total_rewarded + $shelved_shares + $smppsec);
+$percent_pps = $total_rewarded/($total_rewarded + $shelved_shares + $smppsec + $donated);
 $percent_pps_estimate = ($estimated_balance+$everpaid)/$maximum_reward;
 $percent_pps_estimated_change = $percent_pps_estimate - $percent_pps;
 
@@ -336,11 +350,11 @@ if (count($worker_data) > 1) {
 				$wname = htmlspecialchars($wname);
 				$table .= "<TR class=\"userstats$oev\"><TD><b>$wname</b></TD><TD></TD><TD></TD></TR>\n";
 				if (isset($wstat[$wid][0])) {
-					$table .= "<TR class=\"userstats$oev\" style=\"text-align: right;\"><TD><I>12 Hours</I></TD><TD>".prettyHashrate(($wstat[$wid][0][1]*4294967296)/43200)."</TD><TD>{$wstat[$wid][0][1]} ({$wstat[$wid][0][2]})</TD></TR>";
+					$table .= "<TR class=\"userstats$oev\" style=\"text-align: right;\"><TD><I>12 Hours</I></TD><TD>".prettyHashrate(($wstat[$wid][0][1]*4294967296)/43200)."</TD><TD>{$wstat[$wid][0][1]}</TD></TR>";
 					if ((isset($wstat[$wid][1])) && ($wstat[$wid][1][1])) {
-						$table .= "<TR class=\"userstats$oev\" style=\"text-align: right;\"><TD><I>3 Hours</I></TD><TD>".prettyHashrate(($wstat[$wid][1][1]*4294967296)/10800)."</TD><TD>{$wstat[$wid][1][1]} ({$wstat[$wid][1][2]})</TD></TR>";
+						$table .= "<TR class=\"userstats$oev\" style=\"text-align: right;\"><TD><I>3 Hours</I></TD><TD>".prettyHashrate(($wstat[$wid][1][1]*4294967296)/10800)."</TD><TD>{$wstat[$wid][1][1]}</TD></TR>";
 						if ((isset($wstat[$wid][2])) && ($wstat[$wid][2][1])) {
-							$table .= "<TR class=\"userstats$oev\" style=\"text-align: right;\"><TD><I>22.5 Minutes</I></TD><TD>".prettyHashrate(($wstat[$wid][2][1]*4294967296)/1350)."</TD><TD>{$wstat[$wid][2][1]} ({$wstat[$wid][2][2]})</TD></TR>";
+							$table .= "<TR class=\"userstats$oev\" style=\"text-align: right;\"><TD><I>22.5 Minutes</I></TD><TD>".prettyHashrate(($wstat[$wid][2][1]*4294967296)/1350)."</TD><TD>{$wstat[$wid][2][1]}</TD></TR>";
 						}
 					}
 				}
@@ -354,7 +368,7 @@ if (count($worker_data) > 1) {
 		if ($table != "") {
 
 			$pdata .= "<INPUT TYPE=\"BUTTON\" onClick=\"\$('#workeritems').toggle();\" VALUE=\"Toggle Display of Worker Details\"><BR><BR>";
-			$pdata .= "<TABLE id=\"workeritems\" class=\"userstatsworkers\"><THEAD><TH  style=\"text-align: left;\">Worker Name</TH><TH  style=\"text-align: right;\">Hashrate</TH><TH  style=\"text-align: right;\">Accepted (Rejected) Weighted Shares</TH></THEAD>$table";
+			$pdata .= "<TABLE id=\"workeritems\" class=\"userstatsworkers\"><THEAD><TH  style=\"text-align: left;\">Worker Name</TH><TH  style=\"text-align: right;\">Hashrate</TH><TH  style=\"text-align: right;\">Accepted Weighted Shares</TH></THEAD>$table";
 			if ($idleworkers) {
 				$idlelist = substr($idlelist,1,strlen($idlelist)-2).".";
 				$pdata .= "<TR BGCOLOR=\"#CCCCCC\"><TD COLSPAN=\"3\" style=\"white-space: normal; word-wrap:break-word;\"><B>Note</B>: There ".($idleworkers==1?"is":"are")." $idleworkers idle or no longer used worker".($idleworkers==1?"":"s")." that ".($idleworkers==1?"is":"are")." not shown in the table:<BR>$idlelist</TD></TR>";
@@ -500,6 +514,10 @@ if ($everpaid > 0) {
 }
 
 print "All time total payout: ".prettySatoshis($everpaid);
+if ($donated > 0) {
+	print "<BR><FONT SIZE=\"-1\">Total donated Eligius: ".prettySatoshis($donated)." - <I>Thanks!</I></FONT>";
+}
+
 print "<BR><BR><HR>";
 
 
