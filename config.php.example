@@ -39,5 +39,9 @@ $sigbitcoinrpcurl = "http://y:y@127.0.0.1:8334/";
 
 $poolname = "Eligius";
 
+$specialaddrs = array(
+        '1CZn8RYfzcEXc2STmkCPJVf7aqP4TfbGNu' => 'Eligius CPPSRB Donations A',
+        '18d3HV2bm94UyY4a9DrPfoZ17sXuiDQq2B' => 'Eligius Offline Wallet'
+);
 
 ?>
