@@ -172,10 +172,11 @@ if ($cmd == "gethashrate") {
 		        apc_store('cppsrb_json', $cppsrbjsondec, 60);
 		}
 		$mycppsrb = $cppsrbjsondec[""];
+		$my_shares = $mycppsrb["shares"];
 		$output["username"] = $givenuser;
-		$output["av256"] = array("numeric" => sprintf("%.0F",($my_shares[256] * 4294967296)/256), "pretty" => prettyHashrate(($my_shares[256] * 4294967296)/256), "share_count" => sprintf("%u",$my_shares[256]));
-		$output["av128"] = array("numeric" => sprintf("%.0F",($my_shares[128] * 4294967296)/128), "pretty" => prettyHashrate(($my_shares[128] * 4294967296)/128), "share_count" => sprintf("%u",$my_shares[128]));
-		$output["av64"] = array("numeric" => sprintf("%.0F",($my_shares[64] * 4294967296)/64), "pretty" => prettyHashrate(($my_shares[64] * 4294967296)/64), "share_count" => sprintf("%u",$my_shares[64]));
+		$output["av256"] = array("numeric" => sprintf("%.0F",($my_shares[256] * 4294967296)/256), "pretty" => prettyHashrate(($my_shares[256] * 4294967296)/256), "share_count" => sprintf("%u",$my_shares[256]), "name" => "256 seconds");
+		$output["av128"] = array("numeric" => sprintf("%.0F",($my_shares[128] * 4294967296)/128), "pretty" => prettyHashrate(($my_shares[128] * 4294967296)/128), "share_count" => sprintf("%u",$my_shares[128]), "name" => "128 seconds");
+		$output["av64"] = array("numeric" => sprintf("%.0F",($my_shares[64] * 4294967296)/64), "pretty" => prettyHashrate(($my_shares[64] * 4294967296)/64), "share_count" => sprintf("%u",$my_shares[64]), "name" => "64 seconds");
 		$data["output"] = $output;
 		echo ws_api_encode($data);
 		exit;
@@ -215,6 +216,27 @@ if ($cmd == "getuserstat") {
 	echo ws_api_encode($data);
 	exit;
 }
+
+
+if ($cmd == "getblocks") {
+
+	if ((isset($_GET["limit"])) && (is_numeric($_GET["limit"])) ) {
+		$limit =  pg_escape_string($_GET["limit"]);
+	} else {
+		$limit = 32;
+	}
+
+	if ((isset($_GET["offset"])) && (is_numeric($_GET["offset"])) ) {
+		$offset =  pg_escape_string($_GET["offset"]);
+	} else {
+		$offset = 0;
+	}
+
+
+
+}
+
+
 
 ws_api_error("Command not found");
 
