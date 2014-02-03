@@ -79,8 +79,6 @@ if ($cmd == "") {
 	ws_api_error("No command");
 }
 
-$data = array("cmd" => $cmd, "stime" => time());
-
 
 # TODO - replace with more limitted caching...
 $qshash = hash("sha256", $_SERVER['QUERY_STRING']);
@@ -89,6 +87,8 @@ if ($data = apc_fetch("api.php - $cmd - $qshash")) {
 	echo ws_api_encode($data);
 	exit;
 }
+
+$data = array("cmd" => $cmd, "stime" => time());
 
 if ($cmd == "getacceptedcount") {
 	$link = pg_pconnect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");
