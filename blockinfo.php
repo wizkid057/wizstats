@@ -116,25 +116,21 @@ for($i=0;$i<$cbouts;$i++) {
 	$addr = $out["scriptPubKey"]["addresses"][0];
 
 	$nickname = ""; $dolink = 1;
-	if ($addr == "18d3HV2bm94UyY4a9DrPfoZ17sXuiDQq2B") {
-		$nickname = "Eligius Offline Wallet";
+
+	if (array_key_exists($addr,$specialaddrs)) {
+		$nickname = $specialaddrs[$addr];
 		$dolink = 0;
 	}
-	if (($addr == "1GBT3CRvTCadJGUEKrsbv1AdvLqcjscaUb") || ($addr == "1FAi1SafERPBXBkq4g8WrhNZ1hR9BRUiSU") || ($addr == "1RCodeej35kS9rGMG7HsbZmB4U8n6mg7D")) {
+
+	# Do this before custom nicknames, obviously
+	if (strpos($nickname,'Failsafe Notification') !== false) {
 		$failsafe = 1;
-		$nickname = "Eligius CPPSRB Failsafe Notification";
-		$dolink = 0;
-	}
-	if (($addr == "1Change2aFDAsXM7mwdG3Yf5k7X1wvv8Qc") || ($addr == "1ChANGeATMH8dFnj39wGTjfjudUtLspzXr")) {
-		$nickname = "Eligius Payout Change Aggregation";
-		$dolink = 0;
 	}
 
 	if ($nickname == "") {
 		$nickname = get_nickname($link,get_user_id_from_address($link,$addr));
 	}
 
-	#print "$addr ($nickname) - $pammt<BR>";
 	if ($nickname != "") {
 		if ($dolink == 1) {
 			$address = "<A HREF=\"../userstats.php/$addr\">$nickname<BR><FONT SIZE=\"-3\">($addr)</FONT></A>";
