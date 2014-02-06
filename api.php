@@ -399,6 +399,11 @@ if ($cmd == "getblocks") {
 			$output["rows"][$ri]["hashrate_pretty"] = prettyHashrate($hashrate);
 			$output["rows"][$ri]["age_pretty"] = prettyDuration($row["age"],false,1);
 			$output["rows"][$ri]["duration_pretty"] = "$hours:$minutes:$seconds";
+			$output["rows"][$ri]["network_difficulty_pretty"] = formatSI($row["network_difficulty"],2);
+			if ($row["confirmations"] >= 120) { $confs = "Confirmed"; }
+			else if ($row["confirmations"] == 0) { $confs = "Stale"; }
+			else { $confs = $row["confirmations"]." of 120"; }
+			$output["rows"][$ri]["confirmations_pretty"] = $confs;
 		}
 
 	}
