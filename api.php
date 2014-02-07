@@ -407,6 +407,25 @@ if ($cmd == "getblocks") {
 		}
 
 	}
+
+
+	if ($counts = apc_fetch("api.php - getblocks - blockcounts")) {
+	} else {
+		$sql = "select (select count(*) from $psqlschema.stats_blocks) as total_blocks, (select count(*) from $psqlschema.stats_blocks where confirmations > 0) as valid_blocks;";
+		$result = pg_exec($link, $sql);
+		$numrows = pg_numrows($result);
+		if (!$numrows) {
+			ws_api_error("$cmd: Database error, please try again.");
+		}
+
+		$row = pg_fetch_array($result, 0);
+		$counts = array();
+		$counts["valid"] = $row["valid_blocks"];
+		$counts["total"] = $row["total_blocks"];
+		apc_store("api.php - getblocks - blockcounts", $counts, 300);
+	}
+
+	$output["block_counts"] = $counts;
 	$data["output"] = $output;
 	echo ws_api_encode($data);
 	exit;
