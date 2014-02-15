@@ -41,7 +41,7 @@ if ($cmd == "logout") {
 
 print_stats_top();
 
-print "<H2>*** Panel is in BETA.  Not all options are supported yet. ***</H2>You may set all options now, and they will take effect as backend support is completed!<BR><BR><HR><BR>";
+print "<H2>My $poolname Control Panel</H2><HR><BR>";
 
 if ($cmd == "logout") {
 	print "Logout successful.<BR>";
