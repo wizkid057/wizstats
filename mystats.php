@@ -293,7 +293,7 @@ if ($cmd) {
 		-->
 		</SCRIPT>
 
-		<BR><B>You must use a bitcoin client which supports standard signatures, or MtGox, for your mining address to sign options!</b><BR>
+		<BR><B>You must use a bitcoin client which supports standard signatures for your mining address to sign options!</b><BR>
 		Community contributed instructions for using Bitcoin-qt are here: <A HREF="http://eligius.st/~capa66/utl/my_eligius/index.html">http://eligius.st/~capa66/utl/my_eligius/index.html</A><BR>
 		<BR><H3><U>Options Form</U></H3><SMALL>All fields are optional. Leaving a field blank will result in the pool default for the setting being applied.</SMALL><BR><BR>
 		<FORM name="optionsform" onsubmit="return false;">
@@ -319,8 +319,6 @@ if ($cmd) {
 		<input type="hidden" name="cmd" value="submitsig">
 		<input type="hidden" name="u" value="<?php echo $u; ?>">
 		</FORM>
-
-		Using an MtGox wallet address? Copy your message to your clipboard, then <A TARGET="_blank" HREF="https://www.mtgox.com/sign-message?signin[bcaddr]=<?php echo $u; ?>&signin[msg]=&signin[callback]=http://eligius.st/~wizkid057/newstats/mystats.php?cmd=options">Click here for MtGox's message signing interface</A><BR><BR>
 
 		<BR><H3><U><FONT COLOR="RED">WARNING - READ BEFORE SUBMITTING</FONT></U></H3>
 		<B>Quick terms: By submitting a valid signature for your mining address, you are agreeing to these terms.<BR>Submitting the changes with a valid signature will immediately save the changes to the server.<BR>
