@@ -42,14 +42,15 @@ if ($_SERVER['PATH_INFO'] == "/blockinfo.json") {
 	if ( (!isset($_GET["height"])) && (!isset($_GET["dbid"]))) { exit(); }
 
 	$link = pg_pconnect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");
-	if (isset($_GET["height"])) { 
-		$cleanheight = pg_escape_string($link, $_GET["height"]); 
-		$sql = "select *,stats_blocks.id as blockid,date_part('epoch', NOW())::integer-date_part('epoch', time)::integer as age,date_part('epoch', time)::integer-date_part('epoch', roundstart)::integer as duration from $psqlschema.stats_blocks left join users on user_id=users.id where height=$cleanheight;";
+	if (isset($_GET["height"])) {
+		$cleanvar = $_GET["height"];
+		$prepname = "instant_blockinfo1";
+		$sql = pg_prepare($link, $prepname, "select *,stats_blocks.id as blockid,date_part('epoch', NOW())::integer-date_part('epoch', time)::integer as age,date_part('epoch', time)::integer-date_part('epoch', roundstart)::integer as duration from $psqlschema.stats_blocks left join users on user_id=users.id where height=$1::integer");
 	}
-	if (isset($_GET["dbid"])) { 
-		$cleandbid = pg_escape_string($link, $_GET["dbid"]); 
-		$sql = "select *,stats_blocks.id as blockid,date_part('epoch', NOW())::integer-date_part('epoch', time)::integer as age,date_part('epoch', time)::integer-date_part('epoch', roundstart)::integer as duration from $psqlschema.stats_blocks left join users on user_id=users.id where stats_blocks.id=$cleandbid;";
-
+	if (isset($_GET["dbid"])) {
+		$cleanvar = $_GET["dbid"];
+		$prepname = "instant_blockinfo2";
+		$sql = pg_prepare($link, $prepname, "select *,stats_blocks.id as blockid,date_part('epoch', NOW())::integer-date_part('epoch', time)::integer as age,date_part('epoch', time)::integer-date_part('epoch', roundstart)::integer as duration from $psqlschema.stats_blocks left join users on user_id=users.id where stats_blocks.id=$1::integer");
 	}
 
 	$tline = get_stats_cache($link, 6, hash("sha256",$sql));
@@ -58,7 +59,7 @@ if ($_SERVER['PATH_INFO'] == "/blockinfo.json") {
 		exit();
 	}
 
-	$result = pg_exec($link, $sql); 
+	$result = pg_execute($link, $prepname, array($cleanvar)); 
 	$row = pg_fetch_array($result, 0);
 	$dbid = $row["blockid"];
 	if (isset($_GET["cclass"])) { $cclass = $_GET["cclass"]; } else { $cclass = ""; }

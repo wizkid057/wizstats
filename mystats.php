@@ -209,11 +209,10 @@ if ($cmd) {
 			}
 			if ($sigok) {
 				print "Signature passes!";
-				$signedoptions = pg_escape_string($link,$msg);
-
-				$signature = pg_escape_string($link,$sig);
-				$sql = "insert into $psqlschema.stats_mystats (server, user_id, time, signed_options, signature) VALUES ($serverid, $user_id, to_timestamp($msgdateunix), '$signedoptions', '$signature');";
-				$result = pg_exec($link, $sql);
+				$signedoptions = $msg;
+				$signature = $sig;
+				$sql = pg_prepare($link, "mystats_insert", "insert into $psqlschema.stats_mystats (server, user_id, time, signed_options, signature) VALUES ($serverid, $user_id, to_timestamp($msgdateunix), $1, $2)");
+				$result = pg_execute($link, "mystats_insert", array($signedoptions, $signature));
 				#print "SQL: $sql";
 			}
 			else {

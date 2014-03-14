@@ -20,9 +20,9 @@ if (!isset($getblock["result"])) {
 		$getblock["result"] = "Error";
 		apc_store($query_hash, $getblock, 300);
 	} else {
-		$blockhashesc = pg_escape_string($link, $blockhash);
-		$sql = "select blockhash from $psqlschema.stats_blocks where server=$serverid and blockhash='$blockhashesc' limit 1;";
-		$result = pg_exec($link, $sql);
+		$blockhashesc = $blockhash;
+		$sql = pg_prepare($link, "blockinfo", "select blockhash from $psqlschema.stats_blocks where server=$serverid and blockhash=$1 limit 1");
+		$result = pg_execute($link, "blockinfo", array($blockhashesc));
 		$numrows = pg_numrows($result);
 		if ($numrows == 1) {
 			apc_store($query_hash, $getblock, 864000);

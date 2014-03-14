@@ -150,8 +150,8 @@ if ($cmd == "getuseroptions") {
 	}
 
 
-	$sql = "select (r).*,username from (select (select t from $psqlschema.stats_mystats t where t.user_id=u.id and time >= '$startdate' order by time desc limit 1) as r from users u offset 0) s left join users on (r).user_id=users.id where (r).user_id is not null and (r).server=$serverid order by id desc;";
-	$result = pg_exec($link, $sql);
+	$sql = pg_prepare($link, "api_getuseroptions", "select (r).*,username from (select (select t from $psqlschema.stats_mystats t where t.user_id=u.id and time >= $1::timestamp without time zone order by time desc limit 1) as r from users u offset 0) s left join users on (r).user_id=users.id where (r).user_id is not null and (r).server=$serverid order by id desc");
+	$result = pg_execute($link, "api_getuseroptions", array($startdate));
 	$numrows = pg_numrows($result);
 	$output = array("count" => $numrows);
 	if ($numrows) {
