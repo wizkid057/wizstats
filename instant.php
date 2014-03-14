@@ -53,7 +53,7 @@ if ($_SERVER['PATH_INFO'] == "/blockinfo.json") {
 		$sql = pg_prepare($link, $prepname, "select *,stats_blocks.id as blockid,date_part('epoch', NOW())::integer-date_part('epoch', time)::integer as age,date_part('epoch', time)::integer-date_part('epoch', roundstart)::integer as duration from $psqlschema.stats_blocks left join users on user_id=users.id where stats_blocks.id=$1::integer");
 	}
 
-	$tline = get_stats_cache($link, 6, hash("sha256",$sql));
+	$tline = get_stats_cache($link, 6, hash("sha256",$sql.$prepname.$cleanvar));
 	if ($tline != "") {
 		print $tline;
 		exit();
