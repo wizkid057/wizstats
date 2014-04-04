@@ -21,6 +21,8 @@
 	# in case we're in a function....
 	include("config.php");
 
+	if (isset($argv[2])) { $nocache = 1; } else { $nocache = 0; }
+
 	if (!isset($link)) { $link = pg_pconnect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost"); }
 
 	$livedata = get_stats_cache($link, 5, "livedata.json");
@@ -67,13 +69,15 @@
 
 
 			# get latest network difficulty from latest accepted share's "bits" field
-			$sql = "select id,(pow(10,((29-hex_to_int(substr(encode(solution,'hex'),145,2)))::double precision*2.4082399653118495617099111577959::double precision)+log(  (65535::double precision /  hex_to_int(substr(encode(solution,'hex'),147,6)))::double precision   )::double precision))::double precision as network_difficulty from shares where server=$serverid and our_result=true order by id desc limit 1;";
+			$sql = "select id,(pow(10,((29-$psqlschema.hex_to_int(substr(encode(solution,'hex'),145,2)::varchar))::double precision*2.4082399653118495617099111577959::double precision)+log(  (65535::double precision /  $psqlschema.hex_to_int(substr(encode(solution,'hex'),147,6)))::double precision   )::double precision))::double precision as network_difficulty from shares where server=$serverid and our_result=true order by id desc limit 1;";
+			//echo $sql;
 			$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
 			$netdiff = $row["network_difficulty"];
 
 			# Get the share id of the last valid block we've found
-			$sql = "select * from (select orig_id,time from stats_blocks where server=$serverid and confirmations > 0 order by time desc limit 1) as a, (select time+'675 seconds'::interval as satime from stats_shareagg where server=$serverid order by time desc limit 1) as b;";
-			$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
+			$sql = "select * from (select orig_id,time from $psqlschema.stats_blocks where server=$serverid and confirmations > 0 order by time desc limit 1) as a, (select time+'675 seconds'::interval as satime from $psqlschema.stats_shareagg where server=$serverid order by time desc limit 1) as b;";
+			$result = pg_exec($link, $sql);	$row = pg_fetch_array($result, 0);
+			echo $row;
 			$tempid = $row["orig_id"];
 			$temptime = $row["time"];
 			$temptime2 = $row["satime"];
@@ -132,8 +136,8 @@
 			if($cppsrbjsondec = apc_fetch('cppsrb_json_inst')) {
 				$hashrate256 = $cppsrbjsondec[""]["shares"][256] * 16777216;
 			} else {
-				if (filemtime("/var/lib/eligius/$serverid/cppsrb.json") > (time()-600)) {
-					$cppsrbjson = file_get_contents("/var/lib/eligius/$serverid/cppsrb.json");
+				if (filemtime("$pooldatadir/$serverid/cppsrb.json") > (time()-600)) {
+					$cppsrbjson = file_get_contents("$pooldatadir/$serverid/cppsrb.json");
 					$cppsrbjsondec = json_decode($cppsrbjson, true);
 					apc_store('cppsrb_json_inst', $cppsrbjsondec, 60);
 					$hashrate256 = $cppsrbjsondec[""]["shares"][256] * 16777216;
