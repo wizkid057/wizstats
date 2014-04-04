@@ -32,7 +32,7 @@ $link2 = pg_connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$ps
 $serverid = 7;
 
 # TODO: fix mostly hardcoded path
-$bal = file_get_contents("/var/lib/eligius/$serverid/balances.json");
+$bal = file_get_contents("$pooldatadir/$serverid/balances.json");
 $balj = json_decode($bal,true);
 
 

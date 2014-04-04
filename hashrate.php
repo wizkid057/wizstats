@@ -59,7 +59,7 @@ function get_hashrate_stats(&$link, $givenuser, $user_id)
 	# instant hashrates from CPPSRB
 	if($cppsrbjsondec = apc_fetch('cppsrb_json')) {
 	} else {
-	        $cppsrbjson = file_get_contents("/var/lib/eligius/$serverid/cppsrb.json");
+	        $cppsrbjson = file_get_contents("$pooldatadir/$serverid/cppsrb.json");
 	        $cppsrbjsondec = json_decode($cppsrbjson, true);
 	        apc_store('cppsrb_json', $cppsrbjsondec, 60);
 	}

@@ -21,8 +21,8 @@ require_once 'includes.php';
 
 $doanyway = 0;
 if (isset($argv[1])) { $doanyway = 1; }
-$blockjsondec = json_decode(file_get_contents("/var/lib/eligius/$serverid/blocks/latest.json"),true);
-$lastblock = substr(readlink("/var/lib/eligius/$serverid/blocks/latest.json"),0,-5);
+$blockjsondec = json_decode(file_get_contents("$pooldatadir/$serverid/blocks/latest.json"),true);
+$lastblock = substr(readlink("$pooldatadir/$serverid/blocks/latest.json"),0,-5);
 
 $link = pg_Connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost", PGSQL_CONNECT_FORCE_NEW );
 
@@ -152,7 +152,7 @@ while(!$done) {
 	print "\n";
 	$lastblock = $blockjsondec[""]["mylastblk"];
 	if (strlen($lastblock) < 64) { print "Error. No last block!?\n"; exit; }
-	$blockjsondec = json_decode(file_get_contents("/var/lib/eligius/$serverid/blocks/".($lastblock).".json"),true);
+	$blockjsondec = json_decode(file_get_contents("$pooldatadir/$serverid/blocks/".($lastblock).".json"),true);
 }
 
 

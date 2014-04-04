@@ -10,14 +10,14 @@ print "<H2>Payout Queue</H2><BR>";
 	// Try Cache First
 	if($payout = apc_fetch('payout')) {
 	} else {
-	 $payout = file("/var/lib/eligius/$serverid/payout_queue.txt", FILE_IGNORE_NEW_LINES); 
+	 $payout = file("$pooldatadir/$serverid/payout_queue.txt", FILE_IGNORE_NEW_LINES);
 	 // Store Cache for 10 minutes
 	 apc_store('payout', $payout, 600);
 	}
 	// Try Cache First
 	if($balance = apc_fetch('balance')) {
 	} else {
-	 $balance = file_get_contents("/var/lib/eligius/$serverid/balances.json");
+	 $balance = file_get_contents("$pooldatadir/$serverid/balances.json");
 	 $balance = json_decode($balance, true);
 	 // Store Cache for 10 minutes
 	 apc_store('balance', $balance, 600);
@@ -32,15 +32,15 @@ print "<H2>Payout Queue</H2><BR>";
 	$lt10tbcc = 0;
 	foreach($payout as $key) {
 		$value = $balance[$key];
-		if ($value['balance'] < 1048576) { 
+		if ($value['balance'] < 1048576) {
 			$lt10tbc += $value['balance'];
 			$lt10tbcc++;
-			$value['balance'] = 0; 
+			$value['balance'] = 0;
 		}
 		while($value['balance'] > 0) {
 			if ($total+$value['balance'] > 2500000000) {
 				$maxbal = 2500000000 - $total;
-				$qt .= "<TR $oe> <TD>$paynum</TD><TD><A HREF=\"/~wizkid057/newstats/userstats.php/$key\" id=\"$key\">$key</A></TD> <TD>".prettyDuration(time()-$value['oldest'])."</TD> <TD>".prettySatoshis($maxbal)."</TD> </TR>"; 
+				$qt .= "<TR $oe> <TD>$paynum</TD><TD><A HREF=\"/~wizkid057/newstats/userstats.php/$key\" id=\"$key\">$key</A></TD> <TD>".prettyDuration(time()-$value['oldest'])."</TD> <TD>".prettySatoshis($maxbal)."</TD> </TR>";
 				if ($oddeven) { $oe = " class=\"oddblockconfirmed\""; $oddeven = 0; } else { $oe = " class=\"blockconfirmed\""; $oddeven = 1; }
 				$qt .= "<TR $oe><TD></TD><TD><B>--- BLOCK BOUNDARY---</B></TD> <TD></TD> <TD></TD></TR>";
 				if ($oddeven) { $oe = " class=\"oddblockconfirmed\""; $oddeven = 0; } else { $oe = " class=\"blockconfirmed\""; $oddeven = 1; }
