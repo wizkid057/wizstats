@@ -272,7 +272,8 @@ function get_user_id_from_address($link, $addr) {
 		$bits =  hex2bits(\Bitcoin::addressToHash160($addr));
 		#echo $bits;
 		# maybe hint that keyhash is bytea?
-		$sql = "select id from public.users where keyhash='$bits' order by id asc limit 1";
+		//$sql = "select id from public.users where keyhash='$bits' order by id asc limit 1";
+		$sql = "select id from public.users where username='$addr' order by id asc limit 1";
 		$result = pg_exec($link, $sql);
 		$numrows = pg_numrows($result);
 		if ($numrows > 0) {
