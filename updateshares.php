@@ -46,6 +46,9 @@ if($firstsharetime==''){$firstsharetime='2014-04-04 00:18:45+08';}
 //echo '$firstsharetime',$firstsharetime;
 
 # All the work for this is done by postgresql, which is nice, under this query
+$sql = "insert into public.users(username) select distinct username from public.shares where username not in (select username from public.users);";
+$result = pg_exec($link, $sql);
+
 $sql = "INSERT INTO $psqlschema.stats_shareagg (server, time, user_id, accepted_shares, rejected_shares, blocks_found, hashrate)
 select server, to_timestamp((date_part('epoch', time)::integer / 675::integer) * 675::integer) AS ttime, user_id,
 0+SUM(((our_result::integer) * pow(2,(targetmask-32)))) as acceptedshares, COUNT(*)-SUM(our_result::integer) as rejectedshares, SUM(upstream_result::integer) as blocksfound,
