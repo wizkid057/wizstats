@@ -30,8 +30,20 @@ $latestsharetime = $row["lst"];
 
 $sql = "select to_timestamp(((date_part('epoch', (select time from wizkid057.stats_shareagg order by time desc limit 1))::integer / 675::integer) * 675::integer)+675::integer) as fst";
 $result = pg_exec($link, $sql);
-$row = pg_fetch_array($result, 0);
-$firstsharetime = $row["fst"];
+
+if(pg_num_rows($result) > 0){
+    $row = pg_fetch_array($result, 0);
+    $firstsharetime = $row["fst"];
+    echo '$firstsharetime',$firstsharetime;
+}else{
+    $firstsharetime='2014-04-04 00:18:45+08';
+    echo '$firstsharetime default ',$firstsharetime;
+}
+
+if($firstsharetime==''){$firstsharetime='2014-04-04 00:18:45+08';}
+
+//echo '$latestsharetime',$latestsharetime;
+//echo '$firstsharetime',$firstsharetime;
 
 # All the work for this is done by postgresql, which is nice, under this query
 $sql = "INSERT INTO $psqlschema.stats_shareagg (server, time, user_id, accepted_shares, rejected_shares, blocks_found, hashrate)
