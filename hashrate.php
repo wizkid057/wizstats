@@ -15,7 +15,7 @@ function add_interval_stats(&$set, $interval, $interval_name, $hashrate, $shares
 
 function get_hashrate_stats(&$link, $givenuser, $user_id)
 {
-	global $psqlschema, $serverid;
+	global $psqlschema, $pooldatadir, $serverid;
 
 	$worker_data = get_worker_data_from_user_id($link, $user_id);
 	$wherein = get_wherein_list_from_worker_data($worker_data);

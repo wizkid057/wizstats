@@ -59,7 +59,7 @@ if ($_SERVER['PATH_INFO'] == "/blockinfo.json") {
 		exit();
 	}
 
-	$result = pg_execute($link, $prepname, array($cleanvar)); 
+	$result = pg_execute($link, $prepname, array($cleanvar));
 	$row = pg_fetch_array($result, 0);
 	$dbid = $row["blockid"];
 	if (isset($_GET["cclass"])) { $cclass = $_GET["cclass"]; } else { $cclass = ""; }

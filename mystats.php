@@ -78,7 +78,7 @@ if ($nouser == 1) {
 	?>
 
 	<H2>No address sent for <I>My Stats</I> page</H2><BR>
-	<?php 
+	<?php
 	}
 	?>
 	<?php echo $reason; ?>
@@ -121,7 +121,7 @@ if ($cmd) {
 		if (substr($msg,0,strlen($msghead)) != $msghead) {
 			print "Invalid Message! ";
 			$validate = 0;
-		} 
+		}
 
 		$msgdate = substr($msg,strlen($msghead),19);
 
@@ -171,9 +171,9 @@ if ($cmd) {
 		if ($donatesum < 0) { $donatesum = 0; }
 		$donatesum = "<I>$donatesum%</I>";
 
-		if (($validate) && isset($msgvars_array["Minimum_Work_Diff"]) && ( (filter_var($msgvars_array["Minimum_Work_Diff"], FILTER_VALIDATE_INT) === FALSE) || 
-			($msgvars_array["Minimum_Work_Diff"] < 1) || 
-			($msgvars_array["Minimum_Work_Diff"] > 65536) || 
+		if (($validate) && isset($msgvars_array["Minimum_Work_Diff"]) && ( (filter_var($msgvars_array["Minimum_Work_Diff"], FILTER_VALIDATE_INT) === FALSE) ||
+			($msgvars_array["Minimum_Work_Diff"] < 1) ||
+			($msgvars_array["Minimum_Work_Diff"] > 65536) ||
 			(($msgvars_array["Minimum_Work_Diff"] & ($msgvars_array["Minimum_Work_Diff"]-1)) != 0))) {
 			$validate = 0;
 			print "Invalid minimum difficulty! (Valid values are powers of two: 1,2,4,8,16,32,etc) ";
