@@ -122,7 +122,7 @@
 				$sql = "select (select sum(pow(2,targetmask-32)) from shares where server=$serverid and our_result=true and time > '$temptime' and time < to_timestamp(((date_part('epoch', '$temptime'::timestamp without time zone)::integer / 675) * 675)+675))+(select coalesce(sum(accepted_shares),0) from $psqlschema.stats_shareagg where time >= to_timestamp(((date_part('epoch', '$temptime'::timestamp without time zone)::integer / 675) * 675)+675) and server=$serverid)+(select coalesce(sum(pow(2,targetmask-32)),0) from shares where server=$serverid and our_result=true and time > '$temptime2' and time > to_timestamp(((date_part('epoch', '$temptime'::timestamp without time zone)::integer / 675) * 675)+675)) as instcount, (select id from shares where server=$serverid order by id desc limit 1) as latest_id;";
 				if ($nocache) { print $sql; }
 				$sqlescape = pg_escape_string($link, $sql);
-				$sqlcheck = "select count(*) as check from pg_stat_activity where current_query='$sqlescape'";
+				$sqlcheck = "select count(*) as check from pg_stat_activity where query='$sqlescape'";
 				$result = pg_exec($link, $sqlcheck); $row = pg_fetch_array($result, 0);
 				$runningqueries = $row["check"];
 				$fetch = 1;
