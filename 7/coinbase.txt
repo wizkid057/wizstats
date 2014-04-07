@@ -1,0 +1,4 @@
+0
+# 0 BTC to 0 address(es) (0 for 0 given by CPPSRB)
+# CPPSRB provided prevblockhash of
+# eloipool provided prevblockhash of
