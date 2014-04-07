@@ -186,7 +186,7 @@ function update_stats_cache($link, $type, $hash, $data, $expireseconds) {
 }
 
 // src: stackoverflow
-function format_time($t,$f=':') // t = seconds, f = separator 
+function format_time($t,$f=':') // t = seconds, f = separator
 {
   return sprintf("%02d%s%02d%s%02d", floor($t/3600), $f, ($t/60)%60, $f, $t%60);
 }
@@ -227,7 +227,7 @@ function get_wherein_list_from_worker_data($worker_data) {
 
 
 function get_worker_data_from_user_id($link, $user_id) {
-	# assume $user_id is the first user_id in the database 
+	# assume $user_id is the first user_id in the database
 	# set a reasonable limit on worker count
 
 	$query_hash = "wizstats_workerlist ".hash("sha256", "workerlist for id $user_id");
@@ -270,6 +270,8 @@ function get_user_id_from_address($link, $addr) {
 		return $user_id;
 	} else {
 		$bits =  hex2bits(\Bitcoin::addressToHash160($addr));
+		#echo $bits;
+		# maybe hint that keyhash is bytea?
 		$sql = "select id from public.users where keyhash='$bits' order by id asc limit 1";
 		$result = pg_exec($link, $sql);
 		$numrows = pg_numrows($result);
@@ -317,8 +319,8 @@ function get_nickname($link, $user_id) {
 		}
 	}
 
-	if ($nickname == "No nickname") { 
-		$nickname = ""; 
+	if ($nickname == "No nickname") {
+		$nickname = "";
 	}
 
 	return $nickname;
