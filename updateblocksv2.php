@@ -18,13 +18,14 @@
 
 require_once 'includes.php';
 
-if( isLocked() ) die( "Already running.\n" ); 
+if( isLocked() ) die( "Already running.\n" );
 
 $link = pg_Connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost", PGSQL_CONNECT_FORCE_NEW );
 $link2 = pg_Connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost", PGSQL_CONNECT_FORCE_NEW );
 
 ### OPTIMIZE THIS TO KNOW WHEN THE LAST BLOCK WAS?!
 $sql = "INSERT INTO $psqlschema.stats_blocks (server, orig_id, time, user_id, solution, network_difficulty) select server, id, time, user_id, solution, (pow(10,((29-hex_to_int(substr(encode(solution,'hex'),145,2)))::double precision*2.4082399653118495617099111577959::double precision)+log(  (65535::double precision /  hex_to_int(substr(encode(solution,'hex'),147,6)))::double precision   )::double precision))::double precision as network_difficulty from shares where upstream_result=true and solution NOT IN (select solution from $psqlschema.stats_blocks);";
+
 $result = pg_exec($link, $sql);
 
 $sql = "select * from $psqlschema.stats_blocks where (confirmations < 120 and confirmations > 0) or (blockhash IS NULL) or ((acceptedshares is null or roundstart is null) and (confirmations > 0)) or (confirmations < 120 and time > NOW()-'1 day'::interval) order by time asc";
@@ -183,7 +184,7 @@ for($ri = 0; $ri < $numrows; $ri++) {
 		if ($rightrejects > 0) {
 			$sql = "update $psqlschema.stats_blocks set rightrejects=$rightrejects where id=$id";
 			$result2 = pg_exec($link2, $sql);
-		} 
+		}
 
 	}
 
@@ -193,6 +194,6 @@ for($ri = 0; $ri < $numrows; $ri++) {
 $sql = "delete from $psqlschema.stats_blocks using $psqlschema.stats_blocks sb2 where $psqlschema.stats_blocks.blockhash = sb2.blockhash AND $psqlschema.stats_blocks.id < sb2.id;";
 $result = pg_exec($link, $sql);
 
-unlink( LOCK_FILE ); 
+unlink( LOCK_FILE );
 
 ?>
