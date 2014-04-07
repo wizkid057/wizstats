@@ -25,12 +25,37 @@
 
 	if (!isset($link)) { $link = pg_pconnect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost"); }
 
-	$livedata = get_stats_cache($link, 5, "livedata.json");
+	$livedata = get_stats_cache($link, 5, "livedata.json"); // 30secends will expires, see below.
+
+	// if $livedata not empty and $nocache is 0. means use cache.
 	if (($livedata != "") && (!$nocache)) {
 		# we can parse it faster maybe?!
 
 		$instantjsondec = json_decode($livedata,true);
 
+        switch (json_last_error()) {
+            case JSON_ERROR_NONE:
+                echo ' - No errors';
+            break;
+            case JSON_ERROR_DEPTH:
+                echo ' - Maximum stack depth exceeded';
+            break;
+            case JSON_ERROR_STATE_MISMATCH:
+                echo ' - Underflow or the modes mismatch';
+            break;
+            case JSON_ERROR_CTRL_CHAR:
+                echo ' - Unexpected control character found';
+            break;
+            case JSON_ERROR_SYNTAX:
+                echo ' - Syntax error, malformed JSON';
+            break;
+            case JSON_ERROR_UTF8:
+                echo ' - Malformed UTF-8 characters, possibly incorrectly encoded';
+            break;
+            default:
+                echo ' - Unknown error';
+            break;
+        }
 		$phash = $instantjsondec["hashratepretty"];
 		$roundduration = $instantjsondec["roundduration"];
 		$sharesperunit = $instantjsondec["sharesperunit"];
@@ -40,10 +65,10 @@
 		$latestconfirms = $instantjsondec["lastconfirms"];
 		$datanew = 0;
 	} else {
-
-		$sql = "select pg_try_advisory_lock(1000002) as l";
+		$sql = "select pg_try_advisory_lock(1000002) as l"; // return true or false, "t", or "f"
 		$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
 		$lock = $row["l"];
+
 		if ($lock == "f") {
 			for($t=0;$t<15;$t++) {
 				sleep(2);
@@ -71,13 +96,21 @@
 			# get latest network difficulty from latest accepted share's "bits" field
 			$sql = "select id,(pow(10,((29-$psqlschema.hex_to_int(substr(encode(solution,'hex'),145,2)::varchar))::double precision*2.4082399653118495617099111577959::double precision)+log(  (65535::double precision /  $psqlschema.hex_to_int(substr(encode(solution,'hex'),147,6)))::double precision   )::double precision))::double precision as network_difficulty from shares where server=$serverid and our_result=true order by id desc limit 1;";
 			//echo $sql;
-			$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
-			$netdiff = $row["network_difficulty"];
+			$result = pg_exec($link, $sql);
 
+			$row = pg_fetch_array($result, 0);
+
+			$netdiff = $row["network_difficulty"];
 			# Get the share id of the last valid block we've found
 			$sql = "select * from (select orig_id,time from $psqlschema.stats_blocks where server=$serverid and confirmations > 0 order by time desc limit 1) as a, (select time+'675 seconds'::interval as satime from $psqlschema.stats_shareagg where server=$serverid order by time desc limit 1) as b;";
-			$result = pg_exec($link, $sql);	$row = pg_fetch_array($result, 0);
-			echo $row;
+			$result = pg_exec($link, $sql);
+
+            if(pg_num_rows($result) == 0){
+			    echo "Query didn't return anything";
+			    //exit;
+			}
+
+			$row = pg_fetch_array($result, 0);
 			$tempid = $row["orig_id"];
 			$temptime = $row["time"];
 			$temptime2 = $row["satime"];
@@ -86,7 +119,7 @@
 			if ((!($livedataspeedup = apc_fetch("livedata.json - share count from $tempid"))) || ($nocache)){
 				# no boost for this block yet, lets make it!
 				# this is kind of a kludge, bit should be close enough for the instastats...
-				$sql = "select (select sum(pow(2,targetmask-32)) from shares where server=$serverid and our_result=true and time > '$temptime' and time < to_timestamp(((date_part('epoch', '$temptime'::timestamp without time zone)::integer / 675) * 675)+675))+(select coalesce(sum(accepted_shares),0) from stats_shareagg where time >= to_timestamp(((date_part('epoch', '$temptime'::timestamp without time zone)::integer / 675) * 675)+675) and server=$serverid)+(select coalesce(sum(pow(2,targetmask-32)),0) from shares where server=$serverid and our_result=true and time > '$temptime2' and time > to_timestamp(((date_part('epoch', '$temptime'::timestamp without time zone)::integer / 675) * 675)+675)) as instcount, (select id from shares where server=$serverid order by id desc limit 1) as latest_id;";
+				$sql = "select (select sum(pow(2,targetmask-32)) from shares where server=$serverid and our_result=true and time > '$temptime' and time < to_timestamp(((date_part('epoch', '$temptime'::timestamp without time zone)::integer / 675) * 675)+675))+(select coalesce(sum(accepted_shares),0) from $psqlschema.stats_shareagg where time >= to_timestamp(((date_part('epoch', '$temptime'::timestamp without time zone)::integer / 675) * 675)+675) and server=$serverid)+(select coalesce(sum(pow(2,targetmask-32)),0) from shares where server=$serverid and our_result=true and time > '$temptime2' and time > to_timestamp(((date_part('epoch', '$temptime'::timestamp without time zone)::integer / 675) * 675)+675)) as instcount, (select id from shares where server=$serverid order by id desc limit 1) as latest_id;";
 				if ($nocache) { print $sql; }
 				$sqlescape = pg_escape_string($link, $sql);
 				$sqlcheck = "select count(*) as check from pg_stat_activity where current_query='$sqlescape'";
@@ -177,7 +210,18 @@
 		}
 
 	}
-	if (!($roundshares > 0)) { $roundshares = 0; }
+	//if (!($roundshares > 0)) { $roundshares = 0; }
+	// pay attention to below lines!!!!! debug use!
+	if (!($roundshares > 0)) { $roundshares = 1; }
+
+	if(!$sharesperunit)$sharesperunit=1;
+	if(!$blockheight)$blockheight=1;
+	if(!$latestconfirms)$latestconfirms=0;
+	if(!$latestconfirms)$latestconfirms=0;
+	if(!$roundduration)$roundduration=1;
+	if(!$netdiff)$netdiff=1;
+
+
 
 	$tline = "{\"sharesperunit\":$sharesperunit,\"roundsharecount\":$roundshares,\"lastblockheight\":$blockheight,\"lastconfirms\":$latestconfirms,\"roundduration\":$roundduration,\"hashratepretty\":\"$phash\",\"network_difficulty\":$netdiff}";
 
