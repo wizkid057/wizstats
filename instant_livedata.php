@@ -35,7 +35,6 @@
 
         switch (json_last_error()) {
             case JSON_ERROR_NONE:
-                echo ' - No errors';
             break;
             case JSON_ERROR_DEPTH:
                 echo ' - Maximum stack depth exceeded';
