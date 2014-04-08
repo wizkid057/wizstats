@@ -102,6 +102,7 @@ function block_table_row($row,$isodd) {
 	} else {
 		$blocks_row .= "<td style=\"text-align: right;\">n/a</td>";
 		$hashrate = "n/a";
+		$hashratenum = 0;
 	}
 
 	$blocks_row .= "<TD style=\"text-align: right;\" sorttable_customkey=\"".$row["acceptedshares"]."\">".($row["acceptedshares"]>0?number_format($row["acceptedshares"]):"n/a")."</TD>";
