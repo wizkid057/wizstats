@@ -27,6 +27,19 @@
 
 	$livedata = get_stats_cache($link, 5, "livedata.json"); // 30secends will expires, see below.
 
+	# if nodata in database, set default values, to fix many Notice: Undefined variable...
+	# the risk is may cause something wrong, may the calculate is not right
+	$roundshares = 0;
+	$sharesperunit=1;
+	$blockheight=1;
+	$latestconfirms=0;
+	$latestconfirms=0;
+	$roundduration=1;
+	$netdiff=1;
+
+	$datanew = 0;
+	$phash = "";
+
 	// if $livedata not empty and $nocache is 0. means use cache.
 	if (($livedata != "") && (!$nocache)) {
 		# we can parse it faster maybe?!
@@ -70,6 +83,8 @@
 
 		if ($lock == "f") {
 			for($t=0;$t<15;$t++) {
+				// this will cost 30 seconds, if max_execution_time = 30
+				// in php.ini, this loop will failed
 				sleep(2);
 				$livedata = get_stats_cache($link, 5, "livedata.json");
 				if ($livedata != "") {
