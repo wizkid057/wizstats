@@ -96,6 +96,11 @@
 			$sql = "select id,(pow(10,((29-$psqlschema.hex_to_int(substr(encode(solution,'hex'),145,2)::varchar))::double precision*2.4082399653118495617099111577959::double precision)+log(  (65535::double precision /  $psqlschema.hex_to_int(substr(encode(solution,'hex'),147,6)))::double precision   )::double precision))::double precision as network_difficulty from shares where server=$serverid and our_result=true order by id desc limit 1;";
 			//echo $sql;
 			$result = pg_exec($link, $sql);
+			if(pg_num_rows($result) == 0){
+				# Error! there is nodata in shares table
+				$tline = "{\"error\":\"Could not retrieve live stats, No data in shares table\"}\n";
+			} else {
+
 
 			$row = pg_fetch_array($result, 0);
 
@@ -103,12 +108,6 @@
 			# Get the share id of the last valid block we've found
 			$sql = "select * from (select orig_id,time from $psqlschema.stats_blocks where server=$serverid and confirmations > 0 order by time desc limit 1) as a, (select time+'675 seconds'::interval as satime from $psqlschema.stats_shareagg where server=$serverid order by time desc limit 1) as b;";
 			$result = pg_exec($link, $sql);
-
-            if(pg_num_rows($result) == 0){
-			    echo "Query didn't return anything";
-			    //exit;
-			}
-
 			$row = pg_fetch_array($result, 0);
 			$tempid = $row["orig_id"];
 			$temptime = $row["time"];
@@ -206,6 +205,7 @@
 			$datanew = 1;
 			$sql = "select pg_advisory_unlock(1000002) as l";
 			$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
+		} // nodata in shares
 		}
 
 	}
