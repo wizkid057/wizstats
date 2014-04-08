@@ -42,12 +42,18 @@ if ($cacheddata != "") {
 
 	# get total pool hashrate
 	$sql = "select to_timestamp((date_part('epoch', (time))::integer / 675::integer)::integer * 675::integer)-'3 hours'::interval as stime from $psqlschema.stats_shareagg where server=$serverid group by server,time order by time desc limit 1";
-	$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
+	$result = pg_exec($link, $sql);
+	if(pg_num_rows($result) == 0){
+		echo "there is no data in ".$psqlschema."stats_shareagg";
+	} else {
+
+	$row = pg_fetch_array($result, 0);
 	$stime = $row["stime"];
 
 	$sql = "select (sum(accepted_shares)*pow(2,32))/10800 as avghash from $psqlschema.stats_shareagg where server=$serverid and time > '$stime'::timestamp without time zone";
 	$result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
 	$poolhashrate3hr = $row["avghash"];
+
 
 
 	$sql = "select (sum(accepted_shares)*pow(2,32))/10800 as avghash, sum(accepted_shares) as sharecount, keyhash, min(users.id) as user_id from $psqlschema.stats_shareagg left join users on user_id=users.id where server=$serverid and time > '$stime'::timestamp without time zone and accepted_shares > 0 group by keyhash order by avghash desc $minilimit;";
@@ -95,7 +101,9 @@ if ($cacheddata != "") {
 	}
 	$pdata .= "</TABLE>";
 	set_stats_cache($link, 20, $cachehash, $pdata, 675);
+
 	print $pdata;
+	} # nodata in stats_shareagg
 }
 
 
