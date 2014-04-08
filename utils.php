@@ -236,17 +236,24 @@ function get_worker_data_from_user_id($link, $user_id) {
 		return $worker_data;
 	} else {
 
-		$sql = "select * from public.users where keyhash=(select keyhash from public.users where id=$user_id) order by id asc limit 128";
+		//$sql = "select * from public.users where keyhash=(select keyhash from public.users where id=$user_id) order by id asc limit 128";
+		$sql = "select * from public.users where id=$user_id order by id asc limit 128";
 		$result = pg_exec($link, $sql);
 		$numrows = pg_numrows($result);
 		if ($numrows > 0) {
+			echo '$numrows:',$numrows,'<br>';
 			# should always be at least 1...
 			$worker_data = array();
 			for($ri=0;$ri<$numrows;$ri++) {
 				$row = pg_fetch_array($result, $ri);
-				if (strlen($row["workername"]) > 0) {
-					$wname = $row["workername"];
+				$username = $row["username"];
+				$warray=explode("_", $username, 2);
+				if (count($warray) > 1) {
+					list($username,$wname) = $warray;
 				} else {
+					$wname = "default";
+				}
+				if(strlen($wname) == 0){
 					$wname = "default";
 				}
 				$worker_data[$row["id"]] = $wname;
