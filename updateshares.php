@@ -34,16 +34,14 @@ $result = pg_exec($link, $sql);
 if(pg_num_rows($result) > 0){
     $row = pg_fetch_array($result, 0);
     $firstsharetime = $row["fst"];
-    echo '$firstsharetime',$firstsharetime;
 }else{
     $firstsharetime='2014-04-04 00:18:45+08';
-    echo '$firstsharetime default ',$firstsharetime;
 }
 
 if($firstsharetime==''){$firstsharetime='2014-04-04 00:18:45+08';}
 
-//echo '$latestsharetime',$latestsharetime;
-//echo '$firstsharetime',$firstsharetime;
+echo '$latestsharetime',$latestsharetime;
+echo '$firstsharetime',$firstsharetime;
 
 # All the work for this is done by postgresql, which is nice, under this query
 $sql = "insert into public.users(username) select distinct username from public.shares where username not in (select username from public.users);";
@@ -56,7 +54,7 @@ select server, to_timestamp((date_part('epoch', time)::integer / 675::integer) *
 from public.shares where time > '$firstsharetime' and to_timestamp((date_part('epoch', time)::integer / 675::integer) * 675::integer) < '$latestsharetime' and server=$serverid group by ttime, server, user_id;";
 
 $sql = "INSERT INTO $psqlschema.stats_shareagg (server, time, user_id, accepted_shares, rejected_shares, blocks_found, hashrate)
-select server, to_timestamp((date_part('epoch', time)::integer / 675::integer) * 675::integer) AS ttime, users.id as user_id,
+select server, to_timestamp((date_part('epoch', time)::integer / 675::integer) * 675::integer)::timestamp without time zone AS ttime, users.id as user_id,
 0+SUM(our_result::integer) as acceptedshares, COUNT(*)-SUM(our_result::integer) as rejectedshares, SUM(upstream_result::integer) as blocksfound,
 ((SUM(our_result::integer) * POW(2, 32)) / 675) AS hashrate
 from public.shares left join users on shares.username=users.username where time > '$firstsharetime' and to_timestamp((date_part('epoch', time)::integer / 675::integer) * 675::integer) < '$latestsharetime' and server=$serverid group by ttime, server, users.id;";
