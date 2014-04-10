@@ -23,12 +23,12 @@ if( isLocked() ) die( "Already running.\n" );
 $link = pg_Connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost", PGSQL_CONNECT_FORCE_NEW );
 
 
-$sql = "select to_timestamp((date_part('epoch', time)::integer / 675::integer) * 675::integer) as lst from public.shares where server=$serverid order by id desc limit 1";
+$sql = "select to_timestamp((date_part('epoch', time)::integer / 675::integer) * 675::integer) at time zone 'UTC' as lst from public.shares where server=$serverid order by id desc limit 1";
 $result = pg_exec($link, $sql);
 $row = pg_fetch_array($result, 0);
 $latestsharetime = $row["lst"];
 
-$sql = "select to_timestamp(((date_part('epoch', (select time from wizkid057.stats_shareagg order by time desc limit 1))::integer / 675::integer) * 675::integer)+675::integer) as fst";
+$sql = "select to_timestamp(((date_part('epoch', (select time from wizkid057.stats_shareagg order by time desc limit 1))::integer / 675::integer) * 675::integer)+675::integer) at time zone 'UTC' as fst";
 $result = pg_exec($link, $sql);
 
 if(pg_num_rows($result) > 0){
