@@ -26,6 +26,14 @@ $lastblock = substr(readlink("/var/lib/eligius/$serverid/blocks/latest.json"),0,
 
 $link = pg_Connect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost", PGSQL_CONNECT_FORCE_NEW );
 
+# fix up orphans
+$sql = "delete from $psqlschema.stats_payouts where transaction_id in (select stats_transactions.id from stats_transactions left join stats_blocks on block_id=stats_blocks.id where confirmations < 1 and stats_blocks.time < NOW()-'18 hours'::interval);";
+$result = pg_exec($link, $sql);
+
+$sql = "delete from $psqlschema.stats_transactions where id in (select stats_transactions.id from stats_transactions left join stats_blocks on block_id=stats_blocks.id where confirmations < 1  and stats_blocks.time < NOW()-'18 hours'::interval);";
+$result = pg_exec($link, $sql);
+
+
 $done = 0;
 while(!$done) {
 	if (strpos($lastblock,'_send') != false) {
