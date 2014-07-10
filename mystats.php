@@ -104,7 +104,6 @@ if ($cmd) {
 	if ($cmd == "menu") {
 		print "<A HREF=\"userstats.php/$u\">My User Stats Page</A><BR>\n";
 		print "<A HREF=\"?cmd=options\">Configurable Options</A><BR>\n";
-		print "<A HREF=\"?cmd=switchaddr\">Switch Mining Address</A><BR>\n";
 	}
 
 	if ($cmd == "submitsig") {
