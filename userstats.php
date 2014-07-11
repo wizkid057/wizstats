@@ -387,7 +387,7 @@ if (count($worker_data) > 1) {
 }
 
 print "<div id=\"ugraphdiv2\" style=\"width:750px; height:375px;\"></div>";
-print "<INPUT TYPE=\"BUTTON\" onClick=\"showmax();\" VALUE=\"Toggle Graphing of Maximum Reward\"><BR>";
+print "<INPUT TYPE=\"BUTTON\" onClick=\"showmax();\" id=\"graphToggleButton\" VALUE=\"Toggle Graphing of Maximum Reward\"><BR>";
 print "<div id=\"ugraphdiv3\" style=\"width:750px; height:375px;\"></div>";
 
 #if (!isset($_GET["timemachine"])) {
