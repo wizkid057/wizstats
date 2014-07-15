@@ -21,7 +21,7 @@ function getAllBalances() {
 
   if($balanacesjsondec = apc_fetch('balance')) {
   } else {
-    $balance = file_get_contents("/var/lib/eligius/$serverid/balances.json");
+    $balance = file_get_contents("$pooldatadir/$serverid/balances.json");
     $balanacesjsondec = json_decode($balance, true);
     // Store Cache for 10 minutes
     apc_store('balance', $balanacesjsondec, 600);
@@ -34,7 +34,7 @@ function getAllBalancesSM() {
 
   if($balanacesjsondecSM = apc_fetch('balance_smpps')) {
   } else {
-    $balanacesjsonSM = file_get_contents("/var/lib/eligius/$serverid/smpps_lastblock.json");
+    $balanacesjsonSM = file_get_contents("$pooldatadir/$serverid/smpps_lastblock.json");
     $balanacesjsondecSM = json_decode($balanacesjsonSM,true);
     // Store Cache forever (10 days)
     apc_store('balance_smpps', $balanacesjsondecSM, 864000);

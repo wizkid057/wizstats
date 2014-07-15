@@ -66,13 +66,13 @@ function block_table_row($row,$isodd) {
 
 	$dbid = $row["blockid"];
 
-	if ($row["confirmations"] == 0) { 
-		$blocks_row .= "<TR id=\"blockrow$dbid\" BGCOLOR=\"#FFDFDF\" class=\"$isodd"."blockorphan\">"; 
+	if ($row["confirmations"] == 0) {
+		$blocks_row .= "<TR id=\"blockrow$dbid\" BGCOLOR=\"#FFDFDF\" class=\"$isodd"."blockorphan\">";
 	}
-	else if ($row["confirmations"] >= 120) { 
-		$blocks_row .= "<TR id=\"blockrow$dbid\" class=\"$isodd"."blockconfirmed\">"; 
+	else if ($row["confirmations"] >= 120) {
+		$blocks_row .= "<TR id=\"blockrow$dbid\" class=\"$isodd"."blockconfirmed\">";
 	}
-	else { 
+	else {
 		$rowcolour = $isodd ? array(0xd3, 0xeb, 0xe3) : array(0xeb, 0xed, 0xe9);
 		$uccolour = array(0xff, 0x7f, 0);
 		$rowcolour = blend_colours($uccolour, $rowcolour, $row["confirmations"] / 120);
@@ -102,6 +102,7 @@ function block_table_row($row,$isodd) {
 	} else {
 		$blocks_row .= "<td style=\"text-align: right;\">n/a</td>";
 		$hashrate = "n/a";
+		$hashratenum = 0;
 	}
 
 	$blocks_row .= "<TD style=\"text-align: right;\" sorttable_customkey=\"".$row["acceptedshares"]."\">".($row["acceptedshares"]>0?number_format($row["acceptedshares"]):"n/a")."</TD>";
@@ -122,7 +123,7 @@ function block_table_row($row,$isodd) {
 		$address = substr($fulladdress,0,10)."...";
 	} else {
 		$fulladdress = "";
-		$address = "(Unknown user)"; 
+		$address = "(Unknown user)";
 	}
 	$blocks_row .= "<TD style=\"font-family:monospace;\"><A HREF=\"userstats.php/".$fulladdress."\">".$address."</A></TD>";
 

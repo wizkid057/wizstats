@@ -18,7 +18,6 @@
 require_once "includes.php";
 #$bodytags = "onLoad=\"initShares();\"";
 $ldmain = "-main";
-
 print_stats_top();
 
 $announce = file_get_contents("announce.txt");
@@ -118,16 +117,16 @@ For example, <A HREF="http://eligius.st/~wizkid057/newstats/userstats.php/1Jq8g5
 <BR><div id="line"></div>
 <H3><CENTER>Top Miners (3 hr rate) <A HREF="topcontributors.php">(Full)</A></CENTER></H3>
 
-<?php 
+<?php
 	# Display partial contributor list on main page
-	$minilimit = "limit 10"; 
-	include("topcontributors.php"); 
+	$minilimit = "limit 10";
+	include("topcontributors.php");
 
 
 ?>
 <BR><BR>
 Current network difficulty: <?php echo $netdiff; ?><BR>
-Current maximum PPS at this difficulty: <?php 
+Current maximum PPS at this difficulty: <?php
 $xpps = sprintf("%.12f",currentPPSsatoshi($netdiff)/100000000);
 $pps = substr($xpps,0,10);
 $subpps = substr($xpps,10,4);
@@ -138,5 +137,5 @@ Average pool blocks per day at <?php echo $phash; ?> at this difficulty: <?php e
 
 
 <?php
-	print_stats_bottom(); 
+	print_stats_bottom();
 ?>

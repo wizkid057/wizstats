@@ -2,6 +2,14 @@
 
 require_once 'includes.php';
 
+if (!isset($_SERVER['PATH_INFO'])) {
+	print_stats_top();
+	print "<BR><FONT COLOR=\"RED\"><B>Error:</B> No blockhash specified in URL path  Please try again.</FONT><BR>";
+	print_stats_bottom();
+	exit;
+}
+
+
 print_stats_top();
 
 $blockhash = substr($_SERVER["PATH_INFO"],1,64);
@@ -149,10 +157,10 @@ print "</TABLE>";
 
 if ($block["height"] >= 261279) {
 	# TODO: Make compliant with reward halving
-	$fees = $total - 2500000000; 
+	$fees = $total - 2500000000;
 	$rf = 0;
-	if ($fees > 500000000) { 
-		$fees = 500000000; 
+	if ($fees > 500000000) {
+		$fees = 500000000;
 		$rf = 1;
 	}
 	print "<BR>Block transactions fees put towards share log: ".prettySatoshis($fees)."<BR>";

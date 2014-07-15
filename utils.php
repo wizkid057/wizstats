@@ -186,7 +186,7 @@ function update_stats_cache($link, $type, $hash, $data, $expireseconds) {
 }
 
 // src: stackoverflow
-function format_time($t,$f=':') // t = seconds, f = separator 
+function format_time($t,$f=':') // t = seconds, f = separator
 {
   return sprintf("%02d%s%02d%s%02d", floor($t/3600), $f, ($t/60)%60, $f, $t%60);
 }
@@ -227,7 +227,7 @@ function get_wherein_list_from_worker_data($worker_data) {
 
 
 function get_worker_data_from_user_id($link, $user_id) {
-	# assume $user_id is the first user_id in the database 
+	# assume $user_id is the first user_id in the database
 	# set a reasonable limit on worker count
 
 	$query_hash = "wizstats_workerlist ".hash("sha256", "workerlist for id $user_id");
@@ -236,17 +236,24 @@ function get_worker_data_from_user_id($link, $user_id) {
 		return $worker_data;
 	} else {
 
-		$sql = "select * from public.users where keyhash=(select keyhash from public.users where id=$user_id) order by id asc limit 128";
+		//$sql = "select * from public.users where keyhash=(select keyhash from public.users where id=$user_id) order by id asc limit 128";
+		$sql = "select * from public.users where id=$user_id order by id asc limit 128";
 		$result = pg_exec($link, $sql);
 		$numrows = pg_numrows($result);
 		if ($numrows > 0) {
+			echo '$numrows:',$numrows,'<br>';
 			# should always be at least 1...
 			$worker_data = array();
 			for($ri=0;$ri<$numrows;$ri++) {
 				$row = pg_fetch_array($result, $ri);
-				if (strlen($row["workername"]) > 0) {
-					$wname = $row["workername"];
+				$username = $row["username"];
+				$warray=explode("_", $username, 2);
+				if (count($warray) > 1) {
+					list($username,$wname) = $warray;
 				} else {
+					$wname = "default";
+				}
+				if(strlen($wname) == 0){
 					$wname = "default";
 				}
 				$worker_data[$row["id"]] = $wname;
@@ -270,7 +277,10 @@ function get_user_id_from_address($link, $addr) {
 		return $user_id;
 	} else {
 		$bits =  hex2bits(\Bitcoin::addressToHash160($addr));
-		$sql = "select id from public.users where keyhash='$bits' order by id asc limit 1";
+		#echo $bits;
+		# maybe hint that keyhash is bytea?
+		//$sql = "select id from public.users where keyhash='$bits' order by id asc limit 1";
+		$sql = "select id from public.users where username='$addr' order by id asc limit 1";
 		$result = pg_exec($link, $sql);
 		$numrows = pg_numrows($result);
 		if ($numrows > 0) {
@@ -317,8 +327,8 @@ function get_nickname($link, $user_id) {
 		}
 	}
 
-	if ($nickname == "No nickname") { 
-		$nickname = ""; 
+	if ($nickname == "No nickname") {
+		$nickname = "";
 	}
 
 	return $nickname;

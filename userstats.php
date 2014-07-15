@@ -71,7 +71,7 @@ $cppsrbloaded = 0;
 
 if($balanacesjsondec = apc_fetch('balance')) {
 } else {
-	$balance = file_get_contents("/var/lib/eligius/$serverid/balances.json");
+	$balance = file_get_contents("$pooldatadir/$serverid/balances.json");
 	$balanacesjsondec = json_decode($balance, true);
 	// Store Cache for 10 minutes
 	apc_store('balance', $balanacesjsondec, 600);
@@ -126,7 +126,7 @@ if ($mybal) {
 
 if($balanacesjsondecSM = apc_fetch('balance_smpps')) {
 } else {
-	$balanacesjsonSM = file_get_contents("/var/lib/eligius/$serverid/smpps_lastblock.json");
+	$balanacesjsonSM = file_get_contents("$pooldatadir/$serverid/smpps_lastblock.json");
 	$balanacesjsondecSM = json_decode($balanacesjsonSM,true);
 	// Store Cache forever (10 days)
 	apc_store('balance_smpps', $balanacesjsondecSM, 864000);
@@ -135,7 +135,7 @@ if (isset($balanacesjsondecSM[$givenuser])) { $mybalSM = $balanacesjsondecSM[$gi
 
 if (isset($mybalSM)) {
 	# SMPPS credit needed to be halved for the pool to be statistically viable
-	$smppsec = $mybalSM["credit"]; 
+	$smppsec = $mybalSM["credit"];
 	$smppshalf = $mybalSM["credit"]/2;
 	$smppsec -= $smppshalf;
 } else {
@@ -317,8 +317,8 @@ if (count($worker_data) > 1) {
 			$t = $row["ctime"];
 			$as = $row["accepted_shares"];
 			$rs = $row["rejected_shares"];
-			if (!isset($wstat[$wid])) { 
-				$wstat[$wid] = array(); 
+			if (!isset($wstat[$wid])) {
+				$wstat[$wid] = array();
 				for($x=0;$x<3;$x++) {
 					$wstat[$wid][$x] = array();
 					$wstat[$wid][$x][1] = 0;
@@ -333,7 +333,7 @@ if (count($worker_data) > 1) {
 				$wstat[$wid][1][2] += $rs;
 				if ($t > $t225) {
 					$wstat[$wid][2][1] += $as;
-					$wstat[$wid][2][2] += $rs; 
+					$wstat[$wid][2][2] += $rs;
 				}
 			}
 		}
@@ -402,7 +402,7 @@ print "<script type=\"text/javascript\">
 	var blockUpdateA = 0;
 	var blockUpdateB = 0;
 
-	g2 = new Dygraph(document.getElementById(\"ugraphdiv2\"),\"$givenuser?cmd=hashgraph&start=0&back=$secondsback&res=1\",{ 
+	g2 = new Dygraph(document.getElementById(\"ugraphdiv2\"),\"$givenuser?cmd=hashgraph&start=0&back=$secondsback&res=1\",{
 		strokeWidth: 1.5,
 		fillGraph: true,
 		'675 second': { color: '#408000' },
@@ -432,7 +432,7 @@ print "<script type=\"text/javascript\">
 	var mrindex = 0;
 	var mrhidden = 1;
 	g3 = new Dygraph(
-	document.getElementById(\"ugraphdiv3\"),\"$givenuser?cmd=balancegraph&start=0&back=$secondsback&res=1\",{ 
+	document.getElementById(\"ugraphdiv3\"),\"$givenuser?cmd=balancegraph&start=0&back=$secondsback&res=1\",{
 		strokeWidth: 2.25,
 		fillGraph: true,
 		labelsDivStyles: { border: '1px solid black' },
@@ -526,7 +526,7 @@ if ($savedbal) {
 	print "<BR><B>Estimated Position in Payout Queue</B><BR>";
 	if ($payoutqueue = apc_fetch('wizstats_payoutqueuetxt')) {
 	} else {
-		$payoutqueue = file_get_contents("/var/lib/eligius/$serverid/payout_queue.txt");
+		$payoutqueue = file_get_contents("$pooldatadir/$serverid/payout_queue.txt");
 		apc_store('wizstats_payoutqueuetxt', $payoutqueue, 600);
 	}
 	print "<span style=\"font-size: 0.8em\">";
@@ -566,7 +566,7 @@ if ($savedbal) {
 		}
 
 		if ($u16avghash > 0) {
-			$sql = "select id,(pow(10,((29-hex_to_int(substr(encode(solution,'hex'),145,2)))::double precision*2.4082399653118495617099111577959::double precision)+log(  (65535::double precision /  hex_to_int(substr(encode(solution,'hex'),147,6)))::double precision   )::double precision))::double precision as network_difficulty from shares where server=$serverid and our_result=true order by id desc limit 1;";
+			$sql = "select id,(pow(10,((29-$psqlschema.hex_to_int(substr(encode(solution,'hex'),145,2)))::double precision*2.4082399653118495617099111577959::double precision)+log(  (65535::double precision /  $psqlschema.hex_to_int(substr(encode(solution,'hex'),147,6)))::double precision   )::double precision))::double precision as network_difficulty from shares where server=$serverid and our_result=true order by id desc limit 1;";
 	                $result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
 	                $netdiff = $row["network_difficulty"];
 
@@ -618,7 +618,7 @@ if ($savedbal) {
 
 if ($u16avghash > 0) {
 	if (!isset($netdiff)) {
-		$sql = "select id,(pow(10,((29-hex_to_int(substr(encode(solution,'hex'),145,2)))::double precision*2.4082399653118495617099111577959::double precision)+log(  (65535::double precision /  hex_to_int(substr(encode(solution,'hex'),147,6)))::double precision   )::double precision))::double precision as network_difficulty from shares where server=$serverid and our_result=true order by id desc limit 1;";
+		$sql = "select id,(pow(10,((29-$psqlschema.hex_to_int(substr(encode(solution,'hex'),145,2)))::double precision*2.4082399653118495617099111577959::double precision)+log(  (65535::double precision /  $psqlschema.hex_to_int(substr(encode(solution,'hex'),147,6)))::double precision   )::double precision))::double precision as network_difficulty from shares where server=$serverid and our_result=true order by id desc limit 1;";
                 $result = pg_exec($link, $sql); $row = pg_fetch_array($result, 0);
                 $netdiff = $row["network_difficulty"];
 	}

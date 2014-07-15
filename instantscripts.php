@@ -31,7 +31,6 @@ if (($_SERVER['PATH_INFO'] == "/livedata-main.js") || ($_SERVER['PATH_INFO'] == 
 	$polltimer = 60000;
 	$fullpolltimer = 601000;
 
-
 	print "
 	var intCountShares = $roundshares;
 	var intSharesPerUnit = ($sharesperunit) * 0.02;
@@ -95,7 +94,7 @@ if (($_SERVER['PATH_INFO'] == "/livedata-main.js") || ($_SERVER['PATH_INFO'] == 
 				prettyHashrate = data.hashratepretty;
 				networkDifficulty = data.network_difficulty;
 				networkDifficulty1000 = networkDifficulty * 1000;
-				
+
 				dom_livehashrate.data = prettyHashrate;
 			});
 
@@ -158,10 +157,10 @@ print "
 		dom_liveluck = document.getElementById('liveluck').childNodes[0];
 		dom_roundtime = document.getElementById('roundtime').childNodes[0];
 		dom_sharecounter = document.getElementById('sharecounter').childNodes[0];
-		
+
 		updateSharesData();
 		updatePerSecond();
-		countShares(); 
+		countShares();
 ";
 if ($main) {
 print "
@@ -190,7 +189,7 @@ print "
 ";
 if ($main) {
 print "
-		$('#blocklisttable tr').each(function(index, elem) { 
+		$('#blocklisttable tr').each(function(index, elem) {
 			if (index>0) {
 				if (\$(elem).attr('id').substring(0,8) == 'blockrow') {
 					var confcell = 'null';

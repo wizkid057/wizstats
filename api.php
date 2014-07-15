@@ -66,11 +66,11 @@ if ($format == "json") {
 	}
 }
 if ($format == "text") { header("Content-type: text/plain"); }
-if ($format == "csv") { 
+if ($format == "csv") {
 	if (isset($_GET["csvastext"])) {
-		header("Content-type: text/plain"); 
+		header("Content-type: text/plain");
 	} else {
-		header("Content-type: text/csv"); 
+		header("Content-type: text/csv");
 		header('Content-Disposition: attachment;filename='.$cmd.'.csv');
 	}
 }
@@ -198,7 +198,7 @@ if ($cmd == "gethashrate") {
 		$givenuser = "entirepool";
 		if($cppsrbjsondec = apc_fetch('cppsrb_json')) {
 		} else {
-		        $cppsrbjson = file_get_contents("/var/lib/eligius/$serverid/cppsrb.json");
+		        $cppsrbjson = file_get_contents("$pooldatadir/$serverid/cppsrb.json");
 		        $cppsrbjsondec = json_decode($cppsrbjson, true);
 		        apc_store('cppsrb_json', $cppsrbjsondec, 60);
 		}

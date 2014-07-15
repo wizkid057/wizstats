@@ -1,4 +1,7 @@
 config.php
 old/
 *.old
-
+*.prj
+*.pui
+*.doc
+*.cmd
