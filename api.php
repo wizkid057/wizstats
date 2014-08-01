@@ -251,6 +251,19 @@ if ($cmd == "getuserstat") {
 
 if ($cmd == "getblocks") {
 
+    if (isset($_GET["username"])) {
+		$givenuser = $_GET["username"];
+		$bits =  hex2bits(\Bitcoin::addressToHash160($givenuser));
+
+		$link = pg_pconnect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");
+		$user_id = get_user_id_from_address($link, $givenuser);
+		if (!$user_id) {
+			ws_api_error("$cmd: Username $givenuser not found in database.");
+		}
+		$worker_data = get_worker_data_from_user_id($link, $user_id);
+	    $wherein = get_wherein_list_from_worker_data($worker_data);
+	}
+
 	if ((isset($_GET["limit"])) && (is_numeric($_GET["limit"])) ) {
 		$limit =  pg_escape_string($_GET["limit"]);
 		if ($limit < 0) { $limit = 1; }
@@ -340,7 +353,7 @@ if ($cmd == "getblocks") {
 	}
 
 	$link = pg_pconnect("dbname=$psqldb user=$psqluser password='$psqlpass' host=$psqlhost");
-	$sql = "select stats_blocks.id as blockid,network_difficulty,confirmations,height,orig_id,time,user_id,keyhash,solution,blockhash,roundstart,acceptedshares,date_part('epoch', NOW())::integer-date_part('epoch', time)::integer as age,date_part('epoch', time)::integer-date_part('epoch', roundstart)::integer as duration, date_part('epoch', time) as time_unix, date_part('epoch', roundstart) as start_unix from $psqlschema.stats_blocks left join users on user_id=users.id where confirmations >= $minconfs and height >= $minheight and server=$serverid order by $sortby $sortorder limit $limit offset $offset";
+	$sql = "select stats_blocks.id as blockid,network_difficulty,confirmations,height,orig_id,time,user_id,keyhash,solution,blockhash,roundstart,acceptedshares,date_part('epoch', NOW())::integer-date_part('epoch', time)::integer as age,date_part('epoch', time)::integer-date_part('epoch', roundstart)::integer as duration, date_part('epoch', time) as time_unix, date_part('epoch', roundstart) as start_unix from $psqlschema.stats_blocks left join users on user_id=users.id where confirmations >= $minconfs and height >= $minheight and server=$serverid and user_id in $wherein order by $sortby $sortorder limit $limit offset $offset";
 	$result = pg_exec($link, $sql);
 	$numrows = pg_numrows($result);
 
